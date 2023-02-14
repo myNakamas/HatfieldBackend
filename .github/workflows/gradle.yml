@@ -17,7 +17,8 @@ permissions:
   contents: read
 
 jobs:
-  build:
+  test:
+    name: Run tests
     runs-on: ubuntu-latest
 
     steps:
@@ -27,15 +28,15 @@ jobs:
       with:
         java-version: '19'
         distribution: 'corretto'
+        
+    - name: Make Gradlew Executable
+      run: chmod +x ./gradlew
+      
     - name: Run tests
       run: |
         ./gradlew check
+        
     - name: Publish Test Results
       uses: EnricoMi/publish-unit-test-result-action@v2.2.0
       with:
         junit_files: 'build/test-results/test/*.xml'
-        
-    - name: Build with Gradle
-      uses: gradle/gradle-build-action@67421db6bd0bf253fb4bd25b31ebb98943c375e1
-      with:
-        arguments: build
