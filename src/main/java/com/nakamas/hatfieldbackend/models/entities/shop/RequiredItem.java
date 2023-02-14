@@ -14,7 +14,7 @@ import org.springframework.data.jpa.domain.AbstractPersistable;
 @Table
 @Entity
 public class RequiredItem extends AbstractPersistable<Long> {
-    @OneToOne
+    @OneToOne(cascade = CascadeType.ALL)
     private InventoryItem inventoryItem;
 
     @Enumerated

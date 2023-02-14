@@ -24,9 +24,10 @@ public class Shop extends AbstractPersistable<Long> {
     private String address;
     private String phone;
     private String email;
+    private String vatNumber;
+    private String regNumber;
 
     @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "shop_id")
     private ShopSettings settings;
 
     @OneToMany(cascade = CascadeType.ALL,orphanRemoval = true)

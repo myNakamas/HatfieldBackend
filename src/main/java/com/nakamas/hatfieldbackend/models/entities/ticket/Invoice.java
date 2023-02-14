@@ -1,11 +1,10 @@
 package com.nakamas.hatfieldbackend.models.entities.ticket;
 
+import com.nakamas.hatfieldbackend.models.entities.User;
 import com.nakamas.hatfieldbackend.models.enums.InvoiceType;
 import com.nakamas.hatfieldbackend.models.enums.PaymentMethod;
 import com.nakamas.hatfieldbackend.models.enums.WarrantyPeriod;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -26,9 +25,14 @@ public class Invoice extends AbstractPersistable<Long> {
     private Brand deviceBrand;
     private String serialNumber;
     private LocalDateTime timestamp;
+    @Column (columnDefinition = "text")
     private String notes;
 //    todo: check if VAT needed here
     private BigDecimal totalPrice;
+    @ManyToOne
+    private User createdBy;
+    @ManyToOne
+    private User client;
     @Enumerated
     private PaymentMethod paymentMethod;
     @Enumerated

@@ -1,5 +1,5 @@
 package com.nakamas.hatfieldbackend.models.enums;
 
 public enum RequiredReason {
-    NOT_NEEDED, PENDING, RECEIVED
+    NEEDED_FOR_TICKET, INVENTORY_EMPTY
 }

@@ -1,6 +1,7 @@
 package com.nakamas.hatfieldbackend.models.entities;
 
 import com.nakamas.hatfieldbackend.models.entities.ticket.ChatMessage;
+import com.nakamas.hatfieldbackend.models.entities.ticket.Invoice;
 import com.nakamas.hatfieldbackend.models.enums.UserRole;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -26,6 +27,7 @@ public class User extends AbstractPersistable<UUID> {
     private String phone;
     @Enumerated
     private UserRole role;
+    private Boolean isActive;
 
     private Boolean smsPermission = true;
     private Boolean emailPermission = true;
@@ -36,6 +38,9 @@ public class User extends AbstractPersistable<UUID> {
     @OneToMany
     @JoinColumn(name="sender_id")
     private List<ChatMessage> sentMessages;
+    @OneToMany
+    @JoinColumn(name="user_id")
+    private List<Invoice> createdInvoices;
 
     private void generateUsername(){
         this.username = "generated LOL";

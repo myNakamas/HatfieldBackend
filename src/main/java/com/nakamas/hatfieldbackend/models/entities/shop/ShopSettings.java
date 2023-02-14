@@ -24,5 +24,7 @@ public class ShopSettings extends AbstractPersistable<Long> {
     private String smsApiKey;
     @Lob
     private byte[] logo;
+    @Lob
+    private byte[] backgroundImage;
 
 }

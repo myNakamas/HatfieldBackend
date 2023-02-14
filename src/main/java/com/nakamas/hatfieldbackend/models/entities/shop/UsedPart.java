@@ -22,5 +22,6 @@ public class UsedPart extends AbstractPersistable<Long> {
     @ManyToOne
     private Part part;
 
+    private Integer usedCount;
     private LocalDateTime timestamp;
 }
