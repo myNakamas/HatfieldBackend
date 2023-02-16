@@ -1,13 +1,21 @@
 package com.nakamas.hatfieldbackend.models.enums;
 
+/**
+ * PENDING,STARTED - Ticket is active (shown as to be worked on RIGHT NOW)
+ * FINISHED,UNFIXABLE - Notify client with according msg/email
+ */
 public enum TicketStatus {
-    IN_THE_FRONT,
     PENDING,
     STARTED,
+
     DIAGNOSED,
     WAITING_FOR_PARTS,
-    SENT_TO_ANOTHER_LOCATION,
+    ON_HOLD,
+    EXPECTING_ARRIVAL,
+
     FINISHED,
-    COLLECTED,
-    UNFIXABLE
+    UNFIXABLE,
+
+    SHIPPED_TO_CUSTOMER,
+    COLLECTED
 }

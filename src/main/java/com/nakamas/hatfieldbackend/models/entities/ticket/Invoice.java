@@ -27,7 +27,6 @@ public class Invoice extends AbstractPersistable<Long> {
     private LocalDateTime timestamp;
     @Column (columnDefinition = "text")
     private String notes;
-//    todo: check if VAT needed here
     private BigDecimal totalPrice;
     @ManyToOne
     private User createdBy;

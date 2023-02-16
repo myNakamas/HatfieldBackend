@@ -14,5 +14,4 @@ import lombok.Setter;
 public class Model {
 //    todo: Make into separate tables
     private String model;
-
 }

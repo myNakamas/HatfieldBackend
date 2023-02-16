@@ -23,11 +23,11 @@ public class Ticket extends AbstractPersistable<Long> {
     private Model deviceModel;
     private Brand deviceBrand;
     @Column(columnDefinition = "text")
-    private String userRequest;
+    private String customerRequest;
     @Column(columnDefinition = "text")
     private String deviceProblemExplanation;
     private String deviceCondition;
-    private Boolean deviceIsLeftInStore;
+//todo: add relation to table deviceLocation
     private String devicePassword;
     private String serialNumberOrImei;
     private String accessories;
@@ -48,12 +48,10 @@ public class Ticket extends AbstractPersistable<Long> {
     @Enumerated
     private TicketStatus status;
 
-    @OneToMany
-    @JoinColumn(name = "ticket_id")
+    @OneToMany(mappedBy = "ticket")
     private List<UsedPart> usedParts;
 
-    @OneToMany
-    @JoinColumn(name = "ticket_id")
+    @OneToMany(mappedBy = "ticket")
     private List<ChatMessage> chatMessages;
 
 

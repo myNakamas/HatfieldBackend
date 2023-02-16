@@ -18,8 +18,7 @@ import java.util.List;
 public class Shop extends AbstractPersistable<Long> {
 
     private String shopName;
-    @OneToMany(cascade = CascadeType.ALL,orphanRemoval = true)
-    @JoinColumn(name="shop_id")
+    @OneToMany(cascade = CascadeType.ALL,orphanRemoval = true, mappedBy = "shop")
     private List<InventoryItem> inventory;
     private String address;
     private String phone;
@@ -30,12 +29,10 @@ public class Shop extends AbstractPersistable<Long> {
     @OneToOne(cascade = CascadeType.ALL)
     private ShopSettings settings;
 
-    @OneToMany(cascade = CascadeType.ALL,orphanRemoval = true)
-    @JoinColumn(name="shop_id")
+    @OneToMany(cascade = CascadeType.ALL,orphanRemoval = true,mappedBy = "shop")
     private List<User> users;
 
-    @OneToMany(cascade = CascadeType.ALL,orphanRemoval = true)
-    @JoinColumn(name="shop_id")
+    @OneToMany(cascade = CascadeType.ALL,orphanRemoval = true, mappedBy = "shop")
     private List<Ticket> tickets;
 
 //    @OneToMany(cascade = CascadeType.ALL,orphanRemoval = true)
