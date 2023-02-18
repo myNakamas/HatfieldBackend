@@ -1,6 +1,6 @@
 package com.nakamas.hatfieldbackend.config.security;
 
-import com.nakamas.hatfieldbackend.service.UserService;
+import com.nakamas.hatfieldbackend.services.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -20,7 +20,7 @@ public class WebSecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http.authorizeHttpRequests()
+        http.csrf().disable().cors().disable().authorizeHttpRequests()
                 .anyRequest().permitAll().and()
 
                 .formLogin().and()

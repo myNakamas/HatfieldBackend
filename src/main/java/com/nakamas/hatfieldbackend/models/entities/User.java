@@ -5,6 +5,7 @@ import com.nakamas.hatfieldbackend.models.entities.ticket.ChatMessage;
 import com.nakamas.hatfieldbackend.models.entities.ticket.Invoice;
 import com.nakamas.hatfieldbackend.models.entities.ticket.Ticket;
 import com.nakamas.hatfieldbackend.models.enums.UserRole;
+import com.nakamas.hatfieldbackend.models.views.incoming.CreateUser;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -16,6 +17,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 @Getter
@@ -55,8 +57,23 @@ public class User extends AbstractPersistable<UUID> implements UserDetails {
     @OneToMany(mappedBy = "client")
     private List<Ticket> clientTickets;
 
-    private void generateUsername(){
+    private void generateLoginData(){
         this.username = "generated LOL";
+        this.password = "generated LOL";
+    }
+
+    public User (CreateUser user){
+        this.username = user.username();
+        this.fullName = user.fullName();
+        this.password = user.password();
+        this.email = user.email();
+        this.phones = user.phones();
+        this.role = user.role();
+        this.isActive = true;
+        this.isBanned = false;
+        if(Objects.equals(user.role(), UserRole.CLIENT)){
+            this.generateLoginData();
+        }
     }
 
     @Override
