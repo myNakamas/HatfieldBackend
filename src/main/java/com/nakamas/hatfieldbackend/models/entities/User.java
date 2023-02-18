@@ -58,8 +58,8 @@ public class User extends AbstractPersistable<UUID> implements UserDetails {
     private List<Ticket> clientTickets;
 
     private void generateLoginData(){
-        this.username = "generated LOL";
-        this.password = "generated LOL";
+        this.username = "username";
+        this.password = "password";
     }
 
     public User (CreateUser user){
