@@ -3,6 +3,7 @@ package com.nakamas.hatfieldbackend.models.entities.shop;
 import com.nakamas.hatfieldbackend.models.entities.User;
 import com.nakamas.hatfieldbackend.models.entities.ticket.Ticket;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -13,6 +14,7 @@ import java.util.List;
 @Getter
 @Setter
 @NoArgsConstructor
+@AllArgsConstructor
 @Table
 @Entity
 public class Shop extends AbstractPersistable<Long> {

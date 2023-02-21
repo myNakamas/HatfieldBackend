@@ -1,7 +1,7 @@
 package com.nakamas.hatfieldbackend.controllers;
 
 import com.nakamas.hatfieldbackend.models.views.incoming.CreateUser;
-import com.nakamas.hatfieldbackend.models.views.outgoing.UserProfile;
+import com.nakamas.hatfieldbackend.models.views.outgoing.user.UserProfile;
 import com.nakamas.hatfieldbackend.services.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;

@@ -2,7 +2,7 @@ package com.nakamas.hatfieldbackend.config.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nakamas.hatfieldbackend.models.entities.User;
-import com.nakamas.hatfieldbackend.models.views.outgoing.UserProfile;
+import com.nakamas.hatfieldbackend.models.views.outgoing.user.UserProfile;
 import com.nakamas.hatfieldbackend.services.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;

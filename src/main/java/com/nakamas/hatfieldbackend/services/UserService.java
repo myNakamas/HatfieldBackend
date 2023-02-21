@@ -4,7 +4,6 @@ import com.nakamas.hatfieldbackend.models.entities.User;
 import com.nakamas.hatfieldbackend.models.views.incoming.CreateUser;
 import com.nakamas.hatfieldbackend.repositories.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsPasswordService;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -13,7 +12,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
-@Configuration
 @RequiredArgsConstructor
 public class UserService implements UserDetailsService, UserDetailsPasswordService {
     private final PasswordEncoder passwordEncoder;

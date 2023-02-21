@@ -1,6 +1,9 @@
 package com.nakamas.hatfieldbackend.models.entities.shop;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Lob;
+import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -9,13 +12,10 @@ import org.springframework.data.jpa.domain.AbstractPersistable;
 @Getter
 @Setter
 @NoArgsConstructor
+@AllArgsConstructor
 @Table
 @Entity
 public class ShopSettings extends AbstractPersistable<Long> {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
     private String primaryColor;
     private String secondaryColor;
 
