@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nakamas.hatfieldbackend.models.entities.User;
 import com.nakamas.hatfieldbackend.models.views.outgoing.user.UserProfile;
 import com.nakamas.hatfieldbackend.services.UserService;
+import com.nakamas.hatfieldbackend.util.JwtUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -14,14 +15,12 @@ import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.RememberMeServices;
-import org.springframework.security.web.authentication.rememberme.TokenBasedRememberMeServices;
-import org.springframework.security.web.authentication.rememberme.TokenBasedRememberMeServices.RememberMeTokenAlgorithm;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -37,6 +36,8 @@ public class WebSecurityConfig {
     private final PasswordEncoder passwordEncoder;
     private final UserService userService;
     private final ObjectMapper mapper;
+    private final JwtFilter filter;
+    private final JwtUtil jwtUtil;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -48,9 +49,10 @@ public class WebSecurityConfig {
                 .successHandler(this::loginSuccessHandler)
                 .loginProcessingUrl("/api/login").and()
                 .logout().logoutUrl("/api/logout").and()
+                .addFilterBefore(filter, UsernamePasswordAuthenticationFilter.class)
                 .authenticationProvider(authenticationProvider())
                 .authorizeHttpRequests((authorize) -> authorize.anyRequest().permitAll().and())
-                .rememberMe(remember -> rememberMeServices(userService))
+                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and()
                 .exceptionHandling();
 
         return http.build();
@@ -64,8 +66,10 @@ public class WebSecurityConfig {
     private void loginSuccessHandler(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException {
         User user = (User) authentication.getPrincipal();
         UserProfile userProfile = new UserProfile(user);
-        log.info("User successfully logged in :[%s,%s,%s]".formatted(userProfile.username(),userProfile.fullName(),userProfile.role()));
+        log.info("User successfully logged in :[%s,%s,%s]".formatted(userProfile.username(), userProfile.fullName(), userProfile.role()));
+        String token = jwtUtil.encode(user);
         response.getWriter().write(mapper.writeValueAsString(userProfile));
+        response.setHeader("Authorization", token);
         response.setContentType("application/json");
         response.setStatus(HttpServletResponse.SC_OK);
     }
@@ -80,19 +84,13 @@ public class WebSecurityConfig {
     }
 
     @Bean
-    RememberMeServices rememberMeServices(UserDetailsService userDetailsService) {
-        RememberMeTokenAlgorithm encodingAlgorithm = RememberMeTokenAlgorithm.SHA256;
-        TokenBasedRememberMeServices rememberMe = new TokenBasedRememberMeServices("Does it work with any key?", userDetailsService, encodingAlgorithm);
-        rememberMe.setMatchingAlgorithm(TokenBasedRememberMeServices.RememberMeTokenAlgorithm.MD5);
-        return rememberMe;
-    }
-
-    @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration corsConfiguration = new CorsConfiguration();
-        corsConfiguration.setAllowedMethods(List.of("*"));
+        corsConfiguration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE"));
         corsConfiguration.setAllowedHeaders(List.of("*"));
+        corsConfiguration.setExposedHeaders(List.of("*"));
         corsConfiguration.setAllowedOriginPatterns(List.of("*"));
+        corsConfiguration.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", corsConfiguration);
