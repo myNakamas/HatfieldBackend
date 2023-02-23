@@ -62,7 +62,7 @@ public class User extends AbstractPersistable<UUID> implements UserDetails {
         this.password = "password";
     }
 
-    public User (CreateUser user){
+    public User (CreateUser user, Shop shop){
         this.username = user.username();
         this.fullName = user.fullName();
         this.password = user.password();
@@ -71,6 +71,7 @@ public class User extends AbstractPersistable<UUID> implements UserDetails {
         this.role = user.role();
         this.isActive = true;
         this.isBanned = false;
+        this.shop = shop;
         if(Objects.equals(user.role(), UserRole.CLIENT)){
             this.generateLoginData();
         }

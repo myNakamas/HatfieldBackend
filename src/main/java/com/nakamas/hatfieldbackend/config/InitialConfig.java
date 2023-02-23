@@ -32,8 +32,8 @@ public class InitialConfig implements ApplicationRunner {
 
     public void run(ApplicationArguments args) {
         User user = userService.createUser(defaultUser());
-        Shop initalShop = new Shop("Hatfield", List.of(), "London, Street 023", "fakePhoneNum", "gakeEmail@email.com", "64243213001", "1245245", defaultShopSettings(), List.of(), List.of());
-        Shop save = shopRepository.save(initalShop);
+        Shop initialShop = new Shop("Hatfield", List.of(), "London, Street 023", "fakePhoneNum", "gakeEmail@email.com", "64243213001", "1245245", defaultShopSettings(), List.of(), List.of());
+        Shop save = shopRepository.save(initialShop);
         user.setShop(save);
         userRepository.save(user);
     }

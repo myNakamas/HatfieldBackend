@@ -2,6 +2,7 @@ package com.nakamas.hatfieldbackend.services;
 
 import com.nakamas.hatfieldbackend.models.entities.User;
 import com.nakamas.hatfieldbackend.models.views.incoming.CreateUser;
+import com.nakamas.hatfieldbackend.repositories.ShopRepository;
 import com.nakamas.hatfieldbackend.repositories.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -16,6 +17,7 @@ import org.springframework.stereotype.Service;
 public class UserService implements UserDetailsService, UserDetailsPasswordService {
     private final PasswordEncoder passwordEncoder;
     private final UserRepository userRepository;
+    private final ShopRepository shopRepository;
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         return userRepository.findUserByUsername(username).orElseThrow(() -> new UsernameNotFoundException("User does not exist"));
@@ -30,7 +32,7 @@ public class UserService implements UserDetailsService, UserDetailsPasswordServi
     }
 
     public User createUser(CreateUser userInfo){
-        User user = new User(userInfo);
+        User user = new User(userInfo, shopRepository.findById(userInfo.shopId()).orElse(null));
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         return userRepository.save(user);
     }
