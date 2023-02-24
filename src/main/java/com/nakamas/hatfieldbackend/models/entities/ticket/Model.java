@@ -18,6 +18,12 @@ import java.util.List;
 @Entity
 public class Model extends AbstractPersistable<Long> {//    todo: add shopId column to the table
     private String model;
-    @OneToMany
+    @OneToMany(mappedBy = "model")
     private List<InventoryItem> items;
+    @OneToMany(mappedBy = "deviceModel")
+    private List<Invoice> invoices;
+
+    public Model(String model) {
+        this.model = model;
+    }
 }

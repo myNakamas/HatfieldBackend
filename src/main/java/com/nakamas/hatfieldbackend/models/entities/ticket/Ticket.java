@@ -20,14 +20,16 @@ import java.util.List;
 @Table
 @Entity
 public class Ticket extends AbstractPersistable<Long> {
+    @ManyToOne
     private Model deviceModel;
+    @ManyToOne
     private Brand deviceBrand;
     @Column(columnDefinition = "text")
     private String customerRequest;
     @Column(columnDefinition = "text")
     private String deviceProblemExplanation;
     private String deviceCondition;
-//todo: add relation to table deviceLocation
+    //todo: add relation to table deviceLocation
     private String devicePassword;
     private String serialNumberOrImei;
     private String accessories;
@@ -53,7 +55,6 @@ public class Ticket extends AbstractPersistable<Long> {
 
     @OneToMany(mappedBy = "ticket")
     private List<ChatMessage> chatMessages;
-
 
 
 }

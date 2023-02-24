@@ -17,7 +17,10 @@ import org.springframework.data.jpa.domain.AbstractPersistable;
 @Entity
 public class ShopSettings extends AbstractPersistable<Long> {
     private String primaryColor;
+    private String secondaryLightColor;
     private String secondaryColor;
+    private String secondaryDarkColor;
+    private String textColor;
 
     private String gmail;
     private String gmailPassword;

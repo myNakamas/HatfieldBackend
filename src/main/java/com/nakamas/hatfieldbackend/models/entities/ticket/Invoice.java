@@ -21,7 +21,9 @@ import java.time.LocalDateTime;
 public class Invoice extends AbstractPersistable<Long> {
     @Enumerated
     private InvoiceType type;
+    @ManyToOne
     private Model deviceModel;
+    @ManyToOne
     private Brand deviceBrand;
     private String serialNumber;
     private LocalDateTime timestamp;

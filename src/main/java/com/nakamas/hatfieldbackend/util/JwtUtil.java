@@ -1,16 +1,19 @@
 package com.nakamas.hatfieldbackend.util;
 
 import com.nakamas.hatfieldbackend.models.entities.User;
+import io.fusionauth.jwt.JWTExpiredException;
 import io.fusionauth.jwt.Signer;
 import io.fusionauth.jwt.Verifier;
 import io.fusionauth.jwt.domain.JWT;
 import io.fusionauth.jwt.hmac.HMACSigner;
 import io.fusionauth.jwt.hmac.HMACVerifier;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 
+@Slf4j
 @Component
 public class JwtUtil {
     // Build an HMAC signer using a SHA-256 hash
@@ -19,9 +22,14 @@ public class JwtUtil {
     private final Verifier verifier = HMACVerifier.newVerifier("too many secrets");
 
     public String extractUsername(String jwt) {
-        // Verify and decode the encoded string JWT to a rich object
-        JWT token = JWT.getDecoder().decode(jwt, verifier);
-        return token.subject;
+        try {
+            // Verify and decode the encoded string JWT to a rich object
+            JWT token = JWT.getDecoder().decode(jwt, verifier);
+            return token.subject;
+        } catch (JWTExpiredException e) {
+            log.info("Jwt expired. " + e.getMessage());
+            return null;
+        }
     }
 
     public boolean validateToken(String jwt, User userDetails) {

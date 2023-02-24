@@ -18,6 +18,10 @@ import java.util.List;
 @Entity
 public class Brand extends AbstractPersistable<Long> {
     private String brand;
-    @OneToMany
+    @OneToMany(mappedBy = "brand")
     private List<InventoryItem> items;
+
+    public Brand(String brand) {
+        this.brand = brand;
+    }
 }
