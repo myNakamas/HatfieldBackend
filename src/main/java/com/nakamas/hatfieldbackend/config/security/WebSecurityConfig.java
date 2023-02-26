@@ -2,6 +2,7 @@ package com.nakamas.hatfieldbackend.config.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nakamas.hatfieldbackend.models.entities.User;
+import com.nakamas.hatfieldbackend.models.enums.UserRole;
 import com.nakamas.hatfieldbackend.models.views.outgoing.user.UserProfile;
 import com.nakamas.hatfieldbackend.services.UserService;
 import com.nakamas.hatfieldbackend.util.JwtUtil;
@@ -54,12 +55,12 @@ public class WebSecurityConfig {
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
                 .authenticationProvider(authenticationProvider())
                 .authorizeHttpRequests((authorize) -> authorize
+                        .requestMatchers("*/admin/**").hasAuthority(UserRole.ADMIN.getRole())
                         .anyRequest().authenticated().and())
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and()
+                .requiresChannel().anyRequest().requiresSecure().and()
                 .exceptionHandling().authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED));
-
         return http.build();
-
     }
 
     private void loginFailureHandler(HttpServletRequest request, HttpServletResponse response, AuthenticationException e) {

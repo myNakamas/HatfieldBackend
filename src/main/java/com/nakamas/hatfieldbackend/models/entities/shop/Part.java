@@ -1,6 +1,8 @@
 package com.nakamas.hatfieldbackend.models.entities.shop;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.OneToMany;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -10,7 +12,6 @@ import java.util.List;
 @Getter
 @Setter
 @NoArgsConstructor
-@Table
 @Entity
 public class Part extends InventoryItem {
     private String version;

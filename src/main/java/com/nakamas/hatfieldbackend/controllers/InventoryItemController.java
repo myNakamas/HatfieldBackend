@@ -5,27 +5,39 @@ import com.nakamas.hatfieldbackend.models.views.incoming.CreateInventoryItem;
 import com.nakamas.hatfieldbackend.models.views.incoming.PageRequestView;
 import com.nakamas.hatfieldbackend.models.views.outgoing.PageView;
 import com.nakamas.hatfieldbackend.models.views.outgoing.shop.InventoryItemView;
+import com.nakamas.hatfieldbackend.models.views.outgoing.shop.ItemPropertyView;
 import com.nakamas.hatfieldbackend.services.InventoryItemService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("api/inventoryItem")
+@RequestMapping("api/inventory")
 public class InventoryItemController {
 
     private final InventoryItemService inventoryItemService;
 
-    @PostMapping("create")
+    @PostMapping("item/create")
     public InventoryItemView createInventoryItem(@RequestBody CreateInventoryItem inventoryItem) {
         return new InventoryItemView(inventoryItemService.createInventoryItem(inventoryItem));
     }
 
-    @GetMapping("all")
+    @GetMapping("item/all")
     public PageView<InventoryItemView> getShopInventory(@AuthenticationPrincipal User loggedUser, PageRequestView pageRequestView) {
         return inventoryItemService.getShopInventory(loggedUser.getShop().getId(), pageRequestView);
     }
 
+    @GetMapping("model/all")
+    public List<ItemPropertyView> getAllModels() {
+        return inventoryItemService.getAllModels();
+    }
+
+    @GetMapping("brand/all")
+    public List<ItemPropertyView> getAllBrands() {
+        return inventoryItemService.getAllBrands();
+    }
 
 }

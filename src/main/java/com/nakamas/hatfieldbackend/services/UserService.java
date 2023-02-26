@@ -3,6 +3,7 @@ package com.nakamas.hatfieldbackend.services;
 import com.nakamas.hatfieldbackend.models.entities.User;
 import com.nakamas.hatfieldbackend.models.enums.UserRole;
 import com.nakamas.hatfieldbackend.models.views.incoming.CreateUser;
+import com.nakamas.hatfieldbackend.models.views.outgoing.user.UserProfile;
 import com.nakamas.hatfieldbackend.repositories.ShopRepository;
 import com.nakamas.hatfieldbackend.repositories.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -12,6 +13,8 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -45,10 +48,20 @@ public class UserService implements UserDetailsService, UserDetailsPasswordServi
         return userRepository.save(user);
     }
 
-    public User updateUser(CreateUser userInfo){
+    public User updateUser(CreateUser userInfo) {
         User user = userRepository.getReferenceById(userInfo.userId());
-        user.update(userInfo,shopRepository.findById(userInfo.shopId()).orElse(user.getShop()));
+        user.update(userInfo, shopRepository.findById(userInfo.shopId()).orElse(user.getShop()));
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         return userRepository.save(user);
+    }
+
+    public User updateUser(User user, CreateUser update) {
+        user.update(update, shopRepository.findById(update.shopId()).orElse(user.getShop()));
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        return userRepository.save(user);
+    }
+
+    public List<UserProfile> getAllWorkers(String searchBy) {
+        return userRepository.findAllWorkers(searchBy);
     }
 }

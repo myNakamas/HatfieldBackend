@@ -77,6 +77,7 @@ public class User extends AbstractPersistable<UUID> implements UserDetails {
         }
     }
 
+
     public void update(CreateUser user, Shop shop) {
         if (user.username() != null) this.username = user.username();
         if (user.fullName() != null) this.fullName = user.fullName();
@@ -84,6 +85,8 @@ public class User extends AbstractPersistable<UUID> implements UserDetails {
         if (user.email() != null) this.email = user.email();
         if (user.phones() != null) this.phones = user.phones();
         if (user.role() != null) this.role = user.role();
+        if (user.isActive() != null) this.isActive = user.isActive();
+        if (user.isBanned() != null) this.isBanned = user.isBanned();
         this.shop = shop;
     }
 

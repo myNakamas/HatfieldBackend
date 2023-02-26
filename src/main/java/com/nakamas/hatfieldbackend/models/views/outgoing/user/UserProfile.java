@@ -13,6 +13,6 @@ public record UserProfile(UUID userId,
                           Long shopId) {
 
     public UserProfile(User user){
-        this(user.getId(), user.getUsername(), user.getFullName(), user.getRole(), user.getEmail(), null);
+        this(user.getId(), user.getUsername(), user.getFullName(), user.getRole(), user.getEmail(), user.getShop().getId());
     }
 }
