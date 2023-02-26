@@ -57,12 +57,12 @@ public class User extends AbstractPersistable<UUID> implements UserDetails {
     @OneToMany(mappedBy = "client")
     private List<Ticket> clientTickets;
 
-    private void generateLoginData(){
+    private void generateLoginData() {
         this.username = "username";
         this.password = "password";
     }
 
-    public User (CreateUser user, Shop shop){
+    public User(CreateUser user, Shop shop) {
         this.username = user.username();
         this.fullName = user.fullName();
         this.password = user.password();
@@ -72,9 +72,19 @@ public class User extends AbstractPersistable<UUID> implements UserDetails {
         this.isActive = true;
         this.isBanned = false;
         this.shop = shop;
-        if(Objects.equals(user.role(), UserRole.CLIENT)){
+        if (Objects.equals(user.role(), UserRole.CLIENT)) {
             this.generateLoginData();
         }
+    }
+
+    public void update(CreateUser user, Shop shop) {
+        if (user.username() != null) this.username = user.username();
+        if (user.fullName() != null) this.fullName = user.fullName();
+        if (user.password() != null) this.password = user.password();
+        if (user.email() != null) this.email = user.email();
+        if (user.phones() != null) this.phones = user.phones();
+        if (user.role() != null) this.role = user.role();
+        this.shop = shop;
     }
 
     @Override

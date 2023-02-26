@@ -17,9 +17,19 @@ public class UserController {
 
     private final UserService userService;
 
-    @PostMapping("create")
+    @PostMapping("admin/create")
     public UserProfile createUser(@RequestBody CreateUser user) {
         return new UserProfile(userService.createUser(user));
+    }
+
+    @PostMapping("create/client")
+    public UserProfile createClient(@RequestBody CreateUser user) {
+        return new UserProfile(userService.createClient(user));
+    }
+
+    @PostMapping("update")
+    public UserProfile updateUser(@RequestBody CreateUser user) {
+        return new UserProfile(userService.updateUser(user));
     }
 
     @GetMapping("profile")

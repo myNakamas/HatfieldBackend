@@ -26,7 +26,7 @@ public class InitialConfig implements ApplicationRunner {
     private final BrandRepository brandRepository;
 
     private static CreateUser defaultUser(Long shopId) {
-        return new CreateUser("admin", "Admin FullName", "admin", UserRole.ADMIN, "admin@email.com", List.of(), shopId);
+        return new CreateUser(null,"admin", "Admin FullName", "admin", UserRole.ADMIN, "admin@email.com", List.of(), shopId);
     }
 
     private static ShopSettings defaultShopSettings() {

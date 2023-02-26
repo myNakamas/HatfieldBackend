@@ -1,6 +1,7 @@
 package com.nakamas.hatfieldbackend.services;
 
 import com.nakamas.hatfieldbackend.models.entities.User;
+import com.nakamas.hatfieldbackend.models.enums.UserRole;
 import com.nakamas.hatfieldbackend.models.views.incoming.CreateUser;
 import com.nakamas.hatfieldbackend.repositories.ShopRepository;
 import com.nakamas.hatfieldbackend.repositories.UserRepository;
@@ -33,6 +34,20 @@ public class UserService implements UserDetailsService, UserDetailsPasswordServi
 
     public User createUser(CreateUser userInfo){
         User user = new User(userInfo, shopRepository.findById(userInfo.shopId()).orElse(null));
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        return userRepository.save(user);
+    }
+
+    public User createClient(CreateUser userInfo){
+        User user = new User(userInfo, shopRepository.findById(userInfo.shopId()).orElse(null));
+        user.setRole(UserRole.CLIENT);
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        return userRepository.save(user);
+    }
+
+    public User updateUser(CreateUser userInfo){
+        User user = userRepository.getReferenceById(userInfo.userId());
+        user.update(userInfo,shopRepository.findById(userInfo.shopId()).orElse(user.getShop()));
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         return userRepository.save(user);
     }
