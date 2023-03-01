@@ -37,7 +37,7 @@ public class InitialConfig implements ApplicationRunner {
         Shop initialShop = new Shop("Hatfield", List.of(), "London, Street 023", "fakePhoneNum", "gakeEmail@email.com", "64243213001", "1245245", defaultShopSettings(), List.of(), List.of());
         Shop save = shopRepository.save(initialShop);
         userService.createUser(defaultUser(save.getId()));
-        modelRepository.save(new Model("newModel"));
+        modelRepository.save(new Model("new Model"));
         brandRepository.save(new Brand("new Brand"));
     }
 }

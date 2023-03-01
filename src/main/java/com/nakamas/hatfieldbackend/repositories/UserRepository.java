@@ -21,8 +21,8 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     @Query("""
             select new com.nakamas.hatfieldbackend.models.views.outgoing.user.UserProfile(u)
              from User u
-             where u.role = 2 or u.role = 3
-             and concat( u.fullName,u.username,u.email,u.phones) like %?1%
+             where u.role = 1 or u.role = 2
+             and concat( u.fullName,u.username,u.email) like %?1%
             """)
     List<UserProfile> findAllWorkers(String searchBy);
 }

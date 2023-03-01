@@ -1,6 +1,7 @@
 package com.nakamas.hatfieldbackend.controllers;
 
 import com.nakamas.hatfieldbackend.models.entities.User;
+import com.nakamas.hatfieldbackend.models.views.incoming.ChangePasswordView;
 import com.nakamas.hatfieldbackend.models.views.incoming.CreateUser;
 import com.nakamas.hatfieldbackend.models.views.outgoing.user.UserProfile;
 import com.nakamas.hatfieldbackend.services.UserService;
@@ -47,5 +48,10 @@ public class UserController {
     @PutMapping("profile/edit")
     public UserProfile editLoggedUser(@AuthenticationPrincipal User user, @RequestBody CreateUser update) {
         return new UserProfile(userService.updateUser(user, update));
+    }
+
+    @PutMapping("profile/edit/password")
+    public void editPassword(@AuthenticationPrincipal User user, @RequestBody ChangePasswordView changePassword) {
+        userService.changePassword(user, changePassword.oldPassword(), changePassword.newPassword());
     }
 }

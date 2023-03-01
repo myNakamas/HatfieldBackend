@@ -34,7 +34,6 @@ public class User extends AbstractPersistable<UUID> implements UserDetails {
     private String email;
     @ElementCollection
     private List<String> phones;
-    @Enumerated
     private UserRole role;
     private Boolean isActive;
     private Boolean isBanned;
@@ -81,7 +80,6 @@ public class User extends AbstractPersistable<UUID> implements UserDetails {
     public void update(CreateUser user, Shop shop) {
         if (user.username() != null) this.username = user.username();
         if (user.fullName() != null) this.fullName = user.fullName();
-        if (user.password() != null) this.password = user.password();
         if (user.email() != null) this.email = user.email();
         if (user.phones() != null) this.phones = user.phones();
         if (user.role() != null) this.role = user.role();

@@ -3,7 +3,7 @@ package com.nakamas.hatfieldbackend.config.security;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nakamas.hatfieldbackend.models.entities.User;
 import com.nakamas.hatfieldbackend.models.enums.UserRole;
-import com.nakamas.hatfieldbackend.models.views.outgoing.user.UserProfile;
+import com.nakamas.hatfieldbackend.models.views.outgoing.user.UserLogin;
 import com.nakamas.hatfieldbackend.services.UserService;
 import com.nakamas.hatfieldbackend.util.JwtUtil;
 import jakarta.servlet.http.HttpServletRequest;
@@ -69,7 +69,7 @@ public class WebSecurityConfig {
 
     private void loginSuccessHandler(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException {
         User user = (User) authentication.getPrincipal();
-        UserProfile userProfile = new UserProfile(user);
+        UserLogin userProfile = new UserLogin(user);
         log.info("User successfully logged in :[%s,%s,%s]".formatted(userProfile.username(), userProfile.fullName(), userProfile.role()));
         String token = jwtUtil.encode(user);
         response.getWriter().write(mapper.writeValueAsString(userProfile));

@@ -1,5 +1,6 @@
 package com.nakamas.hatfieldbackend.services;
 
+import com.nakamas.hatfieldbackend.config.exception.CustomException;
 import com.nakamas.hatfieldbackend.models.entities.User;
 import com.nakamas.hatfieldbackend.models.enums.UserRole;
 import com.nakamas.hatfieldbackend.models.views.incoming.CreateUser;
@@ -22,6 +23,7 @@ public class UserService implements UserDetailsService, UserDetailsPasswordServi
     private final PasswordEncoder passwordEncoder;
     private final UserRepository userRepository;
     private final ShopRepository shopRepository;
+
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         return userRepository.findUserByUsername(username).orElseThrow(() -> new UsernameNotFoundException("User does not exist"));
@@ -29,35 +31,43 @@ public class UserService implements UserDetailsService, UserDetailsPasswordServi
 
     @Override
     public UserDetails updatePassword(UserDetails userDetails, String newPassword) {
-        User user = (User)userDetails;
+        User user = (User) userDetails;
         user.setPassword(newPassword);
         userRepository.save(user);
         return user;
     }
 
-    public User createUser(CreateUser userInfo){
+    public void changePassword(User user, String oldPassword, String newPassword) {
+        if (!passwordEncoder.matches(oldPassword, user.getPassword())) throw new CustomException("Incorrect old password!");
+        updatePassword(user, passwordEncoder.encode(newPassword));
+    }
+
+    public User createUser(CreateUser userInfo) {
         User user = new User(userInfo, shopRepository.findById(userInfo.shopId()).orElse(null));
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         return userRepository.save(user);
     }
 
-    public User createClient(CreateUser userInfo){
+    public User createClient(CreateUser userInfo) {
         User user = new User(userInfo, shopRepository.findById(userInfo.shopId()).orElse(null));
         user.setRole(UserRole.CLIENT);
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         return userRepository.save(user);
     }
-
+    /**
+     * Allows the admin to change whoever he decides.
+    */
     public User updateUser(CreateUser userInfo) {
         User user = userRepository.getReferenceById(userInfo.userId());
         user.update(userInfo, shopRepository.findById(userInfo.shopId()).orElse(user.getShop()));
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         return userRepository.save(user);
     }
-
+    /**
+     * Allows the user to make changes to itself.
+     */
     public User updateUser(User user, CreateUser update) {
         user.update(update, shopRepository.findById(update.shopId()).orElse(user.getShop()));
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
         return userRepository.save(user);
     }
 
