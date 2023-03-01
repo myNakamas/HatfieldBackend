@@ -1,7 +1,6 @@
 package com.nakamas.hatfieldbackend.util;
 
 import com.nakamas.hatfieldbackend.models.entities.User;
-import io.fusionauth.jwt.JWTExpiredException;
 import io.fusionauth.jwt.Signer;
 import io.fusionauth.jwt.Verifier;
 import io.fusionauth.jwt.domain.JWT;
@@ -22,22 +21,17 @@ public class JwtUtil {
     private final Verifier verifier = HMACVerifier.newVerifier("too many secrets");
 
     public String extractUsername(String jwt) {
-        try {
             // Verify and decode the encoded string JWT to a rich object
             JWT token = JWT.getDecoder().decode(jwt, verifier);
             return token.subject;
-        } catch (JWTExpiredException e) {
-            log.info("Jwt expired. " + e.getMessage());
-            return null;
-        }
     }
 
     public boolean validateToken(String jwt, User userDetails) {
-        // Verify and decode the encoded string JWT to a rich object
-        JWT token = JWT.getDecoder().decode(jwt, verifier);
+            // Verify and decode the encoded string JWT to a rich object
+            JWT token = JWT.getDecoder().decode(jwt, verifier);
 
-        // Assert the subject of the JWT is as expected
-        return token.subject.equals(userDetails.getUsername());
+            // Assert the subject of the JWT is as expected
+            return token.subject.equals(userDetails.getUsername());
     }
 
     public String encode(User user) {

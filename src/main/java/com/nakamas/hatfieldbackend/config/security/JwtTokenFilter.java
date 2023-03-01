@@ -1,34 +1,35 @@
 package com.nakamas.hatfieldbackend.config.security;
 
+
 import com.nakamas.hatfieldbackend.models.entities.User;
+import com.nakamas.hatfieldbackend.services.UserService;
 import com.nakamas.hatfieldbackend.util.JwtUtil;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
-import org.springframework.web.filter.OncePerRequestFilter;
+import org.springframework.web.filter.GenericFilterBean;
 
 import java.io.IOException;
 
 @Component
 @RequiredArgsConstructor
-public class JwtFilter extends OncePerRequestFilter {
-    private final UserDetailsService userDetailsService;
+public class JwtTokenFilter extends GenericFilterBean {
+    private final UserService userService;
     private final JwtUtil jwtTokenUtil;
 
-
     @Override
-    protected void doFilterInternal(@NonNull HttpServletRequest request,
-                                    @NonNull HttpServletResponse response,
-                                    @NonNull FilterChain filterChain) throws ServletException, IOException {
-        final String authorizationHeader = request.getHeader("Authorization");
+    public void doFilter(ServletRequest servletRequest, ServletResponse response, FilterChain chain) throws IOException, ServletException {
+        // Get authorization header and validate
+        HttpServletRequest request = (HttpServletRequest) servletRequest;
+        final String authorizationHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
         String username = null;
         String jwt = null;
 
@@ -38,7 +39,7 @@ public class JwtFilter extends OncePerRequestFilter {
         }
 
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            User userDetails = (User) this.userDetailsService.loadUserByUsername(username);
+            User userDetails = (User) this.userService.loadUserByUsername(username);
             if (jwtTokenUtil.validateToken(jwt, userDetails)) {
                 UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken =
                         new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
@@ -46,6 +47,6 @@ public class JwtFilter extends OncePerRequestFilter {
                 SecurityContextHolder.getContext().setAuthentication(usernamePasswordAuthenticationToken);
             }
         }
-        filterChain.doFilter(request, response);
+        chain.doFilter(request, response);
     }
 }

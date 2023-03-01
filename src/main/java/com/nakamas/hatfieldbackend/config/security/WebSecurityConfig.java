@@ -39,7 +39,7 @@ public class WebSecurityConfig {
     private final PasswordEncoder passwordEncoder;
     private final UserService userService;
     private final ObjectMapper mapper;
-    private final JwtFilter jwtFilter;
+    private final JwtTokenFilter jwtFilter;
     private final JwtUtil jwtUtil;
 
     @Bean
@@ -90,7 +90,7 @@ public class WebSecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration corsConfiguration = new CorsConfiguration();
-        corsConfiguration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE"));
+        corsConfiguration.setAllowedMethods(List.of("*"));
         corsConfiguration.setAllowedHeaders(List.of("*"));
         corsConfiguration.setExposedHeaders(List.of("*"));
         corsConfiguration.setAllowedOriginPatterns(List.of("*"));
