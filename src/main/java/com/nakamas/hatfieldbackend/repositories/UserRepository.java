@@ -14,8 +14,6 @@ import java.util.UUID;
 public interface UserRepository extends JpaRepository<User, UUID> {
     Optional<User> findUserByUsername(String username);
 
-    Optional<User> findUserByEmail(String email);
-
     /**
      * 2 = ENGINEER("WORKER")
      * 3 = SALESMAN("WORKER")
@@ -32,7 +30,6 @@ public interface UserRepository extends JpaRepository<User, UUID> {
              select u
              from User u
              where (u.username = ?1 or u.email = ?2)
-             and (?3 is null or not u.id = ?3)
             """)
-    List<User> uniqueUserExists(String username, String email, UUID userId);
+    List<User> uniqueUserExists(String username, String email);
 }

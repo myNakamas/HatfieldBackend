@@ -24,6 +24,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 @Slf4j
@@ -115,7 +116,9 @@ public class UserService implements UserDetailsService, UserDetailsPasswordServi
     }
 
     private User validateAndSave(User user){
-        if(!userRepository.uniqueUserExists(user.getUsername(), user.getEmail(), user.getId()).isEmpty())
+        List<User> existingUsers = userRepository.uniqueUserExists(user.getUsername(), user.getEmail());
+        if(user.getId() == null && existingUsers.size() > 0 ||
+                existingUsers.stream().anyMatch(profile -> !Objects.equals(profile.getId(), user.getId())))
             throw new CustomException("Username or email already taken!");
         return userRepository.save(user);
     }
