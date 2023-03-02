@@ -48,7 +48,8 @@ public class UserController {
 
     @GetMapping("profile")
     public UserProfile getLoggedUser(@AuthenticationPrincipal User user) {
-        return new UserProfile(user);
+        User fromDb = userService.getUser(user.getId());
+        return userService.getUserProfile(fromDb);
     }
 
     @PutMapping("profile/edit")
