@@ -23,4 +23,5 @@ public final class TestData {
     static CreateUser getTestUser(Shop shop) {
         return new CreateUser(null, correctUsername, "Adam John", correctPassword, UserRole.ADMIN, "email@email.com", List.of("+359898575932"), shop.getId());
     }
+
 }

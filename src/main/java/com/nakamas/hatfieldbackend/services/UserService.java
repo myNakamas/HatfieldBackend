@@ -47,7 +47,7 @@ public class UserService implements UserDetailsService, UserDetailsPasswordServi
     public UserDetails updatePassword(UserDetails userDetails, String newPassword) {
         User user = (User) userDetails;
         user.setPassword(newPassword);
-        userRepository.save(user);
+        validateAndSave(user);
         return user;
     }
 
@@ -60,14 +60,14 @@ public class UserService implements UserDetailsService, UserDetailsPasswordServi
     public User createUser(CreateUser userInfo) {
         User user = new User(userInfo, shopRepository.findById(userInfo.shopId()).orElse(null));
         user.setPassword(passwordEncoder.encode(user.getPassword()));
-        return userRepository.save(user);
+        return validateAndSave(user);
     }
 
     public User createClient(CreateUser userInfo) {
         User user = new User(userInfo, shopRepository.findById(userInfo.shopId()).orElse(null));
         user.setRole(UserRole.CLIENT);
         user.setPassword(passwordEncoder.encode(user.getPassword()));
-        return userRepository.save(user);
+        return validateAndSave(user);
     }
 
     /**
@@ -75,17 +75,17 @@ public class UserService implements UserDetailsService, UserDetailsPasswordServi
      */
     public User updateUser(CreateUser userInfo) {
         User user = userRepository.getReferenceById(userInfo.userId());
-        user.update(userInfo, shopRepository.findById(userInfo.shopId()).orElse(user.getShop()));
+        user.updateAsAdmin(userInfo, shopRepository.findById(userInfo.shopId()).orElse(user.getShop()));
         user.setPassword(passwordEncoder.encode(user.getPassword()));
-        return userRepository.save(user);
+        return validateAndSave(user);
     }
 
     /**
      * Allows the user to make changes to itself.
      */
     public User updateUser(User user, CreateUser update) {
-        user.update(update, shopRepository.findById(update.shopId()).orElse(user.getShop()));
-        return userRepository.save(user);
+        user.update(update);
+        return validateAndSave(user);
     }
 
     public List<UserProfile> getAllWorkers(String searchBy) {
@@ -112,5 +112,11 @@ public class UserService implements UserDetailsService, UserDetailsPasswordServi
             e.printStackTrace();
             throw new CustomException("Could not save image to the server.");
         }
+    }
+
+    private User validateAndSave(User user){
+        if(!userRepository.uniqueUserExists(user.getUsername(), user.getEmail(), user.getId()).isEmpty())
+            throw new CustomException("Username or email already taken!");
+        return userRepository.save(user);
     }
 }
