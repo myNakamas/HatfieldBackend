@@ -122,4 +122,8 @@ public class UserService implements UserDetailsService, UserDetailsPasswordServi
             throw new CustomException("Username or email already taken!");
         return userRepository.save(user);
     }
+
+    public UserProfile getUserProfile(User user) {
+        return new UserProfile(user);
+    }
 }
