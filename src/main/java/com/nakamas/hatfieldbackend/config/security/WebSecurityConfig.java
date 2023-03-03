@@ -56,7 +56,7 @@ public class WebSecurityConfig {
                 .authenticationProvider(authenticationProvider())
                 .authorizeHttpRequests((authorize) -> authorize
                         .requestMatchers("*/admin/**").hasAuthority(UserRole.ADMIN.getRole())
-                        .anyRequest().authenticated().and())
+                        .anyRequest().permitAll().and())
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and()
                 .requiresChannel().anyRequest().requiresSecure().and()
                 .exceptionHandling().authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED));

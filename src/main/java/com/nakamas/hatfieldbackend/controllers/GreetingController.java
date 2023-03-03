@@ -9,10 +9,10 @@ import org.springframework.web.util.HtmlUtils;
 
 @Controller
 public class GreetingController {
-
-    @MessageMapping("/websocket")
-    @SendTo("/websocket")
-    public Greeting greeting(ChatMessage message) throws Exception {
+    @MessageMapping("/chat")
+    @SendTo("/topic/chat")
+    public Greeting greeting(ChatMessage message) {
+        System.out.println(message.getText());
         return new Greeting("Hello, " + HtmlUtils.htmlEscape(message.getText()) + "!");
     }
 }
