@@ -22,22 +22,21 @@ public class JwtUtil {
     private final Verifier verifier = HMACVerifier.newVerifier("too many secrets");
 
     public String extractUsername(String jwt) {
-            // Verify and decode the encoded string JWT to a rich object
+        // Verify and decode the encoded string JWT to a rich object
         try {
             JWT token = JWT.getDecoder().decode(jwt, verifier);
             return token.subject;
         } catch (JWTException e) {
-            log.error(e.getMessage());
             return null;
         }
     }
 
     public boolean validateToken(String jwt, User userDetails) {
-            // Verify and decode the encoded string JWT to a rich object
-            JWT token = JWT.getDecoder().decode(jwt, verifier);
+        // Verify and decode the encoded string JWT to a rich object
+        JWT token = JWT.getDecoder().decode(jwt, verifier);
 
-            // Assert the subject of the JWT is as expected
-            return token.subject.equals(userDetails.getUsername());
+        // Assert the subject of the JWT is as expected
+        return token.subject.equals(userDetails.getUsername());
     }
 
     public String encode(User user) {
