@@ -22,6 +22,7 @@ public class Brand extends AbstractPersistable<Long> {
     private List<InventoryItem> items;
 
     public Brand(String brand) {
+
         this.brand = brand;
     }
 }

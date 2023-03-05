@@ -25,7 +25,7 @@ public class ShopController {
         return shopService.getShopSettings(user.getShop().getId());
     }
 
-    @GetMapping("/id")
+    @GetMapping("/myShop")
     public ShopView getShopById(@AuthenticationPrincipal User user) {
         return new ShopView(user.getShop());
     }
@@ -34,7 +34,10 @@ public class ShopController {
     public List<ShopView> getAllShops() {
         return shopService.getAllShops().stream().map(ShopView::new).collect(Collectors.toList());
     }
-
+    @GetMapping("admin/byId")
+    public ShopView getShopsById(@RequestParam Long shopId) {
+        return shopService.getShopById(shopId);
+    }
     @PostMapping("admin/create")
     public ShopView createNewShop(@RequestBody CreateShop createView) {
         return new ShopView(shopService.create(createView));

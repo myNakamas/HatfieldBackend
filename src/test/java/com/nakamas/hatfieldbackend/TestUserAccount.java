@@ -47,6 +47,7 @@ class TestUserAccount {
 
     @AfterEach
     void tearDown() {
+        shopRepository.deleteAll();
         userRepo.deleteAll();
     }
 
