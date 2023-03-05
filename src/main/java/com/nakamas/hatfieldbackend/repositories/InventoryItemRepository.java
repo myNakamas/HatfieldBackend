@@ -5,6 +5,7 @@ import com.nakamas.hatfieldbackend.models.views.outgoing.shop.InventoryItemView;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
@@ -14,4 +15,10 @@ public interface InventoryItemRepository extends JpaRepository<InventoryItem, Lo
     @Query("select new com.nakamas.hatfieldbackend.models.views.outgoing.shop.InventoryItemView(i)" +
             " from InventoryItem i where i.shop.id = ?1 ")
     Page<InventoryItemView> findAllByShopId(Long shop_id, Pageable pageable);
+
+    @Modifying
+    @Query("update InventoryItem " +
+            "set count = ?2" +
+            "where id = ?1")
+    void updateQuantity(Long id, Integer count);
 }

@@ -75,6 +75,15 @@ public class InventoryItemService {
         return brandRepository.findAllBrands();
     }
 
+    public void updateQuantity(Long id, Integer quantity){
+        inventoryItemRepository.updateQuantity(id, quantity);
+    }
+    public void remove(Long id){
+        InventoryItem item = inventoryItemRepository.getReferenceById(id);
+        item.setCount(0);
+        //todo: set interested boolean to false as well
+        inventoryItemRepository.save(item);
+    }
 
     private Model getOrCreateModel(Long modelId, String modelValue) {
         if(modelId != null)

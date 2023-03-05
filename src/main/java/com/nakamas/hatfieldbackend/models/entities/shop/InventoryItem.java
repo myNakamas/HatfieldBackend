@@ -23,7 +23,7 @@ public class InventoryItem extends AbstractPersistable<Long> {
     private Integer count;
     @ManyToOne
     private Shop shop;
-    //no connections made yet !
+    //todo: dali se interesuva toq item da go slaga v shopping list boolean
     @ManyToOne
     private Category category;
 //    @ElementCollection
