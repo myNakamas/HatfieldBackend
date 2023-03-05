@@ -1,6 +1,9 @@
 package com.nakamas.hatfieldbackend.services;
 
+import com.nakamas.hatfieldbackend.config.exception.CustomException;
 import com.nakamas.hatfieldbackend.models.entities.shop.InventoryItem;
+import com.nakamas.hatfieldbackend.models.entities.ticket.Brand;
+import com.nakamas.hatfieldbackend.models.entities.ticket.Model;
 import com.nakamas.hatfieldbackend.models.views.incoming.CreateInventoryItem;
 import com.nakamas.hatfieldbackend.models.views.incoming.PageRequestView;
 import com.nakamas.hatfieldbackend.models.views.outgoing.PageView;
@@ -25,11 +28,14 @@ public class InventoryItemService {
     private final ShopRepository shopRepository;
 
 
-    public InventoryItem createInventoryItem(CreateInventoryItem inventoryItem){
+    public InventoryItem createInventoryItem(CreateInventoryItem inventoryItem) {
+        Brand brand = getOrCreateBrand(inventoryItem.brandId(), inventoryItem.brand());
+        Model model = getOrCreateModel(inventoryItem.modelId(), inventoryItem.model());
+
         InventoryItem item = new InventoryItem(
                 inventoryItem,
-                brandRepository.getReferenceById(inventoryItem.brandId()),
-                modelRepository.getReferenceById(inventoryItem.modelId()),
+                brand,
+                model,
                 shopRepository.getReferenceById(inventoryItem.shopId())
         );
         return inventoryItemRepository.save(item);
@@ -50,5 +56,18 @@ public class InventoryItemService {
 
     public List<ItemPropertyView> getAllBrands() {
         return brandRepository.findAllBrands();
+    }
+
+
+    private Model getOrCreateModel(Long modelId, String modelValue) {
+        return modelId != null ?
+                modelRepository.findById(modelId).orElseThrow(() -> new CustomException("Model with that Id does not exist")) :
+                modelRepository.save(new Model(modelValue));
+    }
+
+    private Brand getOrCreateBrand(Long brandId, String brandValue) {
+        return brandId != null ?
+                brandRepository.findById(brandId).orElseThrow(() -> new CustomException("Brand with that Id does not exist")) :
+                brandRepository.save(new Brand(brandValue));
     }
 }

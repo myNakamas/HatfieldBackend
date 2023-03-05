@@ -2,7 +2,9 @@ package com.nakamas.hatfieldbackend;
 
 import com.nakamas.hatfieldbackend.models.entities.shop.Shop;
 import com.nakamas.hatfieldbackend.models.entities.shop.ShopSettings;
+import com.nakamas.hatfieldbackend.models.enums.ItemType;
 import com.nakamas.hatfieldbackend.models.enums.UserRole;
+import com.nakamas.hatfieldbackend.models.views.incoming.CreateInventoryItem;
 import com.nakamas.hatfieldbackend.models.views.incoming.CreateUser;
 
 import java.util.List;
@@ -22,6 +24,11 @@ public final class TestData {
 
     static CreateUser getTestUser(Shop shop) {
         return new CreateUser(null, correctUsername, "Adam John", correctPassword, UserRole.ADMIN, "email@email.com", List.of("+359898575932"), shop.getId());
+    }
+
+    static CreateInventoryItem getInventoryItem(Shop shop) {
+        return new CreateInventoryItem(null, "Brand", null, "Model"
+                , 10, shop.getId(), ItemType.PART);
     }
 
 }

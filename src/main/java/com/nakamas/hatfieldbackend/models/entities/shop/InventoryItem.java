@@ -16,9 +16,9 @@ import org.springframework.data.jpa.domain.AbstractPersistable;
 @Entity
 @Inheritance(strategy=InheritanceType.SINGLE_TABLE)
 public class InventoryItem extends AbstractPersistable<Long> {
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne
     private Model model;
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne
     private Brand brand;
     private Integer count;
     @ManyToOne
