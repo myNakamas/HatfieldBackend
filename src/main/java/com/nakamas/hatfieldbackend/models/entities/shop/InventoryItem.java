@@ -9,6 +9,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.data.jpa.domain.AbstractPersistable;
 
+import java.util.Map;
+
 @Getter
 @Setter
 @NoArgsConstructor
@@ -26,13 +28,15 @@ public class InventoryItem extends AbstractPersistable<Long> {
     //todo: dali se interesuva toq item da go slaga v shopping list boolean
     @ManyToOne
     private Category category;
-//    @ElementCollection
-//    Map<String, String> otherProperties;
+    @ElementCollection
+    Map<String, String> otherProperties;
 
-    public InventoryItem(CreateInventoryItem item, Brand brand, Model model, Shop shop){
+    public InventoryItem(CreateInventoryItem item, Brand brand, Model model, Shop shop, Category category) {
         this.model = model;
         this.brand = brand;
         this.shop = shop;
         this.count = item.count();
+        this.category = category;
+        this.otherProperties = item.properties();
     }
 }
