@@ -20,9 +20,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 import static com.nakamas.hatfieldbackend.TestData.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.ANY, connection = EmbeddedDatabaseConnection.H2)
@@ -47,8 +46,8 @@ class TestUserAccount {
 
     @AfterEach
     void tearDown() {
-        shopRepository.deleteAll();
         userRepo.deleteAll();
+        shopRepository.deleteAll();
     }
 
     @Test
