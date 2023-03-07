@@ -25,4 +25,11 @@ public interface UserRepository extends JpaRepository<User, UUID> {
              and concat( u.fullName,u.username,u.email) like %?1%
             """)
     List<UserProfile> findAllWorkers(String searchBy);
+
+    @Query("""
+             select u
+             from User u
+             where (u.username = ?1 or u.email = ?2)
+            """)
+    List<User> uniqueUserExists(String username, String email);
 }

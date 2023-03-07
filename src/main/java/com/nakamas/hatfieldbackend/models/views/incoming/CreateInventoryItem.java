@@ -1,11 +1,14 @@
 package com.nakamas.hatfieldbackend.models.views.incoming;
 
-import com.nakamas.hatfieldbackend.models.enums.ItemType;
+import java.util.Map;
 
 public record CreateInventoryItem(
         Long modelId,
+        String model,
         Long brandId,
+        String brand,
         Integer count,
         Long shopId,
-        ItemType type) {
+        Long categoryId,
+        Map<String, String> properties) {
 }

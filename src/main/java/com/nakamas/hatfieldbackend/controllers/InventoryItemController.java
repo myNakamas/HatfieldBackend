@@ -24,6 +24,14 @@ public class InventoryItemController {
     public InventoryItemView createInventoryItem(@RequestBody CreateInventoryItem inventoryItem) {
         return new InventoryItemView(inventoryItemService.createInventoryItem(inventoryItem));
     }
+    @PostMapping("item/updateQuantity")
+    public void updateQuantity(@RequestBody InventoryItemView inventoryItem) {
+        inventoryItemService.updateQuantity(inventoryItem.id(), inventoryItem.count());
+    }
+    @PostMapping("item/remove")
+    public void remove(@RequestBody Long id) {
+        inventoryItemService.remove(id);
+    }
 
     @GetMapping("item/all")
     public PageView<InventoryItemView> getShopInventory(@AuthenticationPrincipal User loggedUser, PageRequestView pageRequestView) {

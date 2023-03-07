@@ -4,6 +4,7 @@ import com.nakamas.hatfieldbackend.config.exception.CustomException;
 import com.nakamas.hatfieldbackend.models.entities.shop.Shop;
 import com.nakamas.hatfieldbackend.models.views.incoming.CreateShop;
 import com.nakamas.hatfieldbackend.models.views.outgoing.shop.ShopSettingsView;
+import com.nakamas.hatfieldbackend.models.views.outgoing.shop.ShopView;
 import com.nakamas.hatfieldbackend.repositories.ShopRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -25,6 +26,9 @@ public class ShopService {
         return new ShopSettingsView(shop.getSettings());
     }
 
+    public ShopView getShopById(Long id){
+        return new ShopView(shopRepository.findById(id).orElseThrow(() -> new CustomException("")));
+    }
     public Shop create(CreateShop create) {
         return shopRepository.save(new Shop(create));
     }

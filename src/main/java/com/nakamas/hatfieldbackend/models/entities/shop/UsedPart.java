@@ -20,8 +20,14 @@ public class UsedPart extends AbstractPersistable<Long> {
     @ManyToOne
     private Ticket ticket;
     @ManyToOne
-    private Part part;
-
+    private InventoryItem item;
     private Integer usedCount;
     private LocalDateTime timestamp;
+
+    public UsedPart(Ticket ticket, InventoryItem item, Integer count, LocalDateTime now){
+        this.ticket = ticket;
+        this.item = item;
+        this.usedCount = count;
+        this.timestamp = now;
+    }
 }

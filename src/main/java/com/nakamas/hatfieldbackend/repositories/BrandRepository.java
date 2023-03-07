@@ -12,4 +12,7 @@ import java.util.List;
 public interface BrandRepository extends JpaRepository<Brand, Long> {
     @Query("select new com.nakamas.hatfieldbackend.models.views.outgoing.shop.ItemPropertyView(b.id,b.brand) from Brand  b")
     List<ItemPropertyView> findAllBrands();
+
+    @Query("from Brand b where b.brand = ?1")
+    Brand findByName(String brandValue);
 }

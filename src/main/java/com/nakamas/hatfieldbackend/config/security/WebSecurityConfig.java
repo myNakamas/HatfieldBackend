@@ -55,7 +55,8 @@ public class WebSecurityConfig {
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
                 .authenticationProvider(authenticationProvider())
                 .authorizeHttpRequests((authorize) -> authorize
-                        .requestMatchers("*/admin/**").hasAuthority(UserRole.ADMIN.getRole())
+                        .requestMatchers("/admin/**").hasAuthority(UserRole.ADMIN.getRole())
+                        .requestMatchers("/ws").permitAll()
                         .anyRequest().authenticated().and())
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and()
                 .requiresChannel().anyRequest().requiresSecure().and()

@@ -1,5 +1,6 @@
 package com.nakamas.hatfieldbackend.config.exception;
 
+import io.fusionauth.jwt.JWTExpiredException;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
@@ -24,6 +25,12 @@ public class AppExceptionHandler {
         for (ConstraintViolation<?> constraintViolation : ex.getConstraintViolations()) {
             responseBuilder.property(constraintViolation.getPropertyPath().toString(), constraintViolation.getMessage());
         }
+        return responseBuilder.build();
+    }
+
+    @ExceptionHandler({JWTExpiredException.class})
+    public ErrorResponse handleJWTExceptions(JWTExpiredException ex) {
+        ErrorResponse.Builder responseBuilder = ErrorResponse.builder(ex, HttpStatus.UNAUTHORIZED, ex.getMessage());
         return responseBuilder.build();
     }
 }
