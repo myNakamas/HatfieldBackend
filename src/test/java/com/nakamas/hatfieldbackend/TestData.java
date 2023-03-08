@@ -17,7 +17,7 @@ public final class TestData {
     public static final String correctUsername = "CorrectUsername";
 
     static ShopSettings getTestShopSettings() {
-        return new ShopSettings("#eec550", "#f9e3a3", "#203e5f", "#1a2634", "#fff", "gmail", "password", "smsApiKey", null, null);
+        return new ShopSettings("#eec550", "#1a2634", "gmail", "password", "smsApiKey", null, null);
     }
 
     static Shop getTestShop() {

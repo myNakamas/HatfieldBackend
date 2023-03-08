@@ -34,7 +34,7 @@ public class InitialConfig implements ApplicationRunner {
     }
 
     private static ShopSettings defaultShopSettings() {
-        return new ShopSettings("#eec550", "#f9e3a3", "#203e5f", "#1a2634", "#fff", "gmail", "password", "smsApiKey", null, null);
+        return new ShopSettings("#eec550",  "#203e5f", "gmail", "password", "smsApiKey", null, null);
     }
 
     public void run(ApplicationArguments args) {

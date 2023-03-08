@@ -99,17 +99,25 @@ public class InventoryItemService {
         inventoryItemRepository.save(item);
     }
 
-    private Model getOrCreateModel(Long modelId, String modelValue) {
+    public Model getOrCreateModel(Long modelId, String modelValue) {
         if (modelId != null)
             return modelRepository.findById(modelId).orElseThrow(() -> new CustomException("Model with that Id does not exist"));
-        Model existingByName = modelRepository.findByName(modelValue).orElse(null);
+        return getOrCreateModel(modelValue);
+    }
+
+    public Model getOrCreateModel(String modelValue) {
+        Model existingByName = modelRepository.findByName(modelValue);
         if (existingByName != null) return existingByName;
         return modelRepository.save(new Model(modelValue));
     }
 
-    private Brand getOrCreateBrand(Long brandId, String brandValue) {
+    public Brand getOrCreateBrand(Long brandId, String brandValue) {
         if (brandId != null)
             return brandRepository.findById(brandId).orElseThrow(() -> new CustomException("Brand with that Id does not exist"));
+        return getOrCreateBrand(brandValue);
+    }
+
+    public Brand getOrCreateBrand(String brandValue) {
         Brand existingByName = brandRepository.findByName(brandValue);
         if (existingByName != null) return existingByName;
         return brandRepository.save(new Brand(brandValue));

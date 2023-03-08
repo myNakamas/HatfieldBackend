@@ -4,16 +4,13 @@ import com.nakamas.hatfieldbackend.models.entities.shop.ShopSettings;
 
 public record ShopSettingsView(
         String primaryColor,
-        String secondaryLightColor,
         String secondaryColor,
-        String secondaryDarkColor,
-        String textColor,
 
         String gmail,
         String gmailPassword,
         String smsApiKey) {
 
     public ShopSettingsView(ShopSettings settings){
-        this(settings.getPrimaryColor(), settings.getSecondaryLightColor(), settings.getSecondaryColor(), settings.getSecondaryDarkColor(), settings.getTextColor(), settings.getGmail(), "//Private//", settings.getSmsApiKey());
+        this(settings.getPrimaryColor(), settings.getSecondaryColor(), settings.getGmail(), settings.getGmailPassword(), settings.getSmsApiKey());
     }
 }
