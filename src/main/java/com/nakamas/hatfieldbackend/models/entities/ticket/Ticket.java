@@ -1,6 +1,7 @@
 package com.nakamas.hatfieldbackend.models.entities.ticket;
 
 import com.nakamas.hatfieldbackend.models.entities.User;
+import com.nakamas.hatfieldbackend.models.entities.shop.DeviceLocation;
 import com.nakamas.hatfieldbackend.models.entities.shop.Shop;
 import com.nakamas.hatfieldbackend.models.entities.shop.UsedPart;
 import com.nakamas.hatfieldbackend.models.enums.TicketStatus;
@@ -28,17 +29,18 @@ public class Ticket extends AbstractPersistable<Long> {
     private Model deviceModel;
     @ManyToOne
     private Brand deviceBrand;
+    @ManyToOne
+    private DeviceLocation deviceLocation;
     @Column(columnDefinition = "text")
     private String customerRequest;
     @Column(columnDefinition = "text")
     private String deviceProblemExplanation;
     private String deviceCondition;
-    //todo: add relation to table deviceLocation
     private String devicePassword;
     private String serialNumberOrImei;
     private String accessories;
     private LocalDateTime timestamp;
-//    manually set
+    //    manually set
     private LocalDateTime deadline;
     @Column(columnDefinition = "text")
     private String notes;
@@ -80,5 +82,20 @@ public class Ticket extends AbstractPersistable<Long> {
         this.shop = user.getShop();
 
         this.timestamp = LocalDateTime.now();
+    }
+
+    public void update(CreateTicket ticket) {
+        if (ticket.customerRequest() != null) this.customerRequest = ticket.customerRequest();
+        if (ticket.problemExplanation() != null) this.deviceProblemExplanation = ticket.problemExplanation();
+        if (ticket.deviceCondition() != null) this.deviceCondition = ticket.deviceCondition();
+        if (ticket.devicePassword() != null) this.devicePassword = ticket.devicePassword();
+        if (ticket.serialNumberOrImei() != null) this.serialNumberOrImei = ticket.serialNumberOrImei();
+        if (ticket.accessories() != null) this.accessories = ticket.accessories();
+        if (ticket.deadline() != null) this.deadline = ticket.deadline();
+        if (ticket.notes() != null) this.notes = ticket.notes();
+        if (ticket.totalPrice() != null) this.totalPrice = ticket.totalPrice();
+        if (ticket.deposit() != null) this.deposit = ticket.deposit();
+        if (ticket.priority() != null) this.priority = ticket.priority();
+        if (ticket.status() != null) this.status = ticket.status();
     }
 }

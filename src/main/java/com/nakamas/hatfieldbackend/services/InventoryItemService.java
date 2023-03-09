@@ -106,6 +106,7 @@ public class InventoryItemService {
     }
 
     public Model getOrCreateModel(String modelValue) {
+        if(modelValue==null || modelValue.isBlank()) return null;
         Model existingByName = modelRepository.findByName(modelValue);
         if (existingByName != null) return existingByName;
         return modelRepository.save(new Model(modelValue));
@@ -118,6 +119,7 @@ public class InventoryItemService {
     }
 
     public Brand getOrCreateBrand(String brandValue) {
+        if(brandValue==null || brandValue.isBlank()) return null;
         Brand existingByName = brandRepository.findByName(brandValue);
         if (existingByName != null) return existingByName;
         return brandRepository.save(new Brand(brandValue));

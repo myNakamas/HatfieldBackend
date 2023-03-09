@@ -14,7 +14,6 @@ import org.springframework.data.jpa.domain.AbstractPersistable;
 @Entity
 public class DeviceLocation extends AbstractPersistable<Long> {
     private String location;
-
     public DeviceLocation (String loc){
         this.location = loc;
     }

@@ -9,6 +9,7 @@ import java.util.UUID;
 
 public record CreateTicket(String deviceModel,
                            String deviceBrand,
+                           String deviceLocation,
                            String customerRequest,
                            String problemExplanation,
                            String deviceCondition,
