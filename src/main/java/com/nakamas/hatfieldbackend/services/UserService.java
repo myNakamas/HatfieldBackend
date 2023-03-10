@@ -5,6 +5,7 @@ import com.nakamas.hatfieldbackend.models.entities.Photo;
 import com.nakamas.hatfieldbackend.models.entities.User;
 import com.nakamas.hatfieldbackend.models.enums.UserRole;
 import com.nakamas.hatfieldbackend.models.views.incoming.CreateUser;
+import com.nakamas.hatfieldbackend.models.views.incoming.filters.UserFilter;
 import com.nakamas.hatfieldbackend.models.views.outgoing.user.UserProfile;
 import com.nakamas.hatfieldbackend.repositories.ShopRepository;
 import com.nakamas.hatfieldbackend.repositories.UserRepository;
@@ -89,8 +90,16 @@ public class UserService implements UserDetailsService, UserDetailsPasswordServi
         return validateAndSave(user);
     }
 
-    public List<UserProfile> getAllWorkers(String searchBy) {
-        return userRepository.findAllWorkers(searchBy);
+    public List<User> getAll(UserFilter filter) {
+        return userRepository.findAll(filter);
+    }
+    public List<User> getAllClients(UserFilter filter) {
+        filter.setRoles(List.of(UserRole.CLIENT));
+        return userRepository.findAll(filter);
+    }
+    public List<User> getAllWorkers(UserFilter filter) {
+        filter.setRoles(List.of(UserRole.ENGINEER,UserRole.SALESMAN));
+        return userRepository.findAll(filter);
     }
 
     @Transactional

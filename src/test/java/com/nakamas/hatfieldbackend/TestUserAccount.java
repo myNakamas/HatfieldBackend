@@ -5,6 +5,7 @@ import com.nakamas.hatfieldbackend.models.entities.User;
 import com.nakamas.hatfieldbackend.models.entities.shop.Shop;
 import com.nakamas.hatfieldbackend.models.enums.UserRole;
 import com.nakamas.hatfieldbackend.models.views.incoming.CreateUser;
+import com.nakamas.hatfieldbackend.models.views.incoming.filters.UserFilter;
 import com.nakamas.hatfieldbackend.repositories.ShopRepository;
 import com.nakamas.hatfieldbackend.repositories.UserRepository;
 import com.nakamas.hatfieldbackend.services.UserService;
@@ -162,14 +163,19 @@ class TestUserAccount {
     @Test
     void get_workers_should_fail(){
         createClient("new username", "newEmail@gmail.com");
-        assertEquals(0, userService.getAllWorkers("new username").size());
+        UserFilter filter = new UserFilter();
+        filter.setSearchBy("new username");
+        assertEquals(0, userService.getAllWorkers(filter).size());
     }
 
     @Test
     void get_workers_should_succeed(){
         createClient("new username", "newEmail@gmail.com");
         createSecondUser("new username 2","newEmail2@gmail.com");
-        assertEquals(1, userService.getAllWorkers("username").size());
+        UserFilter filter = new UserFilter();
+        filter.setSearchBy("username");
+
+        assertEquals(1, userService.getAllWorkers(filter).size());
     }
 
     private User createSecondUser(String username, String email){

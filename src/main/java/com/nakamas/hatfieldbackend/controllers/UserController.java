@@ -3,6 +3,7 @@ package com.nakamas.hatfieldbackend.controllers;
 import com.nakamas.hatfieldbackend.models.entities.User;
 import com.nakamas.hatfieldbackend.models.views.incoming.ChangePasswordView;
 import com.nakamas.hatfieldbackend.models.views.incoming.CreateUser;
+import com.nakamas.hatfieldbackend.models.views.incoming.filters.UserFilter;
 import com.nakamas.hatfieldbackend.models.views.outgoing.user.UserProfile;
 import com.nakamas.hatfieldbackend.services.UserService;
 import jakarta.servlet.http.HttpServletResponse;
@@ -41,9 +42,17 @@ public class UserController {
         return new UserProfile(userService.createClient(user));
     }
 
-    @GetMapping("all/workers")//todo: transform into a filter if needed
-    public List<UserProfile> getAllWorkers(String searchBy) {
-        return userService.getAllWorkers(searchBy);
+    @GetMapping("all")
+    public List<UserProfile> getAll(UserFilter filter) {
+        return userService.getAll(filter).stream().map(UserProfile::new).toList();
+    }
+    @GetMapping("all/workers")
+    public List<UserProfile> getAllWorkers(UserFilter filter) {
+        return userService.getAllWorkers(filter).stream().map(UserProfile::new).toList();
+    }
+    @GetMapping("all/clients")
+    public List<UserProfile> getAllClients(UserFilter filter) {
+        return userService.getAllClients(filter).stream().map(UserProfile::new).toList();
     }
 
     @GetMapping("profile")
@@ -61,10 +70,12 @@ public class UserController {
     public void editPassword(@AuthenticationPrincipal User user, @RequestBody ChangePasswordView changePassword) {
         userService.changePassword(user, changePassword.oldPassword(), changePassword.newPassword());
     }
+
     @GetMapping(path = "profile/image", produces = {MediaType.IMAGE_JPEG_VALUE})
     public void getUserImage(@RequestParam UUID id, @Autowired HttpServletResponse response) {
-        userService.getUserImage(id,response);
+        userService.getUserImage(id, response);
     }
+
     @PostMapping(path = "profile/edit/image", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
     public void updateUserImage(@AuthenticationPrincipal User user, @RequestBody MultipartFile image) {
         userService.updateUserImage(user, image);
