@@ -135,4 +135,10 @@ public class InventoryItemService {
         category.update(categoryView);
         return new CategoryView(categoryRepository.save(category));
     }
+
+    public void changeNeed(Long id, Boolean need){
+        InventoryItem item = inventoryItemRepository.getReferenceById(id);
+        item.setShoppingListNeeded(need);
+        inventoryItemRepository.save(item);
+    }
 }

@@ -38,6 +38,11 @@ public class InventoryItemController {
         return inventoryItemService.getShopInventory(loggedUser.getShop().getId(), pageRequestView);
     }
 
+    @PostMapping("item/changeNeed")
+    public void changeNeed(@RequestParam Long id, @RequestParam Boolean need){
+        inventoryItemService.changeNeed(id, need);
+    }
+
     @GetMapping("model/all")
     public List<ItemPropertyView> getAllModels() {
         return inventoryItemService.getAllModels();
