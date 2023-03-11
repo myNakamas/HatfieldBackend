@@ -61,7 +61,7 @@ public class Ticket extends AbstractPersistable<Long> {
     @OneToMany(mappedBy = "ticket")
     private List<UsedPart> usedParts = new ArrayList<>();
 
-    @OneToMany(mappedBy = "ticket")
+    @OneToMany()
     private List<ChatMessage> chatMessages = new ArrayList<>();
 
     public Ticket(CreateTicket create, User user) {

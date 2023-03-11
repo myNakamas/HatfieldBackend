@@ -2,7 +2,6 @@ package com.nakamas.hatfieldbackend.config;
 
 import com.nakamas.hatfieldbackend.models.entities.User;
 import com.nakamas.hatfieldbackend.services.UserService;
-import com.nakamas.hatfieldbackend.services.WebSocketSessionsHolder;
 import com.nakamas.hatfieldbackend.util.JwtUtil;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -26,7 +25,6 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 @EnableWebSocketMessageBroker
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     private final JwtUtil jwtUtil;
-    private final WebSocketSessionsHolder sessionsHolder;
     private final UserService userService;
 
     @Override
@@ -37,7 +35,8 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void configureMessageBroker(MessageBrokerRegistry config) {
         config.setApplicationDestinationPrefixes("/app");
-        config.enableSimpleBroker("/topic");
+        config.enableSimpleBroker("/topic", "/user");
+        config.setUserDestinationPrefix("/user");
     }
 
     @Override
@@ -59,7 +58,6 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                         User userDetails = (User) userService.loadUserByUsername(username);
                         if (jwtUtil.validateToken(token, userDetails)) {
                             accessor.setUser(new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities()));
-                            sessionsHolder.addSession(userDetails, accessor.getSessionId());
                         }
                     }
                 }
