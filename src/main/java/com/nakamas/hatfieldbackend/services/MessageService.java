@@ -3,7 +3,9 @@ package com.nakamas.hatfieldbackend.services;
 import com.nakamas.hatfieldbackend.models.entities.User;
 import com.nakamas.hatfieldbackend.models.entities.ticket.ChatMessage;
 import com.nakamas.hatfieldbackend.models.views.incoming.CreateChatMessage;
+import com.nakamas.hatfieldbackend.models.views.outgoing.ticket.Chat;
 import com.nakamas.hatfieldbackend.models.views.outgoing.ticket.ChatMessageView;
+import com.nakamas.hatfieldbackend.models.views.outgoing.ticket.UserChats;
 import com.nakamas.hatfieldbackend.repositories.MessageRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -13,7 +15,9 @@ import org.springframework.messaging.simp.SimpMessageType;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 
 @Slf4j
 @Service
@@ -45,4 +49,14 @@ public class MessageService {
         return headerAccessor.getMessageHeaders();
     }
 
+    public UserChats findAllByIds(UUID id, UUID userId) {
+        List<ChatMessageView> sent = messageRepository.findAllSentToUser(id, userId).stream().map(ChatMessageView::new).toList();
+        List<ChatMessageView> received = messageRepository.findAllReceivedFromUser(id, userId).stream().map(ChatMessageView::new).toList();
+        return new UserChats(sent,received, userId);
+    }
+    public Chat getChatMessages(UUID id, UUID userId) {
+        List<ChatMessageView> sent = messageRepository.findAllSentToUser(id, userId).stream().map(ChatMessageView::new).toList();
+        List<ChatMessageView> received = messageRepository.findAllReceivedFromUser(id, userId).stream().map(ChatMessageView::new).toList();
+        return new Chat(sent,received);
+    }
 }

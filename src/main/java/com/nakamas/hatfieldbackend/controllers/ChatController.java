@@ -1,22 +1,24 @@
 package com.nakamas.hatfieldbackend.controllers;
 
-import com.nakamas.hatfieldbackend.models.views.incoming.CreateChatMessage;
-import com.nakamas.hatfieldbackend.models.views.outgoing.ticket.ChatMessageView;
+import com.nakamas.hatfieldbackend.models.entities.User;
+import com.nakamas.hatfieldbackend.models.views.outgoing.ticket.Chat;
 import com.nakamas.hatfieldbackend.services.MessageService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.messaging.handler.annotation.MessageMapping;
-import org.springframework.messaging.handler.annotation.SendTo;
-import org.springframework.stereotype.Controller;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
-@Controller
+import java.util.UUID;
+
+@RestController
 @RequiredArgsConstructor
+@RequestMapping("api/chat")
 public class ChatController {
     private final MessageService messageService;
-
-    @MessageMapping("/chat")
-    @SendTo("/topic/chat/sent")
-    public ChatMessageView createMessage(CreateChatMessage message) {
-        return messageService.createMessage(message);
+    @GetMapping("all")
+    public Chat getAllMessagesForUser(@AuthenticationPrincipal User loggedUser, @RequestParam UUID userId){
+        return messageService.getChatMessages(loggedUser.getId(),userId);
     }
-
 }
