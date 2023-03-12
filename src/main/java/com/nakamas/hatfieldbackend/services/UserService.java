@@ -58,7 +58,22 @@ public class UserService implements UserDetailsService, UserDetailsPasswordServi
             throw new CustomException("Incorrect old password!");
         updatePassword(user, passwordEncoder.encode(newPassword));
     }
-
+    // admin changing the settings of other users
+    public void updateUserBan(UUID id, Boolean status){
+        User user = userRepository.getReferenceById(id);
+        user.setIsBanned(status);
+        userRepository.save(user);
+    }
+    public void updateUserActivity(UUID id, Boolean status){
+        User user = userRepository.getReferenceById(id);
+        user.setIsActive(status);
+        userRepository.save(user);
+    }
+    //user "deleting" his account
+    public void updateUserActivity(User user, Boolean status){
+        user.setIsActive(status);
+        userRepository.save(user);
+    }
     public User createUser(CreateUser userInfo) {
         User user = new User(userInfo, shopRepository.findById(userInfo.shopId()).orElse(null));
         user.setPassword(passwordEncoder.encode(user.getPassword()));
