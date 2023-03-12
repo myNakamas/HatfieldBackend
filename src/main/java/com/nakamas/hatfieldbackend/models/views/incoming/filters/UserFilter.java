@@ -26,7 +26,7 @@ public class UserFilter implements Specification<User> {
         List<Predicate> predicates = new ArrayList<>();
         predicates.add(builder.conjunction());
         if (shopId != null)
-            predicates.add(builder.equal(user.<Long>get("shopId"), shopId));
+            predicates.add(builder.equal(user.<Long>get("shop").get("id"), shopId));
         if (active != null)
             predicates.add(builder.equal(user.<Boolean>get("active"), active));
         if (banned != null)

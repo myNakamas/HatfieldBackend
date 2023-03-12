@@ -9,6 +9,7 @@ import com.nakamas.hatfieldbackend.models.entities.ticket.Model;
 import com.nakamas.hatfieldbackend.models.entities.ticket.Ticket;
 import com.nakamas.hatfieldbackend.models.views.incoming.CreateInventoryItem;
 import com.nakamas.hatfieldbackend.models.views.incoming.PageRequestView;
+import com.nakamas.hatfieldbackend.models.views.incoming.filters.InventoryItemFilter;
 import com.nakamas.hatfieldbackend.models.views.outgoing.PageView;
 import com.nakamas.hatfieldbackend.models.views.outgoing.shop.CategoryView;
 import com.nakamas.hatfieldbackend.models.views.outgoing.shop.InventoryItemView;
@@ -59,24 +60,23 @@ public class InventoryItemService {
     public void useItemForTicket(Long inventoryItemId, Long ticketId, Integer count) {
         InventoryItem item = inventoryItemRepository.findById(inventoryItemId).orElse(null);
         Ticket ticket = ticketRepository.findById(ticketId).orElse(null);
-
         if (item == null)
             throw new CustomException("Item does not exist!");
         if (ticket == null)
             throw new CustomException("Ticket does not exist!");
         if (item.getCount() < count)
             throw new CustomException("Not enough Items in storage!");
-
         item.setCount(item.getCount() - count);
         inventoryItemRepository.save(item);
-
         //TODO: dont forget to add the user that made the change in the log table. this is where the connection should be
         usedPartRepository.save(new UsedPart(ticket, item, count, LocalDateTime.now()));
 
     }
 
-    public PageView<InventoryItemView> getShopInventory(Long shopId, PageRequestView pageRequestView) {
-        Page<InventoryItemView> page = inventoryItemRepository.findAllByShopId(shopId, pageRequestView.getPageRequest());
+    public PageView<InventoryItemView> getShopInventory(Long shopId,InventoryItemFilter filter, PageRequestView pageRequestView) {
+        filter.setShopId(shopId);
+        Page<InventoryItem> items = inventoryItemRepository.findAll(filter, pageRequestView.getPageRequest());
+        Page<InventoryItemView> page = items.map(InventoryItemView::new);
         return new PageView<>(page);
     }
 

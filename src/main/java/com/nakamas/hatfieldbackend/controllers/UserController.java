@@ -48,18 +48,20 @@ public class UserController {
     public UserProfile createClient(@RequestBody @Valid CreateUser user) {
         return new UserProfile(userService.createClient(user));
     }
-    @GetMapping("all")
+    //worker i nagore toest admin
+    @GetMapping("worker/all")
     public List<UserProfile> getAll(UserFilter filter) {
         return userService.getAll(filter).stream().map(UserProfile::new).toList();
     }
-    @GetMapping("all/workers")
+    @GetMapping("worker/all/workers")
     public List<UserProfile> getAllWorkers(UserFilter filter) {
         return userService.getAllWorkers(filter).stream().map(UserProfile::new).toList();
     }
-    @GetMapping("all/clients")
+    @GetMapping("worker/all/clients")
     public List<UserProfile> getAllClients(UserFilter filter) {
         return userService.getAllClients(filter).stream().map(UserProfile::new).toList();
     }
+    //do tuk :D
     @GetMapping("profile")
     public UserProfile getLoggedUser(@AuthenticationPrincipal User user) {
         User fromDb = userService.getUser(user.getId());
