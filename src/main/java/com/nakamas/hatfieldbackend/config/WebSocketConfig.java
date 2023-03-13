@@ -57,6 +57,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                     if (username != null) {
                         User userDetails = (User) userService.loadUserByUsername(username);
                         if (jwtUtil.validateToken(token, userDetails)) {
+                            System.out.println(userDetails.getId());
                             accessor.setUser(new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities()));
                         }
                     }
