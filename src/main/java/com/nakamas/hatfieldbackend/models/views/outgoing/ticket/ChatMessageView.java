@@ -12,10 +12,11 @@ public record ChatMessageView(
         LocalDateTime readByReceiver,
         UUID sender,
         UUID receiver,
-        Long ticketId
+        Long ticketId,
+        Long randomId
 ) {
 
     public ChatMessageView(ChatMessage message) {
-        this(message.getId(), message.getText(), message.getTimestamp(), message.getReadByReceiver(), message.getSender().getId(), message.getReceiver().getId(), message.getTicket_id());
+        this(message.getId(), message.getText(), message.getTimestamp(), message.getReadByReceiver(), message.getSender().getId(), message.getReceiver().getId(), message.getTicket_id(), message.getRandomId());
     }
 }

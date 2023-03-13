@@ -8,5 +8,6 @@ public record CreateChatMessage(
         LocalDateTime timestamp,
         UUID sender,
         UUID receiver,
-        Long ticketId) {
+        Long ticketId,
+        Long randomId) {
 }

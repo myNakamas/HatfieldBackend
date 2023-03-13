@@ -29,6 +29,7 @@ public class ChatMessage extends AbstractPersistable<Long> {
     private User receiver;
     @Column(insertable=false, updatable=false)
     private Long ticket_id;
+    private Long randomId;
 
     public ChatMessage(CreateChatMessage create, User sender, User receiver) {
         this.text = create.text();
@@ -37,5 +38,6 @@ public class ChatMessage extends AbstractPersistable<Long> {
         this.sender = sender;
         this.receiver = receiver;
         this.ticket_id = create.ticketId();
+        this.randomId = create.randomId();
     }
 }
