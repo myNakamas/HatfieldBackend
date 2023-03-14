@@ -1,7 +1,7 @@
 package com.nakamas.hatfieldbackend.models.views.incoming;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import com.nakamas.hatfieldbackend.models.enums.TicketStatus;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -16,7 +16,7 @@ public record CreateTicket(String deviceModel,
                            String devicePassword,
                            String serialNumberOrImei,
                            String accessories,
-                           @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+                           @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
                            LocalDateTime deadline,
                            String notes,
                            TicketStatus status,
