@@ -33,8 +33,8 @@ public class TicketController {
     }
 
     @PutMapping("priority")
-    public void updatePriority(@AuthenticationPrincipal User user, @RequestParam Long id, @RequestParam Integer priority){
-        ticketService.setPriorityTo(user, id, priority);
+    public void updatePriority( @RequestParam Long id, @RequestParam Integer priority){
+        ticketService.setPriorityTo(id, priority);
     }
 
 //    todo: Post Start repair (move to lab, status started + message in chat + Open chat)
