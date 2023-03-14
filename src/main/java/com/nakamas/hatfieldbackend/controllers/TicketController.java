@@ -31,7 +31,24 @@ public class TicketController {
         return ticketService.findAll(user.getShop().getId(), pageRequestView);
     }
 
+    @PutMapping("priority")
+    public void updatePriority(@AuthenticationPrincipal User user, @RequestParam Long id, @RequestParam Integer priority){
+        ticketService.setPriorityTo(user, id, priority);
+    }
+
 //    todo: Post Start repair (move to lab, status started + message in chat + Open chat)
+    @PutMapping("start")
+    public void startTicket(@AuthenticationPrincipal User user, @RequestParam Long id){
+        ticketService.startRepair(user, id);
+    }
 //    todo: Complete repair(move to? Status Completed, send notification)
+    @PutMapping("complete")
+    public void completeTicket(@AuthenticationPrincipal User user, @RequestParam Long id, @RequestParam Long locationId){
+        ticketService.completeRepair(user, id, locationId);
+    }
 //    todo: Mark as collected + chat message + generate invoice
+    @PutMapping("collected")
+    public void collectedDevice(@AuthenticationPrincipal User user, @RequestParam Long id){
+        ticketService.collectedDevice(user, id);
+    }
 }

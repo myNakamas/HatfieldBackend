@@ -4,6 +4,7 @@ import com.nakamas.hatfieldbackend.config.exception.CustomException;
 import com.nakamas.hatfieldbackend.models.entities.User;
 import com.nakamas.hatfieldbackend.models.entities.shop.DeviceLocation;
 import com.nakamas.hatfieldbackend.models.entities.ticket.Ticket;
+import com.nakamas.hatfieldbackend.models.enums.TicketStatus;
 import com.nakamas.hatfieldbackend.models.views.incoming.CreateTicket;
 import com.nakamas.hatfieldbackend.models.views.incoming.PageRequestView;
 import com.nakamas.hatfieldbackend.models.views.outgoing.PageView;
@@ -55,6 +56,56 @@ public class TicketService {
     public PageView<TicketView> findAll(Long shopId, PageRequestView pageRequestView) {
             Page<TicketView> page = ticketRepository.findAllByShopId(shopId, pageRequestView.getPageRequest());
             return new PageView<>(page);
+    }
+    // dvete funkcii nadolu po dobre da e s filtur
+    public PageView<TicketView> findAllFinished(Long shopId, PageRequestView pageRequestView) {
+        Page<TicketView> page = ticketRepository.findAllByShopId(shopId, pageRequestView.getPageRequest());
+        return new PageView<>(page);
+    }
+
+    public PageView<TicketView> findAllOpen(Long shopId, PageRequestView pageRequestView) {
+        Page<TicketView> page = ticketRepository.findAllByShopId(shopId, pageRequestView.getPageRequest());
+        return new PageView<>(page);
+    }
+    //endregion
+
+    //region Ticket buttons
+
+    public void setPriorityTo(User user, Long id, Integer priority){
+        //use user to create log message
+        Ticket ticket = ticketRepository.getReferenceById(id);
+        ticket.setPriority(priority);
+        ticketRepository.save(ticket);
+    }
+
+    public void startRepair(User user, Long id){
+        //use user to create log message
+        Ticket ticket = ticketRepository.getReferenceById(id);
+        //ticket.setDeviceLocation(the second location(at lab));
+        ticket.setStatus(TicketStatus.STARTED);
+        //send message to client async?
+        //send sms if options allow
+        //to send email if options allow
+        ticketRepository.save(ticket);
+    }
+
+    public void completeRepair(User user, Long id, Long locationId){
+        //use user to create log message
+        Ticket ticket = ticketRepository.getReferenceById(id);
+        ticket.setDeviceLocation(deviceLocationRepository.getReferenceById(locationId));
+        ticket.setStatus(TicketStatus.FINISHED);
+        //send message to client async?
+        //send sms if options allow
+        //to send email if options allow
+        ticketRepository.save(ticket);
+    }
+    public void collectedDevice(User user, Long id){
+        //use user to create log message
+        Ticket ticket = ticketRepository.getReferenceById(id);
+        ticket.setStatus(TicketStatus.COLLECTED);
+        //send message to client
+        //generate invoice
+        ticketRepository.save(ticket);
     }
     //endregion
 }
