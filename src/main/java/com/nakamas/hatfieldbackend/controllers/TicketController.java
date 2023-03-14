@@ -1,6 +1,7 @@
 package com.nakamas.hatfieldbackend.controllers;
 
 import com.nakamas.hatfieldbackend.models.entities.User;
+import com.nakamas.hatfieldbackend.models.views.incoming.CreateInvoice;
 import com.nakamas.hatfieldbackend.models.views.incoming.CreateTicket;
 import com.nakamas.hatfieldbackend.models.views.incoming.PageRequestView;
 import com.nakamas.hatfieldbackend.models.views.outgoing.PageView;
@@ -48,7 +49,7 @@ public class TicketController {
     }
 //    todo: Mark as collected + chat message + generate invoice
     @PutMapping("collected")
-    public void collectedDevice(@AuthenticationPrincipal User user, @RequestParam Long id){
-        ticketService.collectedDevice(user, id);
+    public void collectedDevice(@AuthenticationPrincipal User user, @RequestParam Long id, @RequestParam CreateInvoice invoice){
+        ticketService.collectedDevice(user, id, invoice);
     }
 }

@@ -5,6 +5,7 @@ import com.nakamas.hatfieldbackend.models.entities.User;
 import com.nakamas.hatfieldbackend.models.entities.shop.DeviceLocation;
 import com.nakamas.hatfieldbackend.models.entities.ticket.Ticket;
 import com.nakamas.hatfieldbackend.models.enums.TicketStatus;
+import com.nakamas.hatfieldbackend.models.views.incoming.CreateInvoice;
 import com.nakamas.hatfieldbackend.models.views.incoming.CreateTicket;
 import com.nakamas.hatfieldbackend.models.views.incoming.PageRequestView;
 import com.nakamas.hatfieldbackend.models.views.outgoing.PageView;
@@ -22,6 +23,8 @@ public class TicketService {
     private final DeviceLocationRepository deviceLocationRepository;
     private final InventoryItemService inventoryService;
     private final UserService userService;
+
+    private final InvoiceService invoiceService;
 
     //region Main
     public Ticket createTicket(CreateTicket create, User loggedUser) {
@@ -81,7 +84,8 @@ public class TicketService {
     public void startRepair(User user, Long id){
         //use user to create log message
         Ticket ticket = ticketRepository.getReferenceById(id);
-        //ticket.setDeviceLocation(the second location(at lab));
+        //uses integer!!! make it flexible
+        ticket.setDeviceLocation(deviceLocationRepository.getReferenceById(53L));
         ticket.setStatus(TicketStatus.STARTED);
         //send message to client async?
         //send sms if options allow
@@ -99,13 +103,14 @@ public class TicketService {
         //to send email if options allow
         ticketRepository.save(ticket);
     }
-    public void collectedDevice(User user, Long id){
+    public void collectedDevice(User user, Long id, CreateInvoice invoice){
         //use user to create log message
         Ticket ticket = ticketRepository.getReferenceById(id);
         ticket.setStatus(TicketStatus.COLLECTED);
         //send message to client
-        //generate invoice
+        invoiceService.create(invoice);
         ticketRepository.save(ticket);
+        //maybe change return type if invoice creation is in BE
     }
     //endregion
 }
