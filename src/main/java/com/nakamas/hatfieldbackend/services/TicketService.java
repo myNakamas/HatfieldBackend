@@ -74,8 +74,7 @@ public class TicketService {
 
     //region Ticket buttons
 
-    public void setPriorityTo(User user, Long id, Integer priority){
-        //use user to create log message
+    public void setPriorityTo(Long id, Integer priority){
         Ticket ticket = ticketRepository.getReferenceById(id);
         ticket.setPriority(priority);
         ticketRepository.save(ticket);
@@ -85,7 +84,7 @@ public class TicketService {
         //use user to create log message
         Ticket ticket = ticketRepository.getReferenceById(id);
         //uses integer!!! make it flexible
-        ticket.setDeviceLocation(deviceLocationRepository.getReferenceById(53L));
+        ticket.setDeviceLocation(deviceLocationRepository.findByName("at lab"));
         ticket.setStatus(TicketStatus.STARTED);
         //send message to client async?
         //send sms if options allow
