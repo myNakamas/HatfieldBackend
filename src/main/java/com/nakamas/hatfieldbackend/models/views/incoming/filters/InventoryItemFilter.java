@@ -20,20 +20,25 @@ public class InventoryItemFilter implements Specification<InventoryItem> {
     private Long shopId;
     private Long categoryId;
     private Boolean isNeeded;
+
     @Override
-    public Predicate toPredicate(@NonNull Root<InventoryItem> item,@NonNull CriteriaQuery<?> query,@NonNull CriteriaBuilder criteriaBuilder) {
+    public Predicate toPredicate(@NonNull Root<InventoryItem> item, @NonNull CriteriaQuery<?> query, @NonNull CriteriaBuilder criteriaBuilder) {
         List<Predicate> predicates = new ArrayList<>();
         predicates.add(criteriaBuilder.conjunction());
-        if(modelId !=null)
+        if (modelId != null)
             predicates.add(criteriaBuilder.equal(item.<Long>get("model").get("id"), modelId));
-        if(brandId !=null)
+        if (brandId != null)
             predicates.add(criteriaBuilder.equal(item.<Long>get("brand").get("id"), brandId));
-        if(shopId !=null)
+        if (shopId != null)
             predicates.add(criteriaBuilder.equal(item.<Long>get("shop").get("id"), shopId));
-        if(categoryId !=null)
+        if (categoryId != null)
             predicates.add(criteriaBuilder.equal(item.<Long>get("category").get("id"), shopId));
-        if(isNeeded !=null)
+        if (isNeeded != null)
             predicates.add(criteriaBuilder.equal(item.<Boolean>get("shoppingListNeeded"), isNeeded));
+        if (searchBy != null && !searchBy.isBlank()) {
+            MapJoin<InventoryItem, String, String> otherProperties = item.joinMap("otherProperties");
+            predicates.add(criteriaBuilder.like(criteriaBuilder.lower(otherProperties.value()), "%" + searchBy.toLowerCase() + "%"));
+        }
 
         query.orderBy(criteriaBuilder.desc(item.get("id")));
         return criteriaBuilder.and(predicates.toArray(Predicate[]::new));
