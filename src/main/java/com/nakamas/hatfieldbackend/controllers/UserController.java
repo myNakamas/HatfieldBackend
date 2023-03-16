@@ -4,6 +4,7 @@ import com.nakamas.hatfieldbackend.models.entities.User;
 import com.nakamas.hatfieldbackend.models.views.incoming.ChangePasswordView;
 import com.nakamas.hatfieldbackend.models.views.incoming.CreateUser;
 import com.nakamas.hatfieldbackend.models.views.incoming.filters.UserFilter;
+import com.nakamas.hatfieldbackend.models.views.outgoing.user.CreatedClientInfo;
 import com.nakamas.hatfieldbackend.models.views.outgoing.user.UserProfile;
 import com.nakamas.hatfieldbackend.services.UserService;
 import jakarta.servlet.http.HttpServletResponse;
@@ -45,9 +46,10 @@ public class UserController {
     }
 
     @PostMapping("create/client")
-    public UserProfile createClient(@RequestBody @Valid CreateUser user) {
-        return new UserProfile(userService.createClient(user));
+    public CreatedClientInfo createClient(@RequestBody @Valid CreateUser user) {
+        return userService.createClient(user);
     }
+
     //worker i nagore toest admin
     @GetMapping("worker/all")
     public List<UserProfile> getAll(UserFilter filter) {

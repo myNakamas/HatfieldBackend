@@ -6,6 +6,7 @@ import com.nakamas.hatfieldbackend.models.entities.shop.Shop;
 import com.nakamas.hatfieldbackend.models.enums.UserRole;
 import com.nakamas.hatfieldbackend.models.views.incoming.CreateUser;
 import com.nakamas.hatfieldbackend.models.views.incoming.filters.UserFilter;
+import com.nakamas.hatfieldbackend.models.views.outgoing.user.CreatedClientInfo;
 import com.nakamas.hatfieldbackend.repositories.ShopRepository;
 import com.nakamas.hatfieldbackend.repositories.UserRepository;
 import com.nakamas.hatfieldbackend.services.UserService;
@@ -178,11 +179,12 @@ class TestUserAccount {
         assertEquals(1, userService.getAllWorkers(filter).size());
     }
 
-    private User createSecondUser(String username, String email){
+    private User createSecondUser(String username, String email) {
         return userService.createUser(new CreateUser(null, username, "new user",
                 correctPassword, UserRole.ENGINEER, email, null, registeredUser.getShop().getId()));
     }
-    private User createClient(String username, String email){
+
+    private CreatedClientInfo createClient(String username, String email) {
         return userService.createClient(new CreateUser(null, username, "new user",
                 correctPassword, UserRole.ENGINEER, email, null, registeredUser.getShop().getId()));
     }
