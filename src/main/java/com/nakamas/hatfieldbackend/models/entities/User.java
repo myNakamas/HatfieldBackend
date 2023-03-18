@@ -56,7 +56,7 @@ public class User extends AbstractPersistable<UUID> implements UserDetails {
     @OneToMany(mappedBy = "client")
     private List<Ticket> clientTickets;
 
-    @OneToOne(orphanRemoval = true,cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToOne(orphanRemoval = true, fetch = FetchType.LAZY)
     private Photo image;
 
     private void generateLoginData() {

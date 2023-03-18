@@ -1,12 +1,12 @@
 package com.nakamas.hatfieldbackend.services;
 
 import com.nakamas.hatfieldbackend.config.exception.CustomException;
+import com.nakamas.hatfieldbackend.models.entities.User;
 import com.nakamas.hatfieldbackend.models.entities.shop.Category;
 import com.nakamas.hatfieldbackend.models.entities.shop.InventoryItem;
 import com.nakamas.hatfieldbackend.models.entities.shop.UsedPart;
 import com.nakamas.hatfieldbackend.models.entities.ticket.Brand;
 import com.nakamas.hatfieldbackend.models.entities.ticket.Model;
-import com.nakamas.hatfieldbackend.models.entities.ticket.Ticket;
 import com.nakamas.hatfieldbackend.models.views.incoming.CreateInventoryItem;
 import com.nakamas.hatfieldbackend.models.views.incoming.PageRequestView;
 import com.nakamas.hatfieldbackend.models.views.incoming.filters.InventoryItemFilter;
@@ -31,7 +31,6 @@ public class InventoryItemService {
     private final BrandRepository brandRepository;
     private final ShopRepository shopRepository;
     private final CategoryRepository categoryRepository;
-    private final TicketRepository ticketRepository;
     private final UsedPartRepository usedPartRepository;
 
 
@@ -57,23 +56,18 @@ public class InventoryItemService {
         return all.stream().map(CategoryView::new).collect(Collectors.toList());
     }
 
-    public void useItemForTicket(Long inventoryItemId, Long ticketId, Integer count) {
-        InventoryItem item = inventoryItemRepository.findById(inventoryItemId).orElse(null);
-        Ticket ticket = ticketRepository.findById(ticketId).orElse(null);
-        if (item == null)
-            throw new CustomException("Item does not exist!");
-        if (ticket == null)
-            throw new CustomException("Ticket does not exist!");
+    public UsedPart useItemForTicket(Long inventoryItemId, Integer count, User user) {
+        InventoryItem item = inventoryItemRepository.findById(inventoryItemId).orElseThrow(() -> new CustomException("Item does not exist!"));
         if (item.getCount() < count)
             throw new CustomException("Not enough Items in storage!");
         item.setCount(item.getCount() - count);
         inventoryItemRepository.save(item);
         //TODO: dont forget to add the user that made the change in the log table. this is where the connection should be
-        usedPartRepository.save(new UsedPart(ticket, item, count, LocalDateTime.now()));
-
+        UsedPart usedPart = new UsedPart(item, count, LocalDateTime.now());
+        return usedPartRepository.save(usedPart);
     }
 
-    public PageView<InventoryItemView> getShopInventory(Long shopId,InventoryItemFilter filter, PageRequestView pageRequestView) {
+    public PageView<InventoryItemView> getShopInventory(Long shopId, InventoryItemFilter filter, PageRequestView pageRequestView) {
         filter.setShopId(shopId);
         Page<InventoryItem> items = inventoryItemRepository.findAll(filter, pageRequestView.getPageRequest());
         Page<InventoryItemView> page = items.map(InventoryItemView::new);

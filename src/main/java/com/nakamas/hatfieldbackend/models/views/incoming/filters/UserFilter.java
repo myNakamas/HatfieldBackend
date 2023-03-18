@@ -24,13 +24,12 @@ public class UserFilter implements Specification<User> {
     @Override
     public Predicate toPredicate(@NonNull Root<User> user, @NonNull CriteriaQuery<?> query, @NonNull CriteriaBuilder builder) {
         List<Predicate> predicates = new ArrayList<>();
-        predicates.add(builder.conjunction());
         if (shopId != null)
             predicates.add(builder.equal(user.<Long>get("shop").get("id"), shopId));
         if (active != null)
-            predicates.add(builder.equal(user.<Boolean>get("active"), active));
+            predicates.add(builder.equal(user.<Boolean>get("isActive"), active));
         if (banned != null)
-            predicates.add(builder.equal(user.<Boolean>get("banned"), banned));
+            predicates.add(builder.equal(user.<Boolean>get("isBanned"), banned));
         if (roles != null && !roles.isEmpty())
             predicates.add(user.<UserRole>get("role").in(roles));
         if (phone != null && !phone.isBlank()) {

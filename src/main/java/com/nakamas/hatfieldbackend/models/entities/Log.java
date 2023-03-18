@@ -20,7 +20,7 @@ public class Log extends AbstractPersistable<Long> {
     @Column(columnDefinition = "text")
     private String action;
     private UUID userId;
-    private LocalDateTime when;
+    private LocalDateTime timestamp;
     private Long ticketId;
     private Long partUsedId;
     private Long itemSoldId;
