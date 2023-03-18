@@ -67,7 +67,7 @@ public class UserController {
     @GetMapping("profile")
     public UserProfile getLoggedUser(@AuthenticationPrincipal User user) {
         User fromDb = userService.getUser(user.getId());
-        return userService.getUserProfile(fromDb);
+        return new UserProfile(fromDb);
     }
     @PutMapping("profile/edit")
     public UserProfile editLoggedUser(@AuthenticationPrincipal User user, @RequestBody CreateUser update) {

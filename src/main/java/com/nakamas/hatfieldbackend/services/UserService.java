@@ -8,7 +8,7 @@ import com.nakamas.hatfieldbackend.models.enums.UserRole;
 import com.nakamas.hatfieldbackend.models.views.incoming.CreateUser;
 import com.nakamas.hatfieldbackend.models.views.incoming.filters.UserFilter;
 import com.nakamas.hatfieldbackend.models.views.outgoing.user.CreatedClientInfo;
-import com.nakamas.hatfieldbackend.models.views.outgoing.user.UserProfile;
+import com.nakamas.hatfieldbackend.repositories.PhotoRepository;
 import com.nakamas.hatfieldbackend.repositories.OneTimeAuthRepository;
 import com.nakamas.hatfieldbackend.repositories.ShopRepository;
 import com.nakamas.hatfieldbackend.repositories.UserRepository;
@@ -37,6 +37,7 @@ import java.util.UUID;
 public class UserService implements UserDetailsService, UserDetailsPasswordService {
     private final PasswordEncoder passwordEncoder;
     private final UserRepository userRepository;
+    private final PhotoRepository photoRepository;
     private final ShopRepository shopRepository;
     private final OneTimeAuthRepository oneTimeAuthRepository;
 
@@ -65,15 +66,11 @@ public class UserService implements UserDetailsService, UserDetailsPasswordServi
 
     // admin changing the settings of other users
     public void updateUserBan(UUID id, Boolean status) {
-        User user = userRepository.getReferenceById(id);
-        user.setIsBanned(status);
-        userRepository.save(user);
+        userRepository.setBanned(id, status);
     }
 
     public void updateUserActivity(UUID id, Boolean status) {
-        User user = userRepository.getReferenceById(id);
-        user.setIsActive(status);
-        userRepository.save(user);
+        updateUserActivity(getUser(id), status);
     }
 
     //user "deleting" his account
@@ -140,9 +137,11 @@ public class UserService implements UserDetailsService, UserDetailsPasswordServi
         }
     }
 
+    @Transactional
     public void updateUserImage(User user, MultipartFile image) {
         try {
-            user.setImage(new Photo(image.getBytes(), false));
+            Photo photo = photoRepository.save(new Photo(image.getBytes(), false));
+            user.setImage(photo);
             userRepository.save(user);
         } catch (IOException e) {
             e.printStackTrace();
@@ -156,17 +155,5 @@ public class UserService implements UserDetailsService, UserDetailsPasswordServi
                 existingUsers.stream().anyMatch(profile -> !Objects.equals(profile.getId(), user.getId())))
             throw new CustomException("Username or email already taken!");
         return userRepository.save(user);
-    }
-
-    public UserProfile getUserProfile(User user) {
-        return new UserProfile(user);
-    }
-
-    @Transactional
-    public void resetPassword(UUID oneTimeToken, String password) {
-        OneTimeAuthToken validToken = oneTimeAuthRepository.findValidToken(oneTimeToken).orElseThrow(() -> new CustomException("Invalid token."));
-        validToken.setIsUsed(true);
-        userRepository.resetUserPassword(passwordEncoder.encode(password), validToken.getUserId());
-        oneTimeAuthRepository.save(validToken);
     }
 }

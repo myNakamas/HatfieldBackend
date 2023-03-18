@@ -24,8 +24,7 @@ public class UsedPart extends AbstractPersistable<Long> {
     private Integer usedCount;
     private LocalDateTime timestamp;
 
-    public UsedPart(Ticket ticket, InventoryItem item, Integer count, LocalDateTime now){
-        this.ticket = ticket;
+    public UsedPart(InventoryItem item, Integer count, LocalDateTime now) {
         this.item = item;
         this.usedCount = count;
         this.timestamp = now;

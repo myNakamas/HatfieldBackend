@@ -1,9 +1,11 @@
 package com.nakamas.hatfieldbackend.controllers;
 
 import com.nakamas.hatfieldbackend.models.entities.User;
+import com.nakamas.hatfieldbackend.models.enums.UserRole;
 import com.nakamas.hatfieldbackend.models.views.incoming.CreateInvoice;
 import com.nakamas.hatfieldbackend.models.views.incoming.CreateTicket;
 import com.nakamas.hatfieldbackend.models.views.incoming.PageRequestView;
+import com.nakamas.hatfieldbackend.models.views.incoming.filters.TicketFilter;
 import com.nakamas.hatfieldbackend.models.views.outgoing.PageView;
 import com.nakamas.hatfieldbackend.models.views.outgoing.ticket.TicketView;
 import com.nakamas.hatfieldbackend.services.TicketService;
@@ -28,8 +30,9 @@ public class TicketController {
     }
 
     @GetMapping("all")
-    public PageView<TicketView> getAllTickets(@AuthenticationPrincipal User user, PageRequestView pageRequestView){
-        return ticketService.findAll(user.getShop().getId(), pageRequestView);
+    public PageView<TicketView> getAllTickets(@AuthenticationPrincipal User user, TicketFilter ticketFilter, PageRequestView pageRequestView) {
+        if (!user.getRole().equals(UserRole.ADMIN)) ticketFilter.setShopId(user.getShop().getId());
+        return ticketService.findAll(ticketFilter, pageRequestView);
     }
 
     @PutMapping("priority")

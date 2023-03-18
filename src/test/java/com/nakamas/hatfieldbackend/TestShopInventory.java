@@ -55,7 +55,7 @@ public class TestShopInventory {
 
     @Test
     void add_item_with_new_values() {
-        CreateInventoryItem inventoryItem = TestData.getInventoryItem(shop, category);
+        CreateInventoryItem inventoryItem = TestData.getTestInventoryItem(shop, category);
         InventoryItem save = inventoryItemService.createInventoryItem(inventoryItem);
 
         Assertions.assertEquals(inventoryItem.brand(), save.getBrand().getBrand());

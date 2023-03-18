@@ -23,6 +23,6 @@ public interface UserRepository extends JpaRepository<User, UUID>, JpaSpecificat
     List<User> uniqueUserExists(String username, String email);
 
     @Modifying
-    @Query("update User set password = ?1 where id = ?2")
-    void resetUserPassword(String password, UUID userId);
+    @Query("UPDATE User u SET u.isBanned = ?2 where u.id = ?1")
+    void setBanned(UUID userId, boolean isBanned);
 }

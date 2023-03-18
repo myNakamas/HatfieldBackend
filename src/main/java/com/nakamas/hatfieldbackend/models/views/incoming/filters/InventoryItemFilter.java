@@ -13,7 +13,6 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class InventoryItemFilter implements Specification<InventoryItem> {
-
     private String searchBy;
     private Long modelId;
     private Long brandId;
@@ -26,13 +25,13 @@ public class InventoryItemFilter implements Specification<InventoryItem> {
         List<Predicate> predicates = new ArrayList<>();
         predicates.add(criteriaBuilder.conjunction());
         if (modelId != null)
-            predicates.add(criteriaBuilder.equal(item.<Long>get("model").get("id"), modelId));
+            predicates.add(criteriaBuilder.equal(item.get("model").get("id"), modelId));
         if (brandId != null)
-            predicates.add(criteriaBuilder.equal(item.<Long>get("brand").get("id"), brandId));
+            predicates.add(criteriaBuilder.equal(item.get("brand").get("id"), brandId));
         if (shopId != null)
-            predicates.add(criteriaBuilder.equal(item.<Long>get("shop").get("id"), shopId));
+            predicates.add(criteriaBuilder.equal(item.get("shop").get("id"), shopId));
         if (categoryId != null)
-            predicates.add(criteriaBuilder.equal(item.<Long>get("category").get("id"), shopId));
+            predicates.add(criteriaBuilder.equal(item.get("category").get("id"), shopId));
         if (isNeeded != null)
             predicates.add(criteriaBuilder.equal(item.<Boolean>get("shoppingListNeeded"), isNeeded));
         if (searchBy != null && !searchBy.isBlank()) {
