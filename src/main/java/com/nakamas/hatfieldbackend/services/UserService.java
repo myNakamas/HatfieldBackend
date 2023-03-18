@@ -1,15 +1,14 @@
 package com.nakamas.hatfieldbackend.services;
 
 import com.nakamas.hatfieldbackend.config.exception.CustomException;
-import com.nakamas.hatfieldbackend.models.entities.OneTimeAuthToken;
 import com.nakamas.hatfieldbackend.models.entities.Photo;
 import com.nakamas.hatfieldbackend.models.entities.User;
 import com.nakamas.hatfieldbackend.models.enums.UserRole;
 import com.nakamas.hatfieldbackend.models.views.incoming.CreateUser;
 import com.nakamas.hatfieldbackend.models.views.incoming.filters.UserFilter;
 import com.nakamas.hatfieldbackend.models.views.outgoing.user.CreatedClientInfo;
+import com.nakamas.hatfieldbackend.models.views.outgoing.user.UserProfile;
 import com.nakamas.hatfieldbackend.repositories.PhotoRepository;
-import com.nakamas.hatfieldbackend.repositories.OneTimeAuthRepository;
 import com.nakamas.hatfieldbackend.repositories.ShopRepository;
 import com.nakamas.hatfieldbackend.repositories.UserRepository;
 import jakarta.servlet.http.HttpServletResponse;
@@ -39,7 +38,6 @@ public class UserService implements UserDetailsService, UserDetailsPasswordServi
     private final UserRepository userRepository;
     private final PhotoRepository photoRepository;
     private final ShopRepository shopRepository;
-    private final OneTimeAuthRepository oneTimeAuthRepository;
 
     public User getUser(UUID id) {
         return userRepository.findById(id).orElseThrow(() -> new CustomException("User does not exist"));
@@ -90,8 +88,7 @@ public class UserService implements UserDetailsService, UserDetailsPasswordServi
         user.setRole(UserRole.CLIENT);
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         User save = validateAndSave(user);
-        OneTimeAuthToken token = oneTimeAuthRepository.save(new OneTimeAuthToken(user.getId()));
-        return new CreatedClientInfo(new UserProfile(save), token);
+        return new CreatedClientInfo(new UserProfile(save), user.getUsername(), user.getPassword());
     }
 
     /**

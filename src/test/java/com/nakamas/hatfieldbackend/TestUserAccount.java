@@ -195,15 +195,15 @@ class TestUserAccount {
     @Test
     @Transactional
     void ban_client_and_filter() {
-        User client = createClient("new username 2", "newEmail2@gmail.com");
+        CreatedClientInfo client = createClient("new username 2", "newEmail2@gmail.com");
 
-        userService.updateUserBan(client.getId(), true);
+        userService.updateUserBan(client.profile().userId(), true);
         UserFilter filter = new UserFilter();
         filter.setBanned(true);
         List<User> all = userService.getAllClients(filter);
 
         Assertions.assertTrue(all.stream().anyMatch(user ->
-                Objects.equals(user.getId(), client.getId())));
+                Objects.equals(user.getId(), client.profile().userId())));
     }
 
     @Test
