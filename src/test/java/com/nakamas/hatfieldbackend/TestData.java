@@ -23,11 +23,11 @@ public final class TestData {
     public static final String correctUsername = "CorrectUsername";
     private static final Random random = new Random();
 
-    static ShopSettings getTestShopSettings() {
+    public static ShopSettings getTestShopSettings() {
         return new ShopSettings("#eec550", "#1a2634", "gmail", "password", "smsApiKey", null, null);
     }
 
-    static Shop getTestShop() {
+    public static Shop getTestShop() {
         return new Shop("Hatfield", List.of(), "London, Street 023", "fakePhoneNum", "gakeEmail@email.com", "64243213001", "1245245", getTestShopSettings(), List.of(), List.of());
     }
 
@@ -47,19 +47,7 @@ public final class TestData {
         return new CreateInventoryItem(null, "Brand" + random.nextInt(), null, "Model" + random.nextInt(), 10, shop.getId(), category.getId(), new HashMap<>());
     }
 
-    static List<CreateInventoryItem> getTestInventoryItem(Shop shop, Category category, int count) {
-        List<CreateInventoryItem> list = new ArrayList<>();
-        for (int i = 0; i < count; i++) list.add(getTestInventoryItem(shop, category));
-        return list;
-    }
-
     public static CreateTicket getTestTicket(User client) {
         return new CreateTicket("TestDeviceModel" + random.nextInt(10), "TestDeviceBrand" + random.nextInt(10), "Lab" + random.nextInt(), "", "The screen is broken", "", random.nextInt() + "", "83753373", "none", LocalDateTime.now().plusDays(5), "", TicketStatus.PENDING, BigDecimal.valueOf(random.nextDouble()), BigDecimal.ZERO, client.getId(), random.nextInt(30));
-    }
-
-    public static List<CreateTicket> getTestTicket(User client, int count) {
-        List<CreateTicket> list = new ArrayList<>();
-        for (int i = 0; i < count; i++) list.add(getTestTicket(client));
-        return list;
     }
 }

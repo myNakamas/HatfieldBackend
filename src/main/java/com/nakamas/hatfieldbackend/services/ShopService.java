@@ -22,7 +22,7 @@ public class ShopService {
     }
 
     public ShopSettingsView getShopSettings(Long shopId) {
-        Shop shop = shopRepository.findById(shopId).orElseThrow();
+        Shop shop = shopRepository.findById(shopId).orElseThrow(() -> new CustomException("Cannot find settings"));
         return new ShopSettingsView(shop.getSettings());
     }
 
