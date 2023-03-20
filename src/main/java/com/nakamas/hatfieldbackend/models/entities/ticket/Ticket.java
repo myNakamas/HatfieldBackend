@@ -45,7 +45,7 @@ public class Ticket extends AbstractPersistable<Long> {
     @Column(columnDefinition = "text")
     private String notes;
     private BigDecimal totalPrice;
-    private BigDecimal deposit;
+    private BigDecimal deposit = BigDecimal.ZERO;
     private Integer priority = 0;
 
     @ManyToOne

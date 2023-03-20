@@ -1,69 +1,239 @@
 package com.nakamas.hatfieldbackend.services;
 
+import com.nakamas.hatfieldbackend.models.entities.User;
+import com.nakamas.hatfieldbackend.models.entities.ticket.Brand;
+import com.nakamas.hatfieldbackend.models.entities.ticket.Model;
+import com.nakamas.hatfieldbackend.models.entities.ticket.Ticket;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import net.glxn.qrgen.javase.QRCode;
 import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.pdmodel.PDDocumentCatalog;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
-import org.apache.pdfbox.pdmodel.common.PDRectangle;
+import org.apache.pdfbox.pdmodel.font.PDFont;
+import org.apache.pdfbox.pdmodel.font.PDType1Font;
 import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
-import org.apache.pdfbox.pdmodel.interactive.form.PDAcroForm;
-import org.apache.pdfbox.pdmodel.interactive.form.PDField;
+import org.apache.pdfbox.rendering.PDFRenderer;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Service;
 
-import java.io.*;
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.FormatStyle;
+import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class DocumentService implements ApplicationRunner {
+    @Value(value = "${printer-ip:#{null}}")
+    private String printerIp = "";
     private final static String RESOURCES_LOCATION = "src/main/resources";
     private final static String PDF_TEMPLATE_LOCATION = RESOURCES_LOCATION + "/templates";
+    private final DateTimeFormatter dtf = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM);
+    private final DateTimeFormatter shortDtf = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss");
 
-    public void fillDocument() {
-        InputStream input = null;
+
+    public File createPriceTag(String qrContent, String deviceName, String model, List<String> details, Float price) {
+        File result = new File(PDF_TEMPLATE_LOCATION + "/results/priceTag" + LocalDateTime.now().format(shortDtf) + ".png");
+        PDFont pdfFont = PDType1Font.HELVETICA_BOLD;
+        int detailsFontSize = 60 / details.size() - 5;
+        int detailsLeading = 60 / details.size();
+        FileInputStream input = getTemplate("/smallTag.pdf");
+
+        try (PDDocument document = PDDocument.load(input)) {
+            PDPage page = document.getPage(0);
+            PDPageContentStream contents = new PDPageContentStream(document, page, PDPageContentStream.AppendMode.APPEND, true, true);
+            File code = QRCode.from(qrContent).withSize(250, 250).file();
+            PDImageXObject qrCode = PDImageXObject.createFromFileByContent(code, document);
+            contents.drawImage(qrCode, -20, -10);
+            contents.setFont(pdfFont, 30);
+            contents.beginText();
+            contents.newLineAtOffset(200, 180);
+            contents.setLeading(35);
+            contents.showText(deviceName);
+            contents.setFont(pdfFont, 30);
+            contents.newLine();
+            addLine(contents, model);
+            contents.setFont(pdfFont, detailsFontSize);
+            contents.setLeading(detailsLeading);
+            for (String detail : details) {
+                addLine(contents, detail);
+            }
+            contents.newLineAtOffset(0, -15);
+            contents.setFont(pdfFont, 45);
+            contents.showText("Price: £" + String.format("%.2f", price));
+            contents.endText();
+
+            contents.close();
+            PDFRenderer renderer = new PDFRenderer(document);
+            BufferedImage image = renderer.renderImageWithDPI(0, 200);
+            ImageIO.write(image, "png", result);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        return result;
+    }
+
+    public File createRepairTag(String qrContent, Ticket ticket) {
+        File result = new File(PDF_TEMPLATE_LOCATION + "/results/repairTag" + LocalDateTime.now().format(shortDtf) + ".png");
+        PDFont pdfFont = PDType1Font.HELVETICA_BOLD;
+        int rows = ticket.getClient().getPhones().size() > 0 ? 5 : 6;
+        int detailsFontSize = 160 / rows - 5;
+        int detailsLeading = 160 / rows;
+        FileInputStream input = getTemplate("/smallTag.pdf");
+
+        try (PDDocument document = PDDocument.load(input)) {
+            PDPage page = document.getPage(0);
+            File code = QRCode.from(qrContent).withSize(250, 250).file();
+            PDPageContentStream contents = new PDPageContentStream(document, page, PDPageContentStream.AppendMode.APPEND, true, true);
+            PDImageXObject qrCode = PDImageXObject.createFromFileByContent(code, document);
+            contents.drawImage(qrCode, -20, -10);
+            contents.setFont(pdfFont, 30);
+            contents.setLeading(30);
+
+            contents.beginText();
+            contents.newLineAtOffset(200, 180);
+            addLine(contents, "Ticket ID:" + ticket.getId());
+
+            contents.setFont(pdfFont, detailsFontSize);
+            contents.setLeading(detailsLeading);
+
+            addLine(contents, ticket.getClient().getFullName());
+            if (ticket.getClient().getPhones().size() > 0) {
+                addLine(contents, ticket.getClient().getPhones().get(0));
+            }
+
+            addLine(contents, ticket.getAccessories());
+            addLine(contents, String.format("%.2f£", ticket.getTotalPrice()));
+
+            contents.endText();
+            contents.close();
+
+            PDFRenderer renderer = new PDFRenderer(document);
+            BufferedImage image = renderer.renderImageWithDPI(0, 200);
+            ImageIO.write(image, "png", result);
+
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        return result;
+    }
+
+    public File createTicket(String qrContent, Ticket ticket) {
+        PDFont pdfFont = PDType1Font.HELVETICA_BOLD;
+        FileInputStream input = getTemplate("/ticketTag.pdf");
+        File result = new File(PDF_TEMPLATE_LOCATION + "/results/ticketTag" + LocalDateTime.now().format(shortDtf) + ".png");
+
+        try (PDDocument document = PDDocument.load(input)) {
+            PDPage page = document.getPage(0);
+            File code = QRCode.from(qrContent).withSize(250, 250).file();
+            PDImageXObject qrCode = PDImageXObject.createFromFileByContent(code, document);
+            PDPageContentStream contents = new PDPageContentStream(document, page, PDPageContentStream.AppendMode.APPEND, true, true);
+            contents.drawImage(qrCode, -20, -10, 250, 250);
+            contents.setLeading(30);
+            contents.setFont(pdfFont, 30);
+            contents.setFont(PDType1Font.HELVETICA_BOLD, 30);
+
+            contents.beginText();
+            contents.newLineAtOffset(220, 200);
+            addLine(contents, "REPAIR TICKET ID:" + ticket.getId());
+            contents.setFont(PDType1Font.HELVETICA_BOLD_OBLIQUE, 30);
+            contents.showText("<= Scan to track your repair");
+            contents.newLine();
+            contents.setFont(pdfFont, 18);
+            contents.setLeading(20);
+            addLine(contents, "Created at: " + ticket.getTimestamp().format(dtf));
+            addLine(contents, "Brand & Model: %s ; %s".formatted(ticket.getDeviceBrand().getBrand(), ticket.getDeviceModel().getModel()));
+            addLine(contents, "Condition: " + ticket.getDeviceCondition());
+            addLine(contents, "Request: " + ticket.getCustomerRequest());
+            addLine(contents, String.format("Payment: %s/ %.2f£/ %.2f£", ticket.getDeposit().equals(ticket.getTotalPrice()) ? "PAID" : "NOT PAID YET", ticket.getDeposit(), ticket.getTotalPrice()));
+            contents.showText(String.format("Ready to collect by: %s", ticket.getDeadline().format(dtf)));
+            contents.endText();
+
+            contents.close();
+            PDFRenderer renderer = new PDFRenderer(document);
+            BufferedImage image = renderer.renderImageWithDPI(0, 200);
+            ImageIO.write(image, "png", result);
+
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        return result;
+    }
+
+    private void executePrint(File image, String printerIp) {
+        String printerUrl = "tcp://" + printerIp;
+        System.setProperty("BROTHER_QL_PRINTER", printerUrl);
+        System.setProperty("BROTHER_QL_MODEL", "QL-580N");
+        String[] cmd = {"brother_ql", "print", "-l", "62", image.getAbsolutePath()};
+        ProcessBuilder builder = new ProcessBuilder(cmd);
+
         try {
-            input = new FileInputStream(PDF_TEMPLATE_LOCATION + "/new_document.pdf");
-        } catch (FileNotFoundException ex) {
-            ex.printStackTrace();
+            Process process = builder.start();
+            int exitCode = process.waitFor();
+
+            if (exitCode == 0) {
+                log.info("Label printed successfully.");
+            } else {
+                log.error("Failed to print label. Exit code: " + exitCode);
+            }
+        } catch (IOException | InterruptedException e) {
+            log.error("Failed to print label. " + e.getMessage());
+            e.printStackTrace();
         }
 
-        //Load editable pdf file
-        try (PDDocument pdfDoc = PDDocument.load(input)) {
-            PDPage page = pdfDoc.getPage(0);
+    }
 
-            page.setCropBox(PDRectangle.A6);
-            page.setTrimBox(PDRectangle.A6);
-            File file = QRCode.from("Hello World").withSize(250, 250).file();
+    private static void addLine(PDPageContentStream contents, String ticket) throws IOException {
+        contents.showText(ticket);
+        contents.newLine();
+    }
 
-            PDImageXObject pdImage = PDImageXObject.createFromFileByContent(file, pdfDoc);
-            PDPageContentStream contents = new PDPageContentStream(pdfDoc, page, PDPageContentStream.AppendMode.APPEND, true, true);
-            contents.drawImage(pdImage, 5, 5);
-
-            PDDocumentCatalog docCatalog = pdfDoc.getDocumentCatalog();
-            PDAcroForm acroForm = docCatalog.getAcroForm();
-
-            PDField firstnameField = acroForm.getField("username");
-            firstnameField.setValue("CUSTOM USERNAME");
-
-            PDField lastnameField = acroForm.getField("password");
-            lastnameField.setValue("passwordu");
-
-            /*make the final document uneditable*/
-            acroForm.flatten();
-            /*generate a new pdf file and save it to the given location*/
-            contents.close();
-            pdfDoc.save(new File(PDF_TEMPLATE_LOCATION + "/new_document2.pdf"));
-        } catch (IOException e) {
+    private static FileInputStream getTemplate(String location) {
+        try {
+            return new FileInputStream(PDF_TEMPLATE_LOCATION + location);
+        } catch (FileNotFoundException e) {
             e.printStackTrace();
-
+            return null;
         }
     }
 
     @Override
     public void run(ApplicationArguments args) {
-        fillDocument();
+        Ticket ticket = new Ticket();
+        User user = new User();
+        user.setFullName("FullName");
+        user.setPhones(List.of("+452 2413 435 12", "+452 8513 654 12"));
+        ticket.setAccessories("One USB Cable");
+        ticket.setDeviceBrand(new Brand("Samsung"));
+        ticket.setDeviceModel(new Model("Galaxy 20"));
+        ticket.setTimestamp(LocalDateTime.now());
+        ticket.setDeadline(LocalDateTime.now().plusDays(5));
+        ticket.setDeviceCondition("A+");
+        ticket.setCustomerRequest("Do not reset phone");
+        ticket.setClient(user);
+        ticket.setDeposit(BigDecimal.valueOf(25.99));
+        ticket.setTotalPrice(BigDecimal.valueOf(25.99));
+        File image = createRepairTag("QR", ticket);
+        File image2 = createPriceTag("QR", "Some text", "Galaxy230", List.of("One detail", "SecondDetail"), 240f);
+        File image3 = createTicket("QR", ticket);
+        if (printerIp != null && !printerIp.isBlank()) {
+            log.info("Printer IP provided, proceeding to print images");
+            executePrint(image, printerIp);
+            executePrint(image2, printerIp);
+            executePrint(image3, printerIp);
+        } else {
+            log.warn("Missing Printer IP. Cannot print images");
+        }
     }
 }
