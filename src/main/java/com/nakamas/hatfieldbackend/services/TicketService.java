@@ -38,7 +38,7 @@ public class TicketService {
     }
 
     public Long update(CreateTicket ticket, Long id) {
-        Ticket ticketEntity = ticketRepository.findById(id).orElseThrow(() -> new CustomException("Could not find ticket"));
+        Ticket ticketEntity = getTicket(id);
         ticketEntity.update(ticket);
         setOptionalProperties(ticket, ticketEntity);
         return ticketRepository.save(ticketEntity).getId();

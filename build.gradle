@@ -14,6 +14,7 @@ configurations {
 }
 
 repositories {
+	maven { url "https://jitpack.io" }
 	mavenCentral()
 }
 
@@ -25,12 +26,15 @@ dependencies {
 //	Communication
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'org.springframework.boot:spring-boot-starter-websocket'
-	implementation 'org.webjars:sockjs-client:1.0.2'//maybe not needed
-	implementation 'org.webjars:stomp-websocket:2.3.3'
+	implementation 'org.webjars:stomp-websocket:2.3.4'
 
 //	Security
 	implementation 'org.springframework.boot:spring-boot-starter-security'
 	implementation 'io.fusionauth:fusionauth-jwt:5.2.2'
+
+//	Generating PDFs
+	implementation 'org.apache.pdfbox:pdfbox:2.0.27'
+	implementation 'com.github.kenglxn.QRGen:javase:3.0.1'
 
 	implementation 'org.springframework.boot:spring-boot-starter-actuator'
 	implementation 'org.springframework.boot:spring-boot-starter-validation'

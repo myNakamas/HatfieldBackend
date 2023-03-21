@@ -57,7 +57,7 @@ public class InventoryItemService {
     }
 
     public UsedPart useItemForTicket(Long inventoryItemId, Integer count, User user) {
-        InventoryItem item = inventoryItemRepository.findById(inventoryItemId).orElseThrow(() -> new CustomException("Item does not exist!"));
+        InventoryItem item = getItem(inventoryItemId);
         if (item.getCount() < count)
             throw new CustomException("Not enough Items in storage!");
         item.setCount(item.getCount() - count);
@@ -130,9 +130,13 @@ public class InventoryItemService {
         return new CategoryView(categoryRepository.save(category));
     }
 
-    public void changeNeed(Long id, Boolean need){
+    public void changeNeed(Long id, Boolean need) {
         InventoryItem item = inventoryItemRepository.getReferenceById(id);
         item.setShoppingListNeeded(need);
         inventoryItemRepository.save(item);
+    }
+
+    public InventoryItem getItem(Long inventoryItem) {
+        return inventoryItemRepository.findById(inventoryItem).orElseThrow(() -> new CustomException("Cannot find item with selected id"));
     }
 }
