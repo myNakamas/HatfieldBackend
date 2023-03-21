@@ -35,7 +35,7 @@ public class TicketService {
     }
 
     public Long update(CreateTicket ticket, Long id) {
-        Ticket ticketEntity = ticketRepository.findById(id).orElseThrow(() -> new CustomException("Could not find ticket"));
+        Ticket ticketEntity = getTicket(id);
         ticketEntity.update(ticket);
         setOptionalProperties(ticket, ticketEntity);
         return ticketRepository.save(ticketEntity).getId();
@@ -92,7 +92,7 @@ public class TicketService {
         ticketRepository.save(ticket);
     }
 
-    public void completeRepair(User user, Long id, Long locationId){
+    public void completeRepair(User user, Long id, Long locationId) {
         //use user to create log message
         Ticket ticket = ticketRepository.getReferenceById(id);
         ticket.setDeviceLocation(deviceLocationRepository.getReferenceById(locationId));
@@ -102,7 +102,8 @@ public class TicketService {
         //to send email if options allow
         ticketRepository.save(ticket);
     }
-    public void collectedDevice(User user, Long id, CreateInvoice invoice){
+
+    public void collectedDevice(User user, Long id, CreateInvoice invoice) {
         //use user to create log message
         Ticket ticket = ticketRepository.getReferenceById(id);
         ticket.setStatus(TicketStatus.COLLECTED);
@@ -110,6 +111,10 @@ public class TicketService {
         invoiceService.create(invoice);
         ticketRepository.save(ticket);
         //maybe change return type if invoice creation is in BE
+    }
+
+    public Ticket getTicket(Long id) {
+        return ticketRepository.findById(id).orElseThrow(() -> new CustomException("Could not find ticket"));
     }
     //endregion
 }

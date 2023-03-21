@@ -58,12 +58,8 @@ public class InventoryItemService {
     }
 
     public void useItemForTicket(Long inventoryItemId, Long ticketId, Integer count) {
-        InventoryItem item = inventoryItemRepository.findById(inventoryItemId).orElse(null);
-        Ticket ticket = ticketRepository.findById(ticketId).orElse(null);
-        if (item == null)
-            throw new CustomException("Item does not exist!");
-        if (ticket == null)
-            throw new CustomException("Ticket does not exist!");
+        InventoryItem item = getItem(inventoryItemId);
+        Ticket ticket = ticketRepository.findById(ticketId).orElseThrow(() -> new CustomException("Ticket does not exist!"));
         if (item.getCount() < count)
             throw new CustomException("Not enough Items in storage!");
         item.setCount(item.getCount() - count);
@@ -136,9 +132,13 @@ public class InventoryItemService {
         return new CategoryView(categoryRepository.save(category));
     }
 
-    public void changeNeed(Long id, Boolean need){
+    public void changeNeed(Long id, Boolean need) {
         InventoryItem item = inventoryItemRepository.getReferenceById(id);
         item.setShoppingListNeeded(need);
         inventoryItemRepository.save(item);
+    }
+
+    public InventoryItem getItem(Long inventoryItem) {
+        return inventoryItemRepository.findById(inventoryItem).orElseThrow(() -> new CustomException("Cannot find item with selected id"));
     }
 }

@@ -42,7 +42,6 @@ public class DocumentService implements ApplicationRunner {
     private final DateTimeFormatter dtf = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM);
     private final DateTimeFormatter shortDtf = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss");
 
-
     public File createPriceTag(String qrContent, String deviceName, String model, List<String> details, Float price) {
         File result = new File(PDF_TEMPLATE_LOCATION + "/results/priceTag" + LocalDateTime.now().format(shortDtf) + ".png");
         PDFont pdfFont = PDType1Font.HELVETICA_BOLD;
@@ -171,25 +170,30 @@ public class DocumentService implements ApplicationRunner {
         return result;
     }
 
-    private void executePrint(File image, String printerIp) {
-        String printerUrl = "tcp://" + printerIp;
-        System.setProperty("BROTHER_QL_PRINTER", printerUrl);
-        System.setProperty("BROTHER_QL_MODEL", "QL-580N");
-        String[] cmd = {"brother_ql", "print", "-l", "62", image.getAbsolutePath()};
-        ProcessBuilder builder = new ProcessBuilder(cmd);
+    public void executePrint(File image) {
+        if (printerIp != null && !printerIp.isBlank()) {
+            log.info("Printer IP provided, proceeding to print images");
+            String printerUrl = "tcp://" + printerIp;
+            System.setProperty("BROTHER_QL_PRINTER", printerUrl);
+            System.setProperty("BROTHER_QL_MODEL", "QL-580N");
+            String[] cmd = {"brother_ql", "print", "-l", "62", image.getAbsolutePath()};
+            ProcessBuilder builder = new ProcessBuilder(cmd);
 
-        try {
-            Process process = builder.start();
-            int exitCode = process.waitFor();
+            try {
+                Process process = builder.start();
+                int exitCode = process.waitFor();
 
-            if (exitCode == 0) {
-                log.info("Label printed successfully.");
-            } else {
-                log.error("Failed to print label. Exit code: " + exitCode);
+                if (exitCode == 0) {
+                    log.info("Label printed successfully.");
+                } else {
+                    log.error("Failed to print label. Exit code: " + exitCode);
+                }
+            } catch (IOException | InterruptedException e) {
+                log.error("Failed to print label. " + e.getMessage());
+                e.printStackTrace();
             }
-        } catch (IOException | InterruptedException e) {
-            log.error("Failed to print label. " + e.getMessage());
-            e.printStackTrace();
+        } else {
+            log.warn("Missing Printer IP. Cannot print images");
         }
 
     }
@@ -229,9 +233,9 @@ public class DocumentService implements ApplicationRunner {
         File image3 = createTicket("QR", ticket);
         if (printerIp != null && !printerIp.isBlank()) {
             log.info("Printer IP provided, proceeding to print images");
-            executePrint(image, printerIp);
-            executePrint(image2, printerIp);
-            executePrint(image3, printerIp);
+            executePrint(image);
+            executePrint(image2);
+            executePrint(image3);
         } else {
             log.warn("Missing Printer IP. Cannot print images");
         }
