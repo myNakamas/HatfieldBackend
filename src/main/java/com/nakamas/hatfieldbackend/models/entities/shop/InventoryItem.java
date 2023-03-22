@@ -25,7 +25,7 @@ public class InventoryItem extends AbstractPersistable<Long> {
     private Integer count;
     @ManyToOne
     private Shop shop;
-    //todo: dali se interesuva toq item da go slaga v shopping list boolean
+    private Boolean shoppingListNeeded;
     @ManyToOne
     private Category category;
     @ElementCollection
@@ -35,6 +35,7 @@ public class InventoryItem extends AbstractPersistable<Long> {
         this.model = model;
         this.brand = brand;
         this.shop = shop;
+        this.shoppingListNeeded = true;
         this.count = item.count();
         this.category = category;
         this.otherProperties = item.properties();

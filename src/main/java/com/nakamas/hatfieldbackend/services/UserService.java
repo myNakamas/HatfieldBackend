@@ -5,7 +5,10 @@ import com.nakamas.hatfieldbackend.models.entities.Photo;
 import com.nakamas.hatfieldbackend.models.entities.User;
 import com.nakamas.hatfieldbackend.models.enums.UserRole;
 import com.nakamas.hatfieldbackend.models.views.incoming.CreateUser;
+import com.nakamas.hatfieldbackend.models.views.incoming.filters.UserFilter;
+import com.nakamas.hatfieldbackend.models.views.outgoing.user.CreatedClientInfo;
 import com.nakamas.hatfieldbackend.models.views.outgoing.user.UserProfile;
+import com.nakamas.hatfieldbackend.repositories.PhotoRepository;
 import com.nakamas.hatfieldbackend.repositories.ShopRepository;
 import com.nakamas.hatfieldbackend.repositories.UserRepository;
 import jakarta.servlet.http.HttpServletResponse;
@@ -33,6 +36,7 @@ import java.util.UUID;
 public class UserService implements UserDetailsService, UserDetailsPasswordService {
     private final PasswordEncoder passwordEncoder;
     private final UserRepository userRepository;
+    private final PhotoRepository photoRepository;
     private final ShopRepository shopRepository;
 
     public User getUser(UUID id) {
@@ -58,17 +62,33 @@ public class UserService implements UserDetailsService, UserDetailsPasswordServi
         updatePassword(user, passwordEncoder.encode(newPassword));
     }
 
+    // admin changing the settings of other users
+    public void updateUserBan(UUID id, Boolean status) {
+        userRepository.setBanned(id, status);
+    }
+
+    public void updateUserActivity(UUID id, Boolean status) {
+        updateUserActivity(getUser(id), status);
+    }
+
+    //user "deleting" his account
+    public void updateUserActivity(User user, Boolean status) {
+        user.setIsActive(status);
+        userRepository.save(user);
+    }
+
     public User createUser(CreateUser userInfo) {
         User user = new User(userInfo, shopRepository.findById(userInfo.shopId()).orElse(null));
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         return validateAndSave(user);
     }
 
-    public User createClient(CreateUser userInfo) {
+    public CreatedClientInfo createClient(CreateUser userInfo) {
         User user = new User(userInfo, shopRepository.findById(userInfo.shopId()).orElse(null));
         user.setRole(UserRole.CLIENT);
         user.setPassword(passwordEncoder.encode(user.getPassword()));
-        return validateAndSave(user);
+        User save = validateAndSave(user);
+        return new CreatedClientInfo(new UserProfile(save), user.getUsername(), user.getPassword());
     }
 
     /**
@@ -89,25 +109,36 @@ public class UserService implements UserDetailsService, UserDetailsPasswordServi
         return validateAndSave(user);
     }
 
-    public List<UserProfile> getAllWorkers(String searchBy) {
-        return userRepository.findAllWorkers(searchBy);
+    public List<User> getAll(UserFilter filter) {
+        return userRepository.findAll(filter);
+    }
+
+    public List<User> getAllClients(UserFilter filter) {
+        filter.setRoles(List.of(UserRole.CLIENT));
+        return userRepository.findAll(filter);
+    }
+
+    public List<User> getAllWorkers(UserFilter filter) {
+        filter.setRoles(List.of(UserRole.ENGINEER, UserRole.SALESMAN));
+        return userRepository.findAll(filter);
     }
 
     @Transactional
     public void getUserImage(UUID id, HttpServletResponse response) {
         User user = getUser(id);
-        try(InputStream userImage = new ByteArrayInputStream(user.getImage().getData())){
+        try (InputStream userImage = new ByteArrayInputStream(user.getImage().getData())) {
             userImage.transferTo(response.getOutputStream());
-        }
-        catch (IOException e){
+        } catch (IOException e) {
             log.info(e.getMessage());
             throw new CustomException("Could not load profile image");
         }
     }
 
+    @Transactional
     public void updateUserImage(User user, MultipartFile image) {
         try {
-            user.setImage(new Photo(image.getBytes(),false));
+            Photo photo = photoRepository.save(new Photo(image.getBytes(), false));
+            user.setImage(photo);
             userRepository.save(user);
         } catch (IOException e) {
             e.printStackTrace();
@@ -115,15 +146,11 @@ public class UserService implements UserDetailsService, UserDetailsPasswordServi
         }
     }
 
-    private User validateAndSave(User user){
+    private User validateAndSave(User user) {
         List<User> existingUsers = userRepository.uniqueUserExists(user.getUsername(), user.getEmail());
-        if(user.getId() == null && existingUsers.size() > 0 ||
+        if (user.getId() == null && existingUsers.size() > 0 ||
                 existingUsers.stream().anyMatch(profile -> !Objects.equals(profile.getId(), user.getId())))
             throw new CustomException("Username or email already taken!");
         return userRepository.save(user);
-    }
-
-    public UserProfile getUserProfile(User user) {
-        return new UserProfile(user);
     }
 }

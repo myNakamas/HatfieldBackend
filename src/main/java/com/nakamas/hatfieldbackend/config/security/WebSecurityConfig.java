@@ -56,7 +56,7 @@ public class WebSecurityConfig {
                 .authenticationProvider(authenticationProvider())
                 .authorizeHttpRequests((authorize) -> authorize
                         .requestMatchers("/admin/**").hasAuthority(UserRole.ADMIN.getRole())
-                        .requestMatchers("/ws").permitAll()
+                        .requestMatchers("/public/**", "/ws").permitAll()
                         .anyRequest().authenticated().and())
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and()
                 .requiresChannel().anyRequest().requiresSecure().and()

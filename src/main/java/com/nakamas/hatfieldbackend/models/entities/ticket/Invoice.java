@@ -4,6 +4,7 @@ import com.nakamas.hatfieldbackend.models.entities.User;
 import com.nakamas.hatfieldbackend.models.enums.InvoiceType;
 import com.nakamas.hatfieldbackend.models.enums.PaymentMethod;
 import com.nakamas.hatfieldbackend.models.enums.WarrantyPeriod;
+import com.nakamas.hatfieldbackend.models.views.incoming.CreateInvoice;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -38,4 +39,19 @@ public class Invoice extends AbstractPersistable<Long> {
     private PaymentMethod paymentMethod;
     @Enumerated
     private WarrantyPeriod warrantyPeriod;
+
+
+    public Invoice(CreateInvoice invoiceView){
+        this.type = invoiceView.type();
+        this.deviceModel = invoiceView.deviceModel();
+        this.deviceBrand = invoiceView.deviceBrand();
+        this.serialNumber = invoiceView.serialNumber();
+        this.timestamp = LocalDateTime.now();
+        this.notes = invoiceView.notes();
+        this.totalPrice = invoiceView.totalPrice();
+        this.createdBy = invoiceView.createdBy();
+        this.client = invoiceView.client();
+        this.paymentMethod = invoiceView.paymentMethod();
+        this.warrantyPeriod = invoiceView.warranty();
+    }
 }

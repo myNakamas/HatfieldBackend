@@ -17,6 +17,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
@@ -40,6 +41,7 @@ class AuthTest {
     private WebApplicationContext context;
 
     User correctUser;
+    Shop shop;
     private MockMvc mvc;
 
 
@@ -49,7 +51,7 @@ class AuthTest {
                 .webAppContextSetup(context)
                 .apply(springSecurity())
                 .build();
-        Shop shop = shopRepository.save(getTestShop());
+        shop = shopRepository.save(getTestShop());
         correctUser = userService.createUser(getTestUser(shop));
     }
 
@@ -72,6 +74,19 @@ class AuthTest {
                         .post("/api/login").secure(true).contentType(MediaType.APPLICATION_JSON)
                         .param("username", correctUser.getUsername())
                         .param("password", correctPassword))
+                .andExpect(status().is2xxSuccessful());
+    }
+
+    @Test
+    void accessWithJWT() throws Exception {
+        MvcResult mvcResult = mvc.perform(MockMvcRequestBuilders
+                        .post("/api/login").secure(true).contentType(MediaType.APPLICATION_JSON)
+                        .param("username", correctUser.getUsername())
+                        .param("password", correctPassword))
+                .andExpect(status().is2xxSuccessful()).andReturn();
+        mvc.perform(MockMvcRequestBuilders
+                        .get("/api/shop/myShop").secure(true).contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer " + mvcResult.getResponse().getHeader("Authorization")))
                 .andExpect(status().is2xxSuccessful());
     }
 
