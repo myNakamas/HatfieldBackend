@@ -126,7 +126,7 @@ public class TicketService {
         return ticketRepository.save(ticket);
     }
 
-    private Ticket getTicket(Long id) {
+    public Ticket getTicket(Long id) {
         return ticketRepository.findById(id).orElseThrow(() -> new CustomException("Cannot find Ticket with selected ID"));
     }
     //endregion
