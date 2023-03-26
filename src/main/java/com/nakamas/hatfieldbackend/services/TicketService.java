@@ -6,6 +6,7 @@ import com.nakamas.hatfieldbackend.models.entities.shop.DeviceLocation;
 import com.nakamas.hatfieldbackend.models.entities.shop.UsedPart;
 import com.nakamas.hatfieldbackend.models.entities.ticket.Ticket;
 import com.nakamas.hatfieldbackend.models.enums.TicketStatus;
+import com.nakamas.hatfieldbackend.models.views.incoming.CreateChatMessage;
 import com.nakamas.hatfieldbackend.models.views.incoming.CreateInvoice;
 import com.nakamas.hatfieldbackend.models.views.incoming.CreateTicket;
 import com.nakamas.hatfieldbackend.models.views.incoming.PageRequestView;
@@ -18,6 +19,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -28,6 +30,8 @@ public class TicketService {
     private final InventoryItemService inventoryService;
     private final UserService userService;
     private final InvoiceService invoiceService;
+
+    private final MessageService messageService;
 
     //region Main
     public Ticket createTicket(CreateTicket create, User loggedUser) {
@@ -89,10 +93,10 @@ public class TicketService {
     public void startRepair(User user, Long id){
         //use user to create log message
         Ticket ticket = ticketRepository.getReferenceById(id);
-        //uses integer!!! make it flexible
         ticket.setDeviceLocation(deviceLocationRepository.findByName("at lab"));
         ticket.setStatus(TicketStatus.STARTED);
-        //send message to client async?
+        messageService.createMessage(new CreateChatMessage("Hello! The repair of your device has been initiated.",
+                LocalDateTime.now(), user.getId(), ticket.getClient().getId(), ticket.getId(), null));
         //send sms if options allow
         //to send email if options allow
         ticketRepository.save(ticket);
@@ -103,7 +107,9 @@ public class TicketService {
         Ticket ticket = ticketRepository.getReferenceById(id);
         ticket.setDeviceLocation(deviceLocationRepository.getReferenceById(locationId));
         ticket.setStatus(TicketStatus.FINISHED);
-        //send message to client async?
+        messageService.createMessage(new CreateChatMessage("Repairment actions have finished! Please come and pick " +
+                "up your device at a comfortable time.",
+                LocalDateTime.now(), user.getId(), ticket.getClient().getId(), ticket.getId(), null));
         //send sms if options allow
         //to send email if options allow
         ticketRepository.save(ticket);
@@ -113,7 +119,9 @@ public class TicketService {
         //use user to create log message
         Ticket ticket = ticketRepository.getReferenceById(id);
         ticket.setStatus(TicketStatus.COLLECTED);
-        //send message to client
+        messageService.createMessage(new CreateChatMessage("The device has been collected. Information can be found" +
+                " in your 'invoices' tab. If that action hasn't been done by you please contact the store.",
+                LocalDateTime.now(), user.getId(), ticket.getClient().getId(), ticket.getId(), null));
         invoiceService.create(invoice);
         ticketRepository.save(ticket);
         //maybe change return type if invoice creation is in BE
