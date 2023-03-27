@@ -34,7 +34,7 @@ public class TicketController {
         if (!user.getRole().equals(UserRole.ADMIN)) ticketFilter.setShopId(user.getShop().getId());
         return ticketService.findAll(ticketFilter, pageRequestView);
     }
-
+//todo: dive deeper into priorities' issues
     @PutMapping("priority")
     public void updatePriority( @RequestParam Long id, @RequestParam Integer priority){
         ticketService.setPriorityTo(id, priority);
@@ -47,12 +47,12 @@ public class TicketController {
     }
 //    todo: Complete repair(move to? Status Completed, send notification)
     @PutMapping("complete")
-    public void completeTicket(@AuthenticationPrincipal User user, @RequestParam Long id, @RequestParam Long locationId){
-        ticketService.completeRepair(user, id, locationId);
+    public void completeTicket(@AuthenticationPrincipal User user, @RequestParam Long id, @RequestParam String location){
+        ticketService.completeRepair(user, id, location);
     }
 //    todo: Mark as collected + chat message + generate invoice
     @PutMapping("collected")
-    public void collectedDevice(@AuthenticationPrincipal User user, @RequestParam Long id, @RequestParam CreateInvoice invoice){
-        ticketService.collectedDevice(user, id, invoice);
+    public byte[] collectedDevice(@AuthenticationPrincipal User user, @RequestParam Long id, @RequestParam CreateInvoice invoice){
+        return ticketService.collectedDevice(user, id, invoice);
     }
 }

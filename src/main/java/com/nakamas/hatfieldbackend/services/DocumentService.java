@@ -2,6 +2,7 @@ package com.nakamas.hatfieldbackend.services;
 
 import com.nakamas.hatfieldbackend.models.entities.User;
 import com.nakamas.hatfieldbackend.models.entities.ticket.Brand;
+import com.nakamas.hatfieldbackend.models.entities.ticket.Invoice;
 import com.nakamas.hatfieldbackend.models.entities.ticket.Model;
 import com.nakamas.hatfieldbackend.models.entities.ticket.Ticket;
 import lombok.RequiredArgsConstructor;
@@ -254,5 +255,20 @@ public class DocumentService implements ApplicationRunner {
         } else {
             log.warn("Missing Printer IP. Cannot print images");
         }
+    }
+
+    public byte[] createPurchaseInvoice(Invoice invoice) {
+        // TODO: 25-Mar-23  add document
+        return new byte[0];
+    }
+
+    public byte[] createTicketInvoice(Invoice invoice) {
+        // TODO: 25-Mar-23  add document
+        return new byte[0];
+    }
+
+    public byte[] createSellInvoice(Invoice invoice) {
+        // TODO: 25-Mar-23  add document
+        return new byte[0];
     }
 }
