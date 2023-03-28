@@ -22,6 +22,8 @@ public class InventoryItem extends AbstractPersistable<Long> {
     private Model model;
     @ManyToOne
     private Brand brand;
+
+    //private String name;??????
     private Integer count;
     @ManyToOne
     private Shop shop;
