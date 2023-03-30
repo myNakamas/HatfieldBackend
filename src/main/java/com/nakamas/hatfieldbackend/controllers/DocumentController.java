@@ -1,9 +1,11 @@
 package com.nakamas.hatfieldbackend.controllers;
 
 import com.nakamas.hatfieldbackend.models.entities.shop.InventoryItem;
+import com.nakamas.hatfieldbackend.models.entities.ticket.Invoice;
 import com.nakamas.hatfieldbackend.models.entities.ticket.Ticket;
 import com.nakamas.hatfieldbackend.services.DocumentService;
 import com.nakamas.hatfieldbackend.services.InventoryItemService;
+import com.nakamas.hatfieldbackend.services.InvoiceService;
 import com.nakamas.hatfieldbackend.services.TicketService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
@@ -27,12 +29,23 @@ public class DocumentController {
     private final InventoryItemService inventoryItemService;
     private final DocumentService documentService;
 
+    private final InvoiceService invoiceService;
+
     //todo: Assign the qrcodes to redirect to the frontend page that shows data of the item.
     @PostMapping(value = "print/ticket", produces = MediaType.IMAGE_PNG_VALUE)
     private ResponseEntity<byte[]> printTicket(@RequestParam Long ticketId) throws IOException {
         Ticket ticket = ticketService.getTicket(ticketId);
 //        todo: Add the initial username-password somewhere in the user to do easy access
         File image = documentService.createTicket(ticket.getClient().getEmail(), ticket);
+        documentService.executePrint(image);
+        byte[] bytes = Files.readAllBytes(image.toPath());
+        return ResponseEntity.ok().contentType(MediaType.IMAGE_JPEG).body(bytes);
+    }
+    @PostMapping(value = "print/invoice", produces = MediaType.IMAGE_PNG_VALUE)
+    private ResponseEntity<byte[]> printInvoice(@RequestParam Long invoiceId) throws IOException {
+        Invoice invoice = invoiceService.getById(invoiceId);
+//        todo: edit the qr information
+        File image = documentService.createInvoice("QR", invoice);
         documentService.executePrint(image);
         byte[] bytes = Files.readAllBytes(image.toPath());
         return ResponseEntity.ok().contentType(MediaType.IMAGE_JPEG).body(bytes);
