@@ -47,6 +47,7 @@ public class TicketService {
     public Long update(CreateTicket ticket, Long id) {
         Ticket ticketEntity = getTicket(id);
         ticketEntity.update(ticket);
+        if (ticket.clientId() != null) ticketEntity.setClient(userService.getUser(ticket.clientId()));
         setOptionalProperties(ticket, ticketEntity);
         return ticketRepository.save(ticketEntity).getId();
     }

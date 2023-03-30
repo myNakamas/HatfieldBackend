@@ -21,12 +21,16 @@ public class CategoryController {
     }
 
     @PostMapping("admin/create")
-    public CategoryView createNewShop(@RequestBody CategoryView createView) {
+    public CategoryView createCategory(@RequestBody CategoryView createView) {
         return inventoryItemService.createCategory(createView);
+    }
+    @DeleteMapping("admin/delete")
+    public void deleteCategory(@RequestParam Long id) {
+        inventoryItemService.deleteCategory(id);
     }
 
     @PutMapping("admin/update")
-    public CategoryView updateShop(@RequestBody CategoryView categoryView, @RequestParam Long id) {
+    public CategoryView updateCategory(@RequestBody CategoryView categoryView, @RequestParam Long id) {
         return inventoryItemService.updateCategory(categoryView, id);
     }
 }

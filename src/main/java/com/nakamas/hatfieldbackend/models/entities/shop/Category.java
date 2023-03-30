@@ -2,10 +2,7 @@ package com.nakamas.hatfieldbackend.models.entities.shop;
 
 import com.nakamas.hatfieldbackend.models.enums.ItemType;
 import com.nakamas.hatfieldbackend.models.views.outgoing.shop.CategoryView;
-import jakarta.persistence.ElementCollection;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -24,6 +21,10 @@ public class Category extends AbstractPersistable<Long> {
     private String name;
     @Enumerated
     private ItemType type;
+
+    @OneToMany(mappedBy = "category",cascade = {CascadeType.DETACH})
+    private List<InventoryItem> items;
+
     @ElementCollection
     private List<String> fields;
 
@@ -31,6 +32,12 @@ public class Category extends AbstractPersistable<Long> {
         this.name = categoryView.name();
         this.type = categoryView.itemType();
         this.fields = categoryView.columns();
+    }
+
+    public Category(String categoryName, ItemType type,List<String> columns) {
+        this.name = categoryName;
+        this.type = type;
+        this.fields = columns;
     }
 
     public void update(CategoryView categoryView) {
