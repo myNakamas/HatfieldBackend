@@ -1,6 +1,7 @@
 package com.nakamas.hatfieldbackend.controllers;
 
 import com.nakamas.hatfieldbackend.models.entities.User;
+import com.nakamas.hatfieldbackend.models.entities.shop.InventoryItem;
 import com.nakamas.hatfieldbackend.models.views.incoming.CreateInventoryItem;
 import com.nakamas.hatfieldbackend.models.views.incoming.PageRequestView;
 import com.nakamas.hatfieldbackend.models.views.incoming.filters.InventoryItemFilter;
@@ -23,7 +24,8 @@ public class InventoryItemController {
 
     @PostMapping("item/create")
     public InventoryItemView createInventoryItem(@RequestBody CreateInventoryItem inventoryItem) {
-        return new InventoryItemView(inventoryItemService.createInventoryItem(inventoryItem));
+        InventoryItem save = inventoryItemService.createInventoryItem(inventoryItem);
+        return new InventoryItemView(save, inventoryItemService.getCategory(save.getCategoryId()));
     }
     @PostMapping("item/updateQuantity")
     public void updateQuantity(@RequestBody InventoryItemView inventoryItem) {

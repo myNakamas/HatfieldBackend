@@ -1,6 +1,7 @@
 package com.nakamas.hatfieldbackend.services;
 
 import com.nakamas.hatfieldbackend.config.exception.CustomException;
+import com.nakamas.hatfieldbackend.models.entities.Log;
 import com.nakamas.hatfieldbackend.models.entities.User;
 import com.nakamas.hatfieldbackend.models.entities.shop.Category;
 import com.nakamas.hatfieldbackend.models.entities.shop.InventoryItem;
@@ -32,6 +33,7 @@ public class InventoryItemService {
     private final ShopRepository shopRepository;
     private final CategoryRepository categoryRepository;
     private final UsedPartRepository usedPartRepository;
+    private final LoggerService loggerService;
 
 
     public InventoryItem createInventoryItem(CreateInventoryItem inventoryItem) {
@@ -70,7 +72,7 @@ public class InventoryItemService {
     public PageView<InventoryItemView> getShopInventory(Long shopId, InventoryItemFilter filter, PageRequestView pageRequestView) {
         filter.setShopId(shopId);
         Page<InventoryItem> items = inventoryItemRepository.findAll(filter, pageRequestView.getPageRequest());
-        Page<InventoryItemView> page = items.map(InventoryItemView::new);
+        Page<InventoryItemView> page = items.map(item -> new InventoryItemView(item, getCategory(item.getCategoryId())));
         return new PageView<>(page);
     }
 
@@ -141,6 +143,14 @@ public class InventoryItemService {
     }
 
     public void deleteCategory(Long id) {
+        inventoryItemRepository.setItemsToNullCategory(id);
         categoryRepository.deleteById(id);
+        Log logMessage = Log.builder().action("Category '" + id + "'  was deleted").build();
+        loggerService.createLog(logMessage);
+    }
+
+    public CategoryView getCategory(Long categoryId) {
+        if (categoryId == null) return null;
+        return categoryRepository.findById(categoryId).map(CategoryView::new).orElse(null);
     }
 }

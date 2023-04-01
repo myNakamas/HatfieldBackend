@@ -28,10 +28,14 @@ public class InventoryItem extends AbstractPersistable<Long> {
     @ManyToOne
     private Shop shop;
     private Boolean shoppingListNeeded;
-    @ManyToOne
-    private Category category;
+    @Column(name = "category_id")
+    private Long categoryId;
     @ElementCollection
     Map<String, String> otherProperties;
+
+    public String getPropertyValue(String key) {
+        return otherProperties.get(key);
+    }
 
     public InventoryItem(CreateInventoryItem item, Brand brand, Model model, Shop shop, Category category) {
         this.model = model;
@@ -39,7 +43,7 @@ public class InventoryItem extends AbstractPersistable<Long> {
         this.shop = shop;
         this.shoppingListNeeded = true;
         this.count = item.count();
-        this.category = category;
+        this.categoryId = category.getId();
         this.otherProperties = item.properties();
     }
 }

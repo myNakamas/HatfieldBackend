@@ -127,6 +127,7 @@ public class UserService implements UserDetailsService, UserDetailsPasswordServi
     @Transactional
     public void getUserImage(UUID id, HttpServletResponse response) {
         User user = getUser(id);
+        if (user.getImage() == null) return;
         try (InputStream userImage = new ByteArrayInputStream(user.getImage().getData())) {
             userImage.transferTo(response.getOutputStream());
         } catch (IOException e) {

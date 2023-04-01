@@ -31,19 +31,19 @@ public final class TestData {
         return new Shop("Hatfield", List.of(), "London, Street 023", "fakePhoneNum", "gakeEmail@email.com", "64243213001", "1245245", getTestShopSettings(), List.of(), List.of());
     }
 
-    static CreateUser getTestUser(Shop shop) {
+    public static CreateUser getTestUser(Shop shop) {
         return new CreateUser(null, correctUsername, "Adam John", correctPassword, UserRole.ADMIN, "email@email.com", List.of("+359898575932"), shop.getId());
     }
 
-    static CreateUser getTestUser(String username, String email, UserRole role, Shop shop) {
+    public static CreateUser getTestUser(String username, String email, UserRole role, Shop shop) {
         return new CreateUser(null, username, "Adam John", correctPassword, role, email, List.of("+359898575932"), shop.getId());
     }
 
-    static Category getCategory() {
+    public static Category getCategory() {
         return new Category("CategoryName", ItemType.DEVICE, new ArrayList<>());
     }
 
-    static CreateInventoryItem getTestInventoryItem(Shop shop, Category category) {
+    public static CreateInventoryItem getTestInventoryItem(Shop shop, Category category) {
         return new CreateInventoryItem(null, "Brand" + random.nextInt(), null, "Model" + random.nextInt(), 10, shop.getId(), category.getId(), new HashMap<>());
     }
 
