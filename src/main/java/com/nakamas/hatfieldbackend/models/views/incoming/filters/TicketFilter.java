@@ -33,9 +33,9 @@ public class TicketFilter implements Specification<Ticket> {
     public Predicate toPredicate(@NonNull Root<Ticket> ticket, @NonNull CriteriaQuery<?> query, @NonNull CriteriaBuilder builder) {
         List<Predicate> predicates = new ArrayList<>();
         if (modelId != null)
-            predicates.add(builder.equal(ticket.get("model").get("id"), modelId));
+            predicates.add(builder.equal(ticket.get("deviceModel").get("id"), modelId));
         if (brandId != null)
-            predicates.add(builder.equal(ticket.get("brand").get("id"), brandId));
+            predicates.add(builder.equal(ticket.get("deviceBrand").get("id"), brandId));
         if (deviceLocation != null)
             predicates.add(builder.equal(ticket.get("deviceLocation").get("id"), deviceLocation));
         if (shopId != null)
