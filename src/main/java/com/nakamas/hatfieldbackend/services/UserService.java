@@ -63,6 +63,7 @@ public class UserService implements UserDetailsService, UserDetailsPasswordServi
     }
 
     // admin changing the settings of other users
+    @Transactional
     public void updateUserBan(UUID id, Boolean status) {
         userRepository.setBanned(id, status);
     }
