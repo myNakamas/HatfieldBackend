@@ -64,14 +64,15 @@ public class InventoryItemService {
             throw new CustomException("Not enough Items in storage!");
         item.setCount(item.getCount() - count);
         inventoryItemRepository.save(item);
-        //TODO: dont forget to add the user that made the change in the log table. this is where the connection should be
         UsedPart usedPart = new UsedPart(item, count, LocalDateTime.now());
+        loggerService.createLogUsedItem(usedPart, user);
         return usedPartRepository.save(usedPart);
     }
 
     public PageView<InventoryItemView> getShopInventory(Long shopId, InventoryItemFilter filter, PageRequestView pageRequestView) {
         filter.setShopId(shopId);
         Page<InventoryItem> items = inventoryItemRepository.findAll(filter, pageRequestView.getPageRequest());
+//        getCategory returns null? todo: investigate
         Page<InventoryItemView> page = items.map(item -> new InventoryItemView(item, getCategory(item.getCategoryId())));
         return new PageView<>(page);
     }

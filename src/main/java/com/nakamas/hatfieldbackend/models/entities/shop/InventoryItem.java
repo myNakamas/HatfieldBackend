@@ -6,6 +6,7 @@ import com.nakamas.hatfieldbackend.models.views.incoming.CreateInventoryItem;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.NonNull;
 import lombok.Setter;
 import org.springframework.data.jpa.domain.AbstractPersistable;
 
@@ -45,5 +46,11 @@ public class InventoryItem extends AbstractPersistable<Long> {
         this.count = item.count();
         this.categoryId = category.getId();
         this.otherProperties = item.properties();
+    }
+
+    @Override
+    @NonNull
+    public String toString() {
+        return "model[%s] brand[%s]".formatted(model, brand);
     }
 }
