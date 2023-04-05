@@ -6,6 +6,7 @@ import com.nakamas.hatfieldbackend.models.views.outgoing.user.UserProfile;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 public record TicketView(
         Long id,
@@ -26,7 +27,8 @@ public record TicketView(
         BigDecimal deposit,
         UserProfile createdBy,
         UserProfile client,
-        Integer priority
+        Integer priority,
+        List<UsedPartView> usedParts
 ) {
     public TicketView(Ticket ticket) {
         this(ticket.getId(),
@@ -47,6 +49,7 @@ public record TicketView(
                 ticket.getDeposit(),
                 new UserProfile(ticket.getCreatedBy()),
                 (ticket.getClient() != null) ? new UserProfile(ticket.getClient()) : null,
-                ticket.getPriority());
+                ticket.getPriority(),
+                ticket.getUsedParts().stream().map(UsedPartView::new).toList());
     }
 }

@@ -21,6 +21,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -71,6 +72,12 @@ public class TicketService {
         Page<TicketView> page = ticketRepository.findAll(ticketFilter, pageRequestView.getPageRequest()).map(TicketView::new);
         return new PageView<>(page);
     }
+
+    public List<TicketView> findAllActive(TicketFilter ticketFilter) {
+//        todo: filter all active
+        return ticketRepository.findAll(ticketFilter).stream().map(TicketView::new).toList();
+    }
+
     //endregion
 
     //region Ticket buttons
@@ -98,7 +105,7 @@ public class TicketService {
         ticket.setDeviceLocation(getOrCreateLocation(location));
         ticket.setStatus(TicketStatus.FINISHED);
         messageService.createMessage(new CreateChatMessage("Repairment actions have finished! Please come and pick " +
-                "up your device at a comfortable time.",
+                                                           "up your device at a comfortable time.",
                 LocalDateTime.now(), user.getId(), ticket.getClient().getId(), ticket.getId(), null));
         //send sms if options allow
         loggerService.createLog("The repair has been completed by " + user.getUsername(), user.getId(), id);
@@ -113,7 +120,7 @@ public class TicketService {
         //send message to client
         Invoice result = invoiceService.create(invoice);
         messageService.createMessage(new CreateChatMessage("The device has been collected. Information can be found" +
-                " in your 'invoices' tab. If that action hasn't been done by you please contact the store.",
+                                                           " in your 'invoices' tab. If that action hasn't been done by you please contact the store.",
                 LocalDateTime.now(), user.getId(), ticket.getClient().getId(), ticket.getId(), null));
         invoiceService.create(invoice);
         ticketRepository.save(ticket);
@@ -122,11 +129,11 @@ public class TicketService {
         //maybe change return type if invoice creation is in BE
     }
 
-    public Ticket usePartFromInventory(Long id, Long inventoryItemId, User user, int count) {
+    public Ticket usePartFromInventory(Long id, Long inventoryItemId, int count, User user) {
         Ticket ticket = getTicket(id);
-        UsedPart usedPart = inventoryService.useItemForTicket(inventoryItemId, count, user);
+        UsedPart usedPart = inventoryService.useItemForTicket(inventoryItemId, ticket, count);
         ticket.getUsedParts().add(usedPart);
-        loggerService.createLog("Item %s was used from inventory by %s".formatted(usedPart.getItem().getId(), user.getUsername()), user.getId(), ticket.getId());
+        loggerService.createLogUsedItem(usedPart,id, user);
         return ticketRepository.save(ticket);
     }
 

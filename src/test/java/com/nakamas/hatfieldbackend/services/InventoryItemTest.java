@@ -5,19 +5,18 @@ import com.nakamas.hatfieldbackend.models.entities.shop.Category;
 import com.nakamas.hatfieldbackend.models.entities.shop.InventoryItem;
 import com.nakamas.hatfieldbackend.models.entities.shop.Shop;
 import com.nakamas.hatfieldbackend.models.entities.shop.UsedPart;
+import com.nakamas.hatfieldbackend.models.entities.ticket.Ticket;
 import com.nakamas.hatfieldbackend.models.enums.ItemType;
 import com.nakamas.hatfieldbackend.models.views.incoming.CreateInventoryItem;
 import com.nakamas.hatfieldbackend.models.views.incoming.CreateShop;
+import com.nakamas.hatfieldbackend.models.views.incoming.CreateTicket;
 import com.nakamas.hatfieldbackend.models.views.incoming.PageRequestView;
 import com.nakamas.hatfieldbackend.models.views.incoming.filters.InventoryItemFilter;
 import com.nakamas.hatfieldbackend.models.views.outgoing.PageView;
 import com.nakamas.hatfieldbackend.models.views.outgoing.shop.CategoryView;
 import com.nakamas.hatfieldbackend.models.views.outgoing.shop.InventoryItemView;
 import com.nakamas.hatfieldbackend.models.views.outgoing.shop.ShopSettingsView;
-import com.nakamas.hatfieldbackend.repositories.CategoryRepository;
-import com.nakamas.hatfieldbackend.repositories.InventoryItemRepository;
-import com.nakamas.hatfieldbackend.repositories.ShopRepository;
-import com.nakamas.hatfieldbackend.repositories.UserRepository;
+import com.nakamas.hatfieldbackend.repositories.*;
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.AfterEach;
@@ -50,6 +49,9 @@ class InventoryItemTest {
     @Autowired
     private UserService userService;
     @Autowired
+    private TicketRepository ticketRepository;
+    @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
+    @Autowired
     private EntityManager entityManager;
     @Autowired
     private InventoryItemService inventoryItemService;
@@ -66,6 +68,7 @@ class InventoryItemTest {
     void tearDown() {
         inventoryItemRepository.deleteAll();
         categoryRepository.deleteAll();
+        ticketRepository.deleteAll();
         userRepository.deleteAll();
         shopRepository.deleteAll();
     }
@@ -125,14 +128,16 @@ class InventoryItemTest {
         CreateInventoryItem testInventoryItem = getTestInventoryItem(shop, category);
         InventoryItem item = inventoryItemService.createInventoryItem(testInventoryItem);
         Long itemId = item.getId();
-
-        UsedPart result = inventoryItemService.useItemForTicket(itemId, 2, loggedUser);
+        CreateTicket createTicket = getTestTicket(loggedUser);
+        Ticket ticket = ticketRepository.save(new Ticket(createTicket,loggedUser));
+        UsedPart result = inventoryItemService.useItemForTicket(itemId, ticket,2);
 
         assertNotNull(result.getId());
         assertEquals(itemId, result.getItem().getId());
         assertEquals(2, result.getUsedCount());
         assertNotNull(result.getTimestamp());
         assertNotNull(itemId);
+        assertEquals(ticket.getId(),result.getTicket().getId());
         InventoryItem updatedItem = inventoryItemRepository.findById(itemId).orElse(null);
         assertNotNull(updatedItem);
         assertEquals(testInventoryItem.count() - 2, updatedItem.getCount().intValue());

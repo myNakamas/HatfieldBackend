@@ -48,11 +48,11 @@ public class LoggerService {
         return userRepository.findById(id).map(UserProfile::new).orElse(null);
     }
 
-    public void createLogUsedItem(UsedPart usedPart, User user) {
+    public void createLogUsedItem(UsedPart usedPart,Long ticketId, User user) {
         Log build = Log.builder()
-                .action("User '%s' has used part '%s' for Ticket#%s ".formatted(user.getFullName(), usedPart.getItem(), usedPart.getTicket().getId()))
+                .action("User '%s' has used part '%s' for Ticket#%s ".formatted(user.getFullName(), usedPart.getItem(), ticketId))
                 .userId(user.getId())
-                .ticketId(usedPart.getTicket().getId())
+                .ticketId(ticketId)
                 .partUsedId(usedPart.getId())
                 .build();
         createLog(build);

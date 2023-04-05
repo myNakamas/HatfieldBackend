@@ -1,10 +1,8 @@
 package com.nakamas.hatfieldbackend.models.entities.shop;
 
-import com.nakamas.hatfieldbackend.models.entities.ticket.Ticket;
 import jakarta.persistence.Entity;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -14,15 +12,18 @@ import java.time.LocalDateTime;
 
 @Getter
 @Setter
-@NoArgsConstructor
 @Table
 @Entity
-@AllArgsConstructor
-public class UsedPart extends AbstractPersistable<Long> {
-    @ManyToOne
-    private Ticket ticket;
+@NoArgsConstructor
+public class SoldItem extends AbstractPersistable<Long> {
     @ManyToOne
     private InventoryItem item;
-    private Integer usedCount;
+    private Integer soldCount;
     private LocalDateTime timestamp;
+
+    public SoldItem(InventoryItem item, Integer soldCount) {
+        this.item = item;
+        this.soldCount = soldCount;
+        this.timestamp = LocalDateTime.now();
+    }
 }

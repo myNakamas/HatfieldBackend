@@ -51,6 +51,6 @@ public class InventoryItem extends AbstractPersistable<Long> {
     @Override
     @NonNull
     public String toString() {
-        return "model[%s] brand[%s]".formatted(model, brand);
+        return "model[%s] brand[%s]".formatted(model.getModel(), brand.getBrand());
     }
 }

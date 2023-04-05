@@ -58,7 +58,7 @@ public class Ticket extends AbstractPersistable<Long> {
     @Enumerated
     private TicketStatus status;
 
-    @OneToMany(mappedBy = "ticket")
+    @OneToMany(mappedBy = "ticket", cascade = CascadeType.ALL)
     private List<UsedPart> usedParts = new ArrayList<>();
 
     @OneToMany()

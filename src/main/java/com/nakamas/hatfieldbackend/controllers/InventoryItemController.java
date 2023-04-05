@@ -8,6 +8,8 @@ import com.nakamas.hatfieldbackend.models.views.incoming.filters.InventoryItemFi
 import com.nakamas.hatfieldbackend.models.views.outgoing.PageView;
 import com.nakamas.hatfieldbackend.models.views.outgoing.shop.InventoryItemView;
 import com.nakamas.hatfieldbackend.models.views.outgoing.shop.ItemPropertyView;
+import com.nakamas.hatfieldbackend.models.views.outgoing.shop.ShortItemView;
+import com.nakamas.hatfieldbackend.models.views.outgoing.shop.SoldItemView;
 import com.nakamas.hatfieldbackend.services.InventoryItemService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -39,9 +41,17 @@ public class InventoryItemController {
     public PageView<InventoryItemView> getShopInventory(@AuthenticationPrincipal User loggedUser, InventoryItemFilter filter, PageRequestView pageRequestView) {
         return inventoryItemService.getShopInventory(loggedUser.getShop().getId(), filter, pageRequestView);
     }
+    @GetMapping("item/short")
+    public List<ShortItemView> getAllShopInventory(@AuthenticationPrincipal User loggedUser, InventoryItemFilter filter) {
+        return inventoryItemService.getShortShopInventory(loggedUser.getShop().getId(), filter);
+    }
     @PostMapping("item/changeNeed")
     public void changeNeed(@RequestParam Long id, @RequestParam Boolean need){
         inventoryItemService.changeNeed(id, need);
+    }
+    @PostMapping("item/sell")
+    public SoldItemView sellItem(@RequestParam Long id, @RequestParam(required = false,defaultValue = "1") Integer count){
+        return inventoryItemService.sellItem(id, count);
     }
     @GetMapping("model/all")
     public List<ItemPropertyView> getAllModels() {

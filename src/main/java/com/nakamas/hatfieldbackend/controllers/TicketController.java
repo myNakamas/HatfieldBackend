@@ -4,6 +4,7 @@ import com.nakamas.hatfieldbackend.models.entities.User;
 import com.nakamas.hatfieldbackend.models.enums.UserRole;
 import com.nakamas.hatfieldbackend.models.views.incoming.CreateInvoice;
 import com.nakamas.hatfieldbackend.models.views.incoming.CreateTicket;
+import com.nakamas.hatfieldbackend.models.views.incoming.CreateUsedItem;
 import com.nakamas.hatfieldbackend.models.views.incoming.PageRequestView;
 import com.nakamas.hatfieldbackend.models.views.incoming.filters.TicketFilter;
 import com.nakamas.hatfieldbackend.models.views.outgoing.PageView;
@@ -12,6 +13,8 @@ import com.nakamas.hatfieldbackend.services.TicketService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("api/ticket")
@@ -34,6 +37,11 @@ public class TicketController {
         if (!user.getRole().equals(UserRole.ADMIN)) ticketFilter.setShopId(user.getShop().getId());
         return ticketService.findAll(ticketFilter, pageRequestView);
     }
+    @GetMapping("active")
+    public List<TicketView> getAllTickets(@AuthenticationPrincipal User user, TicketFilter ticketFilter) {
+        if (!user.getRole().equals(UserRole.ADMIN)) ticketFilter.setShopId(user.getShop().getId());
+        return ticketService.findAllActive(ticketFilter);
+    }
 //todo: dive deeper into priorities' issues
     @PutMapping("priority")
     public void updatePriority( @RequestParam Long id, @RequestParam Integer priority){
@@ -54,5 +62,9 @@ public class TicketController {
     @PutMapping("collected")
     public byte[] collectedDevice(@AuthenticationPrincipal User user, @RequestParam Long id, @RequestParam CreateInvoice invoice){
         return ticketService.collectedDevice(user, id, invoice);
+    }
+    @PostMapping("part/use")
+    public TicketView useItem(@AuthenticationPrincipal User user, @RequestBody CreateUsedItem usedItem){
+        return new TicketView(ticketService.usePartFromInventory(usedItem.ticketId(), usedItem.itemId(), usedItem.count(),user));
     }
 }

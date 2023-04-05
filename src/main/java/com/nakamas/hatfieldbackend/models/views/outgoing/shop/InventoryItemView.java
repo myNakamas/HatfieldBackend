@@ -14,6 +14,17 @@ public record InventoryItemView(Long id, String model, String brand, int count, 
                 item.getCount(),
                 item.getShoppingListNeeded(),
                 item.getShop().getId(),
-                categoryView, item.getOtherProperties());
+                categoryView,
+                item.getOtherProperties());
+    }
+    public InventoryItemView(InventoryItem item) {
+        this(item.getId(),
+                item.getModel() != null ? item.getModel().getModel() : null,
+                item.getBrand() != null ? item.getBrand().getBrand() : null,
+                item.getCount(),
+                item.getShoppingListNeeded(),
+                item.getShop().getId(),
+                new CategoryView(item.getCategoryId(),null,null,null),
+                item.getOtherProperties());
     }
 }
