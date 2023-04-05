@@ -85,6 +85,8 @@ public class User extends AbstractPersistable<UUID> implements UserDetails {
         if (user.fullName() != null) this.fullName = user.fullName();
         if (user.email() != null) this.email = user.email();
         if (user.phones() != null) this.phones = user.phones();
+        if (user.smsPermission() != null) this.smsPermission = user.smsPermission();
+        if (user.emailPermission() != null) this.emailPermission = user.emailPermission();
     }
 
     public void updateAsAdmin(CreateUser user, Shop shop) {
