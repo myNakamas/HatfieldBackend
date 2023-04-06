@@ -101,9 +101,9 @@ public class UserService implements UserDetailsService, UserDetailsPasswordServi
      * Allows the admin to change whoever he decides.
      */
     public User updateUser(CreateUser userInfo) {
-        User user = userRepository.getReferenceById(userInfo.userId());
+        User user = getUser(userInfo.userId());
         user.updateAsAdmin(userInfo, shopRepository.findById(userInfo.shopId()).orElse(user.getShop()));
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        if(!userInfo.password().isBlank()) user.setPassword(passwordEncoder.encode(userInfo.password()));
         return validateAndSave(user);
     }
 
