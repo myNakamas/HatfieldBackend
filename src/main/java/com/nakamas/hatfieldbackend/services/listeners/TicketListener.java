@@ -26,6 +26,7 @@ public class TicketListener {
             log.info(ticket.getId().toString());
     }
 
+//    todo: test functionality
     @PreUpdate
     private void beforeUpdate(Ticket ticket) {
         switch (ticket.getStatus()) {

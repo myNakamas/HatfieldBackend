@@ -4,8 +4,10 @@ import com.nakamas.hatfieldbackend.config.exception.CustomException;
 import com.nakamas.hatfieldbackend.models.entities.User;
 import com.nakamas.hatfieldbackend.models.entities.shop.DeviceLocation;
 import com.nakamas.hatfieldbackend.models.entities.shop.UsedPart;
+import com.nakamas.hatfieldbackend.models.entities.ticket.Invoice;
 import com.nakamas.hatfieldbackend.models.entities.ticket.Ticket;
 import com.nakamas.hatfieldbackend.models.enums.TicketStatus;
+import com.nakamas.hatfieldbackend.models.views.incoming.CreateChatMessage;
 import com.nakamas.hatfieldbackend.models.views.incoming.CreateInvoice;
 import com.nakamas.hatfieldbackend.models.views.incoming.CreateTicket;
 import com.nakamas.hatfieldbackend.models.views.incoming.PageRequestView;
@@ -18,7 +20,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
+import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
@@ -27,19 +29,25 @@ public class TicketService {
     private final DeviceLocationRepository deviceLocationRepository;
     private final InventoryItemService inventoryService;
     private final UserService userService;
+    private final LoggerService loggerService;
     private final InvoiceService invoiceService;
+    private final MessageService messageService;
+
 
     //region Main
     public Ticket createTicket(CreateTicket create, User loggedUser) {
         Ticket ticket = new Ticket(create, loggedUser);
         setOptionalProperties(create, ticket);
         if (create.clientId() != null) ticket.setClient(userService.getUser(create.clientId()));
-        return ticketRepository.save(ticket);
+        Ticket save = ticketRepository.save(ticket);
+        loggerService.createLog("Ticket with id '%s' has been created by %s".formatted(save.getId(), loggedUser.getUsername()), loggedUser.getId(), save.getId());
+        return save;
     }
 
     public Long update(CreateTicket ticket, Long id) {
         Ticket ticketEntity = getTicket(id);
         ticketEntity.update(ticket);
+        if (ticket.clientId() != null) ticketEntity.setClient(userService.getUser(ticket.clientId()));
         setOptionalProperties(ticket, ticketEntity);
         return ticketRepository.save(ticketEntity).getId();
     }
@@ -63,19 +71,6 @@ public class TicketService {
         Page<TicketView> page = ticketRepository.findAll(ticketFilter, pageRequestView.getPageRequest()).map(TicketView::new);
         return new PageView<>(page);
     }
-
-    //        Must confirm the statuses
-    public PageView<TicketView> findAllFinished(TicketFilter ticketFilter, PageRequestView pageRequestView) {
-        ticketFilter.setTicketStatuses(List.of(TicketStatus.FINISHED, TicketStatus.COLLECTED, TicketStatus.SHIPPED_TO_CUSTOMER, TicketStatus.UNFIXABLE));
-        Page<TicketView> page = ticketRepository.findAll(ticketFilter, pageRequestView.getPageRequest()).map(TicketView::new);
-        return new PageView<>(page);
-    }
-
-    public PageView<TicketView> findAllOpen(TicketFilter ticketFilter, PageRequestView pageRequestView) {
-        ticketFilter.setTicketStatuses(List.of(TicketStatus.STARTED, TicketStatus.WAITING_FOR_PARTS));
-        Page<TicketView> page = ticketRepository.findAll(ticketFilter, pageRequestView.getPageRequest()).map(TicketView::new);
-        return new PageView<>(page);
-    }
     //endregion
 
     //region Ticket buttons
@@ -86,36 +81,44 @@ public class TicketService {
         ticketRepository.save(ticket);
     }
 
-    public void startRepair(User user, Long id){
-        //use user to create log message
+    public void startRepair(User user, Long id) {
         Ticket ticket = ticketRepository.getReferenceById(id);
-        //uses integer!!! make it flexible
         ticket.setDeviceLocation(deviceLocationRepository.findByName("at lab"));
         ticket.setStatus(TicketStatus.STARTED);
-        //send message to client async?
+        messageService.createMessage(new CreateChatMessage("Hello! The repair of your device has been initiated.",
+                LocalDateTime.now(), user.getId(), ticket.getClient().getId(), ticket.getId(), null));
         //send sms if options allow
         //to send email if options allow
+        loggerService.createLog("Repair on ticket '%s' was started by %s".formatted(id, user.getUsername()), user.getId(), id);
         ticketRepository.save(ticket);
     }
 
-    public void completeRepair(User user, Long id, Long locationId) {
-        //use user to create log message
+    public void completeRepair(User user, Long id, String location) {
         Ticket ticket = ticketRepository.getReferenceById(id);
-        ticket.setDeviceLocation(deviceLocationRepository.getReferenceById(locationId));
+        ticket.setDeviceLocation(getOrCreateLocation(location));
         ticket.setStatus(TicketStatus.FINISHED);
-        //send message to client async?
+        messageService.createMessage(new CreateChatMessage("Repairment actions have finished! Please come and pick " +
+                "up your device at a comfortable time.",
+                LocalDateTime.now(), user.getId(), ticket.getClient().getId(), ticket.getId(), null));
         //send sms if options allow
         //to send email if options allow
+        loggerService.createLog("The repair has been completed by " + user.getUsername(), user.getId(), id);
         ticketRepository.save(ticket);
     }
 
-    public void collectedDevice(User user, Long id, CreateInvoice invoice) {
-        //use user to create log message
+    public byte[] collectedDevice(User user, Long id, CreateInvoice invoice) {
         Ticket ticket = ticketRepository.getReferenceById(id);
         ticket.setStatus(TicketStatus.COLLECTED);
-        //send message to client
+        invoice.setTicketInfo(ticket);
+        invoice.setCreatedBy(user);
+        Invoice result = invoiceService.create(invoice);
+        messageService.createMessage(new CreateChatMessage("The device has been collected. Information can be found" +
+                " in your 'invoices' tab. If that action hasn't been done by you please contact the store.",
+                LocalDateTime.now(), user.getId(), ticket.getClient().getId(), ticket.getId(), null));
         invoiceService.create(invoice);
         ticketRepository.save(ticket);
+        loggerService.createLog("The device has been marked as collected by " + user.getUsername(), user.getId(), id);
+        return invoiceService.getAsBlob(result);
         //maybe change return type if invoice creation is in BE
     }
 
@@ -123,6 +126,7 @@ public class TicketService {
         Ticket ticket = getTicket(id);
         UsedPart usedPart = inventoryService.useItemForTicket(inventoryItemId, count, user);
         ticket.getUsedParts().add(usedPart);
+        loggerService.createLog("Item %s was used from inventory by %s".formatted(usedPart.getItem().getId(), user.getUsername()), user.getId(), ticket.getId());
         return ticketRepository.save(ticket);
     }
 

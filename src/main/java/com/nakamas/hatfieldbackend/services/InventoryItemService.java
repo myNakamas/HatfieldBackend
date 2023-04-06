@@ -139,4 +139,8 @@ public class InventoryItemService {
     public InventoryItem getItem(Long inventoryItem) {
         return inventoryItemRepository.findById(inventoryItem).orElseThrow(() -> new CustomException("Cannot find item with selected id"));
     }
+
+    public void deleteCategory(Long id) {
+        categoryRepository.deleteById(id);
+    }
 }

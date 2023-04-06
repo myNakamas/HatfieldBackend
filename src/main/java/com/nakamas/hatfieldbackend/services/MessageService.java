@@ -76,4 +76,25 @@ public class MessageService {
     public List<ChatMessageView> getChatMessages(UUID id, UUID userId) {
         return messageRepository.findAllByUsers(id, userId).stream().map(ChatMessageView::new).toList();
     }
+
+    /**
+     * Allows the WORKERS of the shop to contact each other.
+     * about the ticket without having to notify the client
+     * @param ticketId = the currently open ticket
+     * @return A list containing the outgoing chat message view
+     * @see ChatMessageView
+     */
+    public List<ChatMessageView> getChatMessagesByTicketId(Long ticketId) {
+        return messageRepository.findAllByTicket(ticketId).stream().map(ChatMessageView::new).toList();
+    }
+
+    /**
+     * Shows the messages the client is supposed to see.
+     * @param userId = currently logged in CLIENT id
+     * @return A list containing the outgoing chat message view
+     * @see ChatMessageView
+     */
+    public List<ChatMessageView> getChatMessagesForClient(UUID userId) {
+        return messageRepository.findAllForClient(userId).stream().map(ChatMessageView::new).toList();
+    }
 }

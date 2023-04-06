@@ -14,5 +14,5 @@ public interface DeviceLocationRepository extends JpaRepository<DeviceLocation, 
     List<ItemPropertyView> findAllLocations();
 
     @Query("from DeviceLocation d where d.location = ?1")
-    DeviceLocation findByName(String brandValue);
+    DeviceLocation findByName(String location);
 }

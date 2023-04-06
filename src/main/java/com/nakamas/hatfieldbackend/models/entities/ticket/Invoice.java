@@ -42,16 +42,16 @@ public class Invoice extends AbstractPersistable<Long> {
 
 
     public Invoice(CreateInvoice invoiceView){
-        this.type = invoiceView.type();
-        this.deviceModel = invoiceView.deviceModel();
-        this.deviceBrand = invoiceView.deviceBrand();
-        this.serialNumber = invoiceView.serialNumber();
+        this.type = invoiceView.getType();
+        this.deviceModel = invoiceView.getDeviceModel();
+        this.deviceBrand = invoiceView.getDeviceBrand();
+        this.serialNumber = invoiceView.getSerialNumber();
         this.timestamp = LocalDateTime.now();
-        this.notes = invoiceView.notes();
-        this.totalPrice = invoiceView.totalPrice();
-        this.createdBy = invoiceView.createdBy();
-        this.client = invoiceView.client();
-        this.paymentMethod = invoiceView.paymentMethod();
-        this.warrantyPeriod = invoiceView.warranty();
+        this.notes = invoiceView.getNotes();
+        this.totalPrice = invoiceView.getTotalPrice();
+        this.createdBy = invoiceView.getCreatedBy();
+        this.client = invoiceView.getClient();
+        this.paymentMethod = invoiceView.getPaymentMethod();
+        this.warrantyPeriod = invoiceView.getWarranty();
     }
 }
