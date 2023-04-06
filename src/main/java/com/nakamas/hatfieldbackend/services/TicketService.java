@@ -114,7 +114,7 @@ public class TicketService {
     }
 
     public byte[] collectedDevice(User user, Long id, CreateInvoice invoice) {
-        Ticket ticket = ticketRepository.getReferenceById(id);
+        Ticket ticket = getTicket(id);
         ticket.setStatus(TicketStatus.COLLECTED);
         invoice.setTicketInfo(ticket);
         invoice.setCreatedBy(user);
