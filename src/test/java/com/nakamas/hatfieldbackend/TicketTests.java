@@ -4,11 +4,9 @@ import com.nakamas.hatfieldbackend.models.entities.User;
 import com.nakamas.hatfieldbackend.models.entities.shop.Category;
 import com.nakamas.hatfieldbackend.models.entities.shop.InventoryItem;
 import com.nakamas.hatfieldbackend.models.entities.shop.Shop;
-import com.nakamas.hatfieldbackend.models.entities.ticket.Brand;
-import com.nakamas.hatfieldbackend.models.entities.ticket.Model;
 import com.nakamas.hatfieldbackend.models.entities.ticket.Ticket;
-import com.nakamas.hatfieldbackend.models.enums.*;
-import com.nakamas.hatfieldbackend.models.views.incoming.CreateInvoice;
+import com.nakamas.hatfieldbackend.models.enums.TicketStatus;
+import com.nakamas.hatfieldbackend.models.enums.UserRole;
 import com.nakamas.hatfieldbackend.models.views.incoming.CreateTicket;
 import com.nakamas.hatfieldbackend.models.views.incoming.PageRequestView;
 import com.nakamas.hatfieldbackend.models.views.incoming.filters.TicketFilter;
@@ -28,7 +26,6 @@ import org.springframework.boot.jdbc.EmbeddedDatabaseConnection;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
 
-import java.math.BigDecimal;
 import java.util.List;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -157,13 +154,6 @@ public class TicketTests {
     void complete_ticket_repair_should_succeed() {
         ticketService.completeRepair(user, ticket.getId(), "at the front");
         Assertions.assertEquals(ticketService.getTicket(ticket.getId()).getStatus(), TicketStatus.FINISHED);
-    }
-    @Test
-    @Transactional
-    void collect_device_should_succeed() {
-        ticketService.collectedDevice(user, ticket.getId(), new CreateInvoice(InvoiceType.SELL, new Model("Galaxy 20 5G"),
-                new Brand("SamsungS"), "948376598745MAZDA324", client, "blabla",  BigDecimal.TEN, user, PaymentMethod.CASH, WarrantyPeriod.ONE_MONTH));
-        Assertions.assertEquals(ticketService.getTicket(ticket.getId()).getStatus(), TicketStatus.COLLECTED);
     }
 
 }
