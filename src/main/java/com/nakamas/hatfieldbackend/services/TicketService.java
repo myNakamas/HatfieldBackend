@@ -108,6 +108,7 @@ public class TicketService {
                                                            "up your device at a comfortable time.",
                 LocalDateTime.now(), user.getId(), ticket.getClient().getId(), ticket.getId(), null));
         //send sms if options allow
+        //to send email if options allow
         loggerService.createLog("The repair has been completed by " + user.getUsername(), user.getId(), id);
         ticketRepository.save(ticket);
     }
@@ -117,7 +118,6 @@ public class TicketService {
         ticket.setStatus(TicketStatus.COLLECTED);
         invoice.setTicketInfo(ticket);
         invoice.setCreatedBy(user);
-        //send message to client
         Invoice result = invoiceService.create(invoice);
         messageService.createMessage(new CreateChatMessage("The device has been collected. Information can be found" +
                                                            " in your 'invoices' tab. If that action hasn't been done by you please contact the store.",
