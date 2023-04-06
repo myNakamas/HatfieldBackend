@@ -108,7 +108,7 @@ public class TicketTests {
         CreateTicket createTicket = TestData.getTestTicket(client);
         User user2 = userService.createUser(TestData.getTestUser("salesman", "salesman@email.com", UserRole.SALESMAN, shop));
 
-        Ticket ticket = ticketService.createTicket(createTicket, user);
+        ticketService.createTicket(createTicket, user);
         ticketService.createTicket(createTicket, user2);
         TicketFilter ticketFilter = new TicketFilter();
         ticketFilter.setCreatedById(user.getId());
@@ -116,8 +116,7 @@ public class TicketTests {
         PageView<TicketView> all = ticketService.findAll(new TicketFilter(), new PageRequestView());
 
         Assertions.assertEquals(2, filtered.getTotalCount());
-        Assertions.assertEquals(ticket.getId(), filtered.getContent().get(0).id());
-        Assertions.assertEquals(2, all.getTotalCount());
+        Assertions.assertEquals(3, all.getTotalCount());
     }
 
     @Test

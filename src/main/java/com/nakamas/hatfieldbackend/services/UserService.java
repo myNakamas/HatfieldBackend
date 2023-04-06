@@ -80,7 +80,7 @@ public class UserService implements UserDetailsService, UserDetailsPasswordServi
     public User createUser(CreateUser userInfo) {
         User user = new User(userInfo, shopRepository.findById(userInfo.shopId()).orElse(null));
         if (Objects.equals(userInfo.role(), UserRole.CLIENT)) {
-            return createUser(userInfo);
+            return createClient(userInfo);
         } else {
             user.setPassword(passwordEncoder.encode(user.getPassword()));
             return validateAndSave(user);
