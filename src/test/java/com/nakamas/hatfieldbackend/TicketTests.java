@@ -4,8 +4,11 @@ import com.nakamas.hatfieldbackend.models.entities.User;
 import com.nakamas.hatfieldbackend.models.entities.shop.Category;
 import com.nakamas.hatfieldbackend.models.entities.shop.InventoryItem;
 import com.nakamas.hatfieldbackend.models.entities.shop.Shop;
+import com.nakamas.hatfieldbackend.models.entities.ticket.Brand;
+import com.nakamas.hatfieldbackend.models.entities.ticket.Model;
 import com.nakamas.hatfieldbackend.models.entities.ticket.Ticket;
-import com.nakamas.hatfieldbackend.models.enums.UserRole;
+import com.nakamas.hatfieldbackend.models.enums.*;
+import com.nakamas.hatfieldbackend.models.views.incoming.CreateInvoice;
 import com.nakamas.hatfieldbackend.models.views.incoming.CreateTicket;
 import com.nakamas.hatfieldbackend.models.views.incoming.PageRequestView;
 import com.nakamas.hatfieldbackend.models.views.incoming.filters.TicketFilter;
@@ -25,6 +28,7 @@ import org.springframework.boot.jdbc.EmbeddedDatabaseConnection;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -56,6 +60,7 @@ public class TicketTests {
     private Shop shop;
     private User user;
     private User client;
+    private Ticket ticket;
     private List<InventoryItem> items;
 
     @BeforeEach
@@ -64,6 +69,7 @@ public class TicketTests {
         shop = shopRepository.save(testShop);
         user = userService.createUser(TestData.getTestUser(shop));
         client = userService.createUser(TestData.getTestUser("client", "client@email.com", UserRole.CLIENT, shop));
+        ticket = ticketService.createTicket(TestData.getTestTicket(client), user);
         Category category = categoryRepository.save(TestData.getCategory());
         for (int i = 0; i < 3; i++)
             inventoryItemService.createInventoryItem(TestData.getTestInventoryItem(shop, category));
@@ -85,8 +91,15 @@ public class TicketTests {
     void create_ticket() {
         CreateTicket createTicket = TestData.getTestTicket(client);
         Ticket ticket = ticketService.createTicket(createTicket, user);
-
         Assertions.assertEquals(ticket.getShop().getId(), user.getShop().getId());
+    }
+
+
+    @Test
+    void update_ticket_should_succeed() {
+        CreateTicket createTicket = TestData.getTestTicket(client);
+        Long ticketId = ticketService.update(createTicket, ticket.getId());
+        Assertions.assertEquals(ticketId, ticket.getId());
     }
 
     @Test
@@ -101,7 +114,7 @@ public class TicketTests {
         PageView<TicketView> filtered = ticketService.findAll(ticketFilter, new PageRequestView());
         PageView<TicketView> all = ticketService.findAll(new TicketFilter(), new PageRequestView());
 
-        Assertions.assertEquals(1, filtered.getTotalCount());
+        Assertions.assertEquals(2, filtered.getTotalCount());
         Assertions.assertEquals(ticket.getId(), filtered.getContent().get(0).id());
         Assertions.assertEquals(2, all.getTotalCount());
     }
@@ -116,4 +129,41 @@ public class TicketTests {
         Assertions.assertEquals(1, ticket.getUsedParts().size());
         Assertions.assertEquals(1, usedPartRepository.count());
     }
+
+    @Test
+    @Transactional
+    void update_ticket_priority_should_succeed() {
+        int currPriority = ticket.getPriority();
+        ticketService.setPriorityTo(ticket.getId(),  currPriority+ 2);
+        Assertions.assertEquals(currPriority + 2, ticketService.getTicket(ticket.getId()).getPriority());
+    }
+
+    @Test
+    @Transactional
+    void update_ticket_priority_should_fail() {
+        int currPriority = ticket.getPriority();
+        ticketService.setPriorityTo(ticket.getId(),  currPriority+ 2);
+        Assertions.assertNotEquals(currPriority, ticketService.getTicket(ticket.getId()).getPriority());
+    }
+
+    @Test
+    @Transactional
+    void start_ticket_repair_should_succeed() {
+        ticketService.startRepair(user, ticket.getId());
+        Assertions.assertEquals(ticketService.getTicket(ticket.getId()).getStatus(), TicketStatus.STARTED);
+    }
+    @Test
+    @Transactional
+    void complete_ticket_repair_should_succeed() {
+        ticketService.completeRepair(user, ticket.getId(), "at the front");
+        Assertions.assertEquals(ticketService.getTicket(ticket.getId()).getStatus(), TicketStatus.FINISHED);
+    }
+    @Test
+    @Transactional
+    void collect_device_should_succeed() {
+        ticketService.collectedDevice(user, ticket.getId(), new CreateInvoice(InvoiceType.SELL, new Model("Galaxy 20 5G"),
+                new Brand("SamsungS"), "948376598745MAZDA324", client, "blabla",  BigDecimal.TEN, user, PaymentMethod.CASH, WarrantyPeriod.ONE_MONTH));
+        Assertions.assertEquals(ticketService.getTicket(ticket.getId()).getStatus(), TicketStatus.COLLECTED);
+    }
+
 }
