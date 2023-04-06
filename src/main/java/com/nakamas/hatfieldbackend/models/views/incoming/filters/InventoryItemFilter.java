@@ -31,7 +31,7 @@ public class InventoryItemFilter implements Specification<InventoryItem> {
         if (shopId != null)
             predicates.add(criteriaBuilder.equal(item.get("shop").get("id"), shopId));
         if (categoryId != null)
-            predicates.add(criteriaBuilder.equal(item.get("category").get("id"), shopId));
+            predicates.add(criteriaBuilder.equal(item.get("categoryId"), categoryId));
         if (isNeeded != null)
             predicates.add(criteriaBuilder.equal(item.<Boolean>get("shoppingListNeeded"), isNeeded));
         if (searchBy != null && !searchBy.isBlank()) {

@@ -1,19 +1,19 @@
 package com.nakamas.hatfieldbackend.services;
 
 import com.nakamas.hatfieldbackend.config.exception.CustomException;
-import com.nakamas.hatfieldbackend.models.entities.User;
+import com.nakamas.hatfieldbackend.models.entities.Log;
 import com.nakamas.hatfieldbackend.models.entities.shop.Category;
 import com.nakamas.hatfieldbackend.models.entities.shop.InventoryItem;
+import com.nakamas.hatfieldbackend.models.entities.shop.SoldItem;
 import com.nakamas.hatfieldbackend.models.entities.shop.UsedPart;
 import com.nakamas.hatfieldbackend.models.entities.ticket.Brand;
 import com.nakamas.hatfieldbackend.models.entities.ticket.Model;
+import com.nakamas.hatfieldbackend.models.entities.ticket.Ticket;
 import com.nakamas.hatfieldbackend.models.views.incoming.CreateInventoryItem;
 import com.nakamas.hatfieldbackend.models.views.incoming.PageRequestView;
 import com.nakamas.hatfieldbackend.models.views.incoming.filters.InventoryItemFilter;
 import com.nakamas.hatfieldbackend.models.views.outgoing.PageView;
-import com.nakamas.hatfieldbackend.models.views.outgoing.shop.CategoryView;
-import com.nakamas.hatfieldbackend.models.views.outgoing.shop.InventoryItemView;
-import com.nakamas.hatfieldbackend.models.views.outgoing.shop.ItemPropertyView;
+import com.nakamas.hatfieldbackend.models.views.outgoing.shop.*;
 import com.nakamas.hatfieldbackend.repositories.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -32,6 +32,8 @@ public class InventoryItemService {
     private final ShopRepository shopRepository;
     private final CategoryRepository categoryRepository;
     private final UsedPartRepository usedPartRepository;
+    private final SoldItemRepository soldItemRepository;
+    private final LoggerService loggerService;
 
 
     public InventoryItem createInventoryItem(CreateInventoryItem inventoryItem) {
@@ -56,22 +58,28 @@ public class InventoryItemService {
         return all.stream().map(CategoryView::new).collect(Collectors.toList());
     }
 
-    public UsedPart useItemForTicket(Long inventoryItemId, Integer count, User user) {
+    public UsedPart useItemForTicket(Long inventoryItemId, Ticket ticket, Integer count) {
         InventoryItem item = getItem(inventoryItemId);
         if (item.getCount() < count)
             throw new CustomException("Not enough Items in storage!");
         item.setCount(item.getCount() - count);
         inventoryItemRepository.save(item);
-        //TODO: dont forget to add the user that made the change in the log table. this is where the connection should be
-        UsedPart usedPart = new UsedPart(item, count, LocalDateTime.now());
+        UsedPart usedPart = new UsedPart(ticket, item, count, LocalDateTime.now());
         return usedPartRepository.save(usedPart);
     }
 
     public PageView<InventoryItemView> getShopInventory(Long shopId, InventoryItemFilter filter, PageRequestView pageRequestView) {
         filter.setShopId(shopId);
         Page<InventoryItem> items = inventoryItemRepository.findAll(filter, pageRequestView.getPageRequest());
-        Page<InventoryItemView> page = items.map(InventoryItemView::new);
+//        getCategory returns null? todo: investigate
+        Page<InventoryItemView> page = items.map(item -> new InventoryItemView(item, getCategory(item.getCategoryId())));
         return new PageView<>(page);
+    }
+
+    public List<ShortItemView> getShortShopInventory(Long shopId, InventoryItemFilter filter) {
+        filter.setShopId(shopId);
+        List<InventoryItem> all = inventoryItemRepository.findAll(filter);
+        return all.stream().map(ShortItemView::new).toList();
     }
 
     public List<ItemPropertyView> getAllModels() {
@@ -141,6 +149,22 @@ public class InventoryItemService {
     }
 
     public void deleteCategory(Long id) {
+        inventoryItemRepository.setItemsToNullCategory(id);
         categoryRepository.deleteById(id);
+        Log logMessage = Log.builder().action("Category '" + id + "'  was deleted").build();
+        loggerService.createLog(logMessage);
+    }
+
+    public CategoryView getCategory(Long categoryId) {
+        if (categoryId == null) return null;
+        return categoryRepository.findById(categoryId).map(CategoryView::new).orElse(null);
+    }
+
+    public SoldItemView sellItem(Long id, Integer count) {
+        InventoryItem inventoryItem = getItem(id);
+        SoldItem item = new SoldItem(inventoryItem,count);
+        SoldItem save = soldItemRepository.save(item);
+//        todo: add invoice to response?
+        return new SoldItemView(save);
     }
 }

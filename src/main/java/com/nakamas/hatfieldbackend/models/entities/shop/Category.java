@@ -22,9 +22,9 @@ public class Category extends AbstractPersistable<Long> {
     @Enumerated
     private ItemType type;
 
-    @OneToMany(mappedBy = "category",cascade = {CascadeType.DETACH})
+    @OneToMany(cascade = {CascadeType.DETACH, CascadeType.REMOVE, CascadeType.REFRESH})
+    @JoinColumn(name = "category_id")
     private List<InventoryItem> items;
-
     @ElementCollection
     private List<String> fields;
 
@@ -34,7 +34,7 @@ public class Category extends AbstractPersistable<Long> {
         this.fields = categoryView.columns();
     }
 
-    public Category(String categoryName, ItemType type,List<String> columns) {
+    public Category(String categoryName, ItemType type, List<String> columns) {
         this.name = categoryName;
         this.type = type;
         this.fields = columns;

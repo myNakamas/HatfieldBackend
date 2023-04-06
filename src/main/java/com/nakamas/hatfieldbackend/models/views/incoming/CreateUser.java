@@ -16,7 +16,9 @@ public record CreateUser(UUID userId,
                          List<String> phones,
                          Long shopId,
                          Boolean isActive,
-                         Boolean isBanned) {
+                         Boolean isBanned,
+                         Boolean smsPermission,
+                         Boolean emailPermission) {
     public CreateUser(UUID userId,
                       String username,
                       String fullName,
@@ -25,6 +27,6 @@ public record CreateUser(UUID userId,
                       String email,
                       List<String> phones,
                       Long shopId) {
-        this(userId, username, fullName, password, role, email, phones, shopId, null, null);
+        this(userId, username, fullName, password, role, email, phones, shopId, null, null, true, true);
     }
 }

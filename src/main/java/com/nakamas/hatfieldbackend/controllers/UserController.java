@@ -35,29 +35,39 @@ public class UserController {
     public UserProfile updateUser(@RequestBody @Valid CreateUser user) {
         return new UserProfile(userService.updateUser(user));
     }
+
     @PutMapping("admin/updateBan")
     public void updateUserBan(@RequestParam UUID id, @RequestParam Boolean status) {
         userService.updateUserBan(id, status);
     }
+
     @PutMapping("admin/updateActivity")
     public void updateUserActivity(@RequestParam UUID id, @RequestParam Boolean status) {
         userService.updateUserActivity(id, status);
     }
+
+    //worker i nagore toest admin
 
     @PostMapping("create/client")
     public UserProfile createClient(@RequestBody @Valid CreateUser user) {
         return new UserProfile(userService.createClient(user));
     }
 
-    //worker i nagore toest admin
+    @PutMapping("worker/client")
+    public UserProfile updateClient(@RequestBody @Valid CreateUser user) {
+        return new UserProfile(userService.updateUser(user));
+    }
+
     @GetMapping("worker/all")
     public List<UserProfile> getAll(UserFilter filter) {
         return userService.getAll(filter).stream().map(UserProfile::new).toList();
     }
+
     @GetMapping("worker/all/workers")
     public List<UserProfile> getAllWorkers(UserFilter filter) {
         return userService.getAllWorkers(filter).stream().map(UserProfile::new).toList();
     }
+
     @GetMapping("worker/all/clients")
     public List<UserProfile> getAllClients(UserFilter filter) {
         return userService.getAllClients(filter).stream().map(UserProfile::new).toList();

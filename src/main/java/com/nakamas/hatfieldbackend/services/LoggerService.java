@@ -1,6 +1,8 @@
 package com.nakamas.hatfieldbackend.services;
 
 import com.nakamas.hatfieldbackend.models.entities.Log;
+import com.nakamas.hatfieldbackend.models.entities.User;
+import com.nakamas.hatfieldbackend.models.entities.shop.UsedPart;
 import com.nakamas.hatfieldbackend.models.views.incoming.filters.LogFilter;
 import com.nakamas.hatfieldbackend.models.views.outgoing.LogView;
 import com.nakamas.hatfieldbackend.models.views.outgoing.PageView;
@@ -44,5 +46,15 @@ public class LoggerService {
 
     private UserProfile getUserProfile(UUID id) {
         return userRepository.findById(id).map(UserProfile::new).orElse(null);
+    }
+
+    public void createLogUsedItem(UsedPart usedPart,Long ticketId, User user) {
+        Log build = Log.builder()
+                .action("User '%s' has used part '%s' for Ticket#%s ".formatted(user.getFullName(), usedPart.getItem(), ticketId))
+                .userId(user.getId())
+                .ticketId(ticketId)
+                .partUsedId(usedPart.getId())
+                .build();
+        createLog(build);
     }
 }

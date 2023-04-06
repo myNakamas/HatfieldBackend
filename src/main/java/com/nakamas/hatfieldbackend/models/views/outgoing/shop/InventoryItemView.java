@@ -7,6 +7,16 @@ import java.util.Map;
 public record InventoryItemView(Long id, String model, String brand, int count, Boolean needed, Long shopId,
                                 CategoryView categoryView,
                                 Map<String, String> columns) {
+    public InventoryItemView(InventoryItem item, CategoryView categoryView) {
+        this(item.getId(),
+                item.getModel() != null ? item.getModel().getModel() : null,
+                item.getBrand() != null ? item.getBrand().getBrand() : null,
+                item.getCount(),
+                item.getShoppingListNeeded(),
+                item.getShop().getId(),
+                categoryView,
+                item.getOtherProperties());
+    }
     public InventoryItemView(InventoryItem item) {
         this(item.getId(),
                 item.getModel() != null ? item.getModel().getModel() : null,
@@ -14,6 +24,7 @@ public record InventoryItemView(Long id, String model, String brand, int count, 
                 item.getCount(),
                 item.getShoppingListNeeded(),
                 item.getShop().getId(),
-                new CategoryView(item.getCategory()), item.getOtherProperties());
+                new CategoryView(item.getCategoryId(),null,null,null),
+                item.getOtherProperties());
     }
 }
