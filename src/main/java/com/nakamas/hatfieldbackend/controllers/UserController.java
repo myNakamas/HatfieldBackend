@@ -48,7 +48,7 @@ public class UserController {
 
     //worker i nagore toest admin
 
-    @PostMapping("create/client")
+    @PostMapping("worker/client")
     public UserProfile createClient(@RequestBody @Valid CreateUser user) {
         return new UserProfile(userService.createClient(user));
     }
