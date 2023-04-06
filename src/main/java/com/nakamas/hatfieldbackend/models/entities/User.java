@@ -17,7 +17,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Objects;
 import java.util.UUID;
 
 @Getter
@@ -30,6 +29,8 @@ public class User extends AbstractPersistable<UUID> implements UserDetails {
     private String username;
     private String fullName;
     private String password;
+
+    private String firstPassword;
 
     private String email;
     @ElementCollection
@@ -59,11 +60,6 @@ public class User extends AbstractPersistable<UUID> implements UserDetails {
     @OneToOne(orphanRemoval = true, fetch = FetchType.LAZY)
     private Photo image;
 
-    private void generateLoginData() {
-        this.username = "username";
-        this.password = "password";
-    }
-
     public User(CreateUser user, Shop shop) {
         this.username = user.username();
         this.fullName = user.fullName();
@@ -74,9 +70,6 @@ public class User extends AbstractPersistable<UUID> implements UserDetails {
         this.isActive = true;
         this.isBanned = false;
         this.shop = shop;
-        if (Objects.equals(user.role(), UserRole.CLIENT)) {
-            this.generateLoginData();
-        }
     }
 
 

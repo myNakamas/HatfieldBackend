@@ -7,7 +7,6 @@ import com.nakamas.hatfieldbackend.models.entities.shop.Shop;
 import com.nakamas.hatfieldbackend.models.enums.UserRole;
 import com.nakamas.hatfieldbackend.models.views.incoming.CreateUser;
 import com.nakamas.hatfieldbackend.models.views.incoming.filters.UserFilter;
-import com.nakamas.hatfieldbackend.models.views.outgoing.user.CreatedClientInfo;
 import com.nakamas.hatfieldbackend.repositories.ShopRepository;
 import com.nakamas.hatfieldbackend.repositories.UserRepository;
 import com.nakamas.hatfieldbackend.services.UserService;
@@ -195,15 +194,15 @@ class TestUserAccount {
     @Test
     @Transactional
     void ban_client_and_filter() {
-        CreatedClientInfo client = createClient("new username 2", "newEmail2@gmail.com");
+        User client = createClient("new username 2", "newEmail2@gmail.com");
 
-        userService.updateUserBan(client.profile().userId(), true);
+        userService.updateUserBan(client.getId(), true);
         UserFilter filter = new UserFilter();
         filter.setBanned(true);
         List<User> all = userService.getAllClients(filter);
 
         Assertions.assertTrue(all.stream().anyMatch(user ->
-                Objects.equals(user.getId(), client.profile().userId())));
+                Objects.equals(user.getId(), client.getId())));
     }
 
     @Test
@@ -256,7 +255,7 @@ class TestUserAccount {
                 correctPassword, UserRole.ENGINEER, email, null, registeredUser.getShop().getId()));
     }
 
-    private CreatedClientInfo createClient(String username, String email) {
+    private User createClient(String username, String email) {
         return userService.createClient(getTestUser(username, email, UserRole.CLIENT, registeredUser.getShop()));
     }
 }

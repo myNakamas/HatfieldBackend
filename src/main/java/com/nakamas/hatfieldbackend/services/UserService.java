@@ -6,8 +6,6 @@ import com.nakamas.hatfieldbackend.models.entities.User;
 import com.nakamas.hatfieldbackend.models.enums.UserRole;
 import com.nakamas.hatfieldbackend.models.views.incoming.CreateUser;
 import com.nakamas.hatfieldbackend.models.views.incoming.filters.UserFilter;
-import com.nakamas.hatfieldbackend.models.views.outgoing.user.CreatedClientInfo;
-import com.nakamas.hatfieldbackend.models.views.outgoing.user.UserProfile;
 import com.nakamas.hatfieldbackend.repositories.PhotoRepository;
 import com.nakamas.hatfieldbackend.repositories.ShopRepository;
 import com.nakamas.hatfieldbackend.repositories.UserRepository;
@@ -27,6 +25,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -80,16 +79,22 @@ public class UserService implements UserDetailsService, UserDetailsPasswordServi
 
     public User createUser(CreateUser userInfo) {
         User user = new User(userInfo, shopRepository.findById(userInfo.shopId()).orElse(null));
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
-        return validateAndSave(user);
+        if (Objects.equals(userInfo.role(), UserRole.CLIENT)) {
+            return createUser(userInfo);
+        } else {
+            user.setPassword(passwordEncoder.encode(user.getPassword()));
+            return validateAndSave(user);
+        }
     }
 
-    public CreatedClientInfo createClient(CreateUser userInfo) {
+    public User createClient(CreateUser userInfo) {
         User user = new User(userInfo, shopRepository.findById(userInfo.shopId()).orElse(null));
         user.setRole(UserRole.CLIENT);
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
-        User save = validateAndSave(user);
-        return new CreatedClientInfo(new UserProfile(save), user.getUsername(), user.getPassword());
+        user.setUsername(generateUsername());
+        String newPass = generatePass();
+        user.setFirstPassword(newPass);
+        user.setPassword(passwordEncoder.encode(newPass));
+        return validateAndSave(user);
     }
 
     /**
@@ -153,5 +158,16 @@ public class UserService implements UserDetailsService, UserDetailsPasswordServi
                 existingUsers.stream().anyMatch(profile -> !Objects.equals(profile.getId(), user.getId())))
             throw new CustomException("Username or email already taken!");
         return userRepository.save(user);
+    }
+
+    public String generateUsername() {
+        String answer = UUID.randomUUID().toString().substring(24, 36).toUpperCase(Locale.ROOT);
+        if (userRepository.findUserByUsername(answer).isPresent())
+            answer = generateUsername();
+        return answer;
+    }
+
+    public String generatePass() {
+        return UUID.randomUUID().toString().substring(0, 7);
     }
 }
