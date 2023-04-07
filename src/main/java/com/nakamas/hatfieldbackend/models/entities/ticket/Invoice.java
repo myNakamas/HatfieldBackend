@@ -27,6 +27,7 @@ public class Invoice extends AbstractPersistable<Long> {
     @ManyToOne
     private Brand deviceBrand;
     private String serialNumber;
+    private Long ticketId;
     private LocalDateTime timestamp;
     @Column (columnDefinition = "text")
     private String notes;
@@ -46,6 +47,7 @@ public class Invoice extends AbstractPersistable<Long> {
         this.deviceModel = invoiceView.getDeviceModel();
         this.deviceBrand = invoiceView.getDeviceBrand();
         this.serialNumber = invoiceView.getSerialNumber();
+        this.ticketId = invoiceView.getTicketId();
         this.timestamp = LocalDateTime.now();
         this.notes = invoiceView.getNotes();
         this.totalPrice = invoiceView.getTotalPrice();

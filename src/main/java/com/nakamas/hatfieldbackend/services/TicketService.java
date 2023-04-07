@@ -125,7 +125,6 @@ public class TicketService {
         ticketRepository.save(ticket);
         loggerService.createLog("The device has been marked as collected by " + user.getUsername(), user.getId(), id);
         return invoiceService.getAsBlob(result);
-        //maybe change return type if invoice creation is in BE
     }
 
     public Ticket usePartFromInventory(Long id, Long inventoryItemId, int count, User user) {

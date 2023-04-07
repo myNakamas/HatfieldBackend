@@ -12,4 +12,6 @@ import java.util.UUID;
 public interface InvoiceRepository extends JpaRepository<Invoice, Long> {
     @Query("from Invoice i where i.client.id = ?1")
     List<Invoice> findAllByClient_Id(UUID clientId);
+    @Query("from Invoice i where i.ticketId = ?1 order by i.timestamp desc")
+    List<Invoice> findByTicketId(Long id);
 }

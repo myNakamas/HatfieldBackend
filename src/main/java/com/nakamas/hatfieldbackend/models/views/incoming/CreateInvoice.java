@@ -24,6 +24,7 @@ public class CreateInvoice {
     private Brand deviceBrand;
     private String serialNumber;
     private User client;
+    private Long ticketId;
     private String notes;
     private BigDecimal totalPrice;
     private User createdBy;
@@ -31,6 +32,8 @@ public class CreateInvoice {
     private WarrantyPeriod warranty;
 
     public void setTicketInfo(Ticket ticket){
+        this.ticketId = ticket.getId();
+        this.type = InvoiceType.REPAIR;
         this.deviceModel = ticket.getDeviceModel();
         this.deviceBrand = ticket.getDeviceBrand();
         this.serialNumber = ticket.getSerialNumberOrImei();

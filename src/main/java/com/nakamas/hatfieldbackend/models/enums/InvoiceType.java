@@ -1,5 +1,5 @@
 package com.nakamas.hatfieldbackend.models.enums;
 
 public enum InvoiceType {
-    TICKET, BUY, SELL, ACCESSORIES
+    REPAIR, BUY, SELL, ACCESSORIES
 }

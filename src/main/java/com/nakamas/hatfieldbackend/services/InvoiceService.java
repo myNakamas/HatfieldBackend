@@ -20,6 +20,12 @@ public class InvoiceService {
         return invoiceRepository.save(new Invoice(invoice));
     }
 
+    public Invoice getByTicketId(Long id){
+        List<Invoice> invoices = invoiceRepository.findByTicketId(id);
+        if(invoices.size() > 0) return invoices.get(0);
+        return null;
+    }
+
     public Invoice getById(Long invoiceId){return invoiceRepository.findById(invoiceId).orElse(null);}
 
     public List<Invoice> getByClientId(UUID clientId){return invoiceRepository.findAllByClient_Id(clientId);}
