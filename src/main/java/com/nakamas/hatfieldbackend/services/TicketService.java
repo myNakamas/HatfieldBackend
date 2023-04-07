@@ -117,8 +117,7 @@ public class TicketService {
         Ticket ticket = getTicket(id);
         ticket.setStatus(TicketStatus.COLLECTED);
         invoice.setTicketInfo(ticket);
-        invoice.setCreatedBy(user);
-        Invoice result = invoiceService.create(invoice);
+        Invoice result = invoiceService.create(invoice,user);
         messageService.createMessage(new CreateChatMessage("The device has been collected. Information can be found" +
                                                            " in your 'invoices' tab. If that action hasn't been done by you please contact the store.",
                 LocalDateTime.now(), user.getId(), ticket.getClient().getId(), ticket.getId(), null));

@@ -27,17 +27,15 @@ public class ChatMessage extends AbstractPersistable<Long> {
     private User sender;
     @ManyToOne
     private User receiver;
-    @Column(insertable=false, updatable=false)
-    private Long ticket_id;
+    private Long ticketId;
     private Long randomId;
 
-    public ChatMessage(CreateChatMessage create, User sender, User receiver) {
+    public ChatMessage(CreateChatMessage create, User sender) {
         this.text = create.text();
         this.timestamp = create.timestamp();
         this.readByReceiver = null;
         this.sender = sender;
-        this.receiver = receiver;
-        this.ticket_id = create.ticketId();
+        this.ticketId = create.ticketId();
         this.randomId = create.randomId();
     }
 }

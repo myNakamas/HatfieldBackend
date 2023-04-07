@@ -31,11 +31,12 @@ public class MessageService {
 
     public void createMessage(CreateChatMessage create) {
         User sender = userService.getUser(create.sender());
-        User receiver = userService.getUser(create.receiver());
-        ChatMessage message = new ChatMessage(create, sender, receiver);
+        ChatMessage message = new ChatMessage(create, sender);
+        if (create.receiver() != null) message.setReceiver(userService.getUser(create.receiver()));
         ChatMessage save = messageRepository.save(message);
         ChatMessageView response = new ChatMessageView(save);
-        sendChatMessageToUser(Objects.requireNonNull(receiver.getId()).toString(), response);
+        if (save.getReceiver() != null && save.getReceiver().getId() != null)
+            sendChatMessageToUser(save.getReceiver().getId().toString(), response);
         sendMessageSuccess(Objects.requireNonNull(sender.getId()).toString(), response);
     }
 
@@ -80,6 +81,7 @@ public class MessageService {
     /**
      * Allows the WORKERS of the shop to contact each other.
      * about the ticket without having to notify the client
+     *
      * @param ticketId = the currently open ticket
      * @return A list containing the outgoing chat message view
      * @see ChatMessageView
@@ -90,6 +92,7 @@ public class MessageService {
 
     /**
      * Shows the messages the client is supposed to see.
+     *
      * @param userId = currently logged in CLIENT id
      * @return A list containing the outgoing chat message view
      * @see ChatMessageView

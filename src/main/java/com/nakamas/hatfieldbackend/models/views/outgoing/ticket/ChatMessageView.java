@@ -17,6 +17,6 @@ public record ChatMessageView(
 ) {
 
     public ChatMessageView(ChatMessage message) {
-        this(message.getId(), message.getText(), message.getTimestamp(), message.getReadByReceiver(), message.getSender().getId(), message.getReceiver().getId(), message.getTicket_id(), message.getRandomId());
+        this(message.getId(), message.getText(), message.getTimestamp(), message.getReadByReceiver(), message.getSender().getId(), message.getReceiver() != null ? message.getReceiver().getId() : null, message.getTicketId(), message.getRandomId());
     }
 }
