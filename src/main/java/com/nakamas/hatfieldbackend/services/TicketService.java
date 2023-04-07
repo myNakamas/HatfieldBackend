@@ -122,7 +122,6 @@ public class TicketService {
         messageService.createMessage(new CreateChatMessage("The device has been collected. Information can be found" +
                                                            " in your 'invoices' tab. If that action hasn't been done by you please contact the store.",
                 LocalDateTime.now(), user.getId(), ticket.getClient().getId(), ticket.getId(), null));
-        invoiceService.create(invoice);
         ticketRepository.save(ticket);
         loggerService.createLog("The device has been marked as collected by " + user.getUsername(), user.getId(), id);
         return invoiceService.getAsBlob(result);
