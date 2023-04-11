@@ -1,11 +1,9 @@
 package com.nakamas.hatfieldbackend.controllers;
 
-import com.nakamas.hatfieldbackend.models.entities.User;
 import com.nakamas.hatfieldbackend.models.views.incoming.CreateInvoice;
 import com.nakamas.hatfieldbackend.models.views.outgoing.ticket.InvoiceView;
 import com.nakamas.hatfieldbackend.services.InvoiceService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -18,8 +16,8 @@ public class InvoiceController {
     private final InvoiceService invoiceService;
 
     @PostMapping("create")
-    public void createNonRepairInvoice(@AuthenticationPrincipal User user, CreateInvoice createInvoice){
-        invoiceService.create(createInvoice, user);
+    public void createNonRepairInvoice( CreateInvoice createInvoice){
+        invoiceService.create(createInvoice);
     }
 
     @GetMapping("byId")

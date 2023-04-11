@@ -27,6 +27,11 @@ public class TicketController {
         return ticketService.createTicket(ticket,user).getId();
     }
 
+    @GetMapping("byId")
+    public TicketView getAllTickets(@RequestParam Long id) {
+        return new TicketView(ticketService.getTicket(id));
+    }
+
     @PutMapping("update/{id}")
     public Long updateTicket(@RequestBody CreateTicket ticket, @PathVariable Long id){
         return ticketService.update(ticket,id);
@@ -60,7 +65,7 @@ public class TicketController {
     }
 //    todo: Mark as collected + chat message + generate invoice
     @PutMapping("collected")
-    public byte[] collectedDevice(@AuthenticationPrincipal User user, @RequestParam Long id, @RequestParam CreateInvoice invoice){
+    public byte[] collectedDevice(@AuthenticationPrincipal User user, @RequestParam Long id, @RequestBody CreateInvoice invoice){
         return ticketService.collectedDevice(user, id, invoice);
     }
     @PostMapping("part/use")

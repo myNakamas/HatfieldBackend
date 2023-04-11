@@ -22,13 +22,12 @@ import java.time.ZonedDateTime;
 public class Invoice extends AbstractPersistable<Long> {
     @Enumerated
     private InvoiceType type;
-    @ManyToOne
-    private Model deviceModel;
-    @ManyToOne
-    private Brand deviceBrand;
+    private String deviceModel;
+    private String deviceBrand;
     private String serialNumber;
     private Long ticketId;
     private ZonedDateTime timestamp;
+    private Integer count;
     @Column (columnDefinition = "text")
     private String notes;
     private BigDecimal totalPrice;
@@ -42,18 +41,32 @@ public class Invoice extends AbstractPersistable<Long> {
     private WarrantyPeriod warrantyPeriod;
 
 
-    public Invoice(CreateInvoice invoiceView){
-        this.type = invoiceView.getType();
-        this.deviceModel = invoiceView.getDeviceModel();
-        this.deviceBrand = invoiceView.getDeviceBrand();
-        this.serialNumber = invoiceView.getSerialNumber();
+    public Invoice(CreateInvoice invoiceView, User creator, User client) {
+        if (invoiceView.getType() != null) this.type = invoiceView.getType();
+        if (invoiceView.getDeviceModel() != null) this.deviceModel = invoiceView.getDeviceModel();
+        if (invoiceView.getDeviceBrand() != null) this.deviceBrand = invoiceView.getDeviceBrand();
+        if (invoiceView.getSerialNumber() != null || invoiceView.getSerialNumber().isBlank()) {
+            this.serialNumber = invoiceView.getSerialNumber();
+        } else {
+            this.serialNumber = "-";
+        }
         this.ticketId = invoiceView.getTicketId();
         this.timestamp = ZonedDateTime.now();
-        this.notes = invoiceView.getNotes();
-        this.totalPrice = invoiceView.getTotalPrice();
-        this.createdBy = invoiceView.getCreatedBy();
-        this.client = invoiceView.getClient();
-        this.paymentMethod = invoiceView.getPaymentMethod();
-        this.warrantyPeriod = invoiceView.getWarranty();
+        if (invoiceView.getTicketId() != null) this.ticketId = invoiceView.getTicketId();
+        if (invoiceView.getCount() != null) {
+            this.count = invoiceView.getCount();
+        } else {
+            this.count = 1;
+        }
+        if (invoiceView.getNotes() != null) this.notes = invoiceView.getNotes();
+        if (invoiceView.getTotalPrice() != null) this.totalPrice = invoiceView.getTotalPrice();
+        if (invoiceView.getCreatedBy() != null) this.createdBy = creator;
+        if (invoiceView.getClient() != null) this.client = client;
+        if (invoiceView.getPaymentMethod() != null) this.paymentMethod = invoiceView.getPaymentMethod();
+        if (invoiceView.getWarrantyPeriod() != null) {
+            this.warrantyPeriod = invoiceView.getWarrantyPeriod();
+        } else {
+            this.warrantyPeriod = WarrantyPeriod.NONE;
+        }
     }
 }

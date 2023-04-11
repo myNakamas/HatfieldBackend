@@ -1,15 +1,8 @@
 package com.nakamas.hatfieldbackend.services;
 
-import com.nakamas.hatfieldbackend.models.entities.User;
-import com.nakamas.hatfieldbackend.models.entities.ticket.Brand;
 import com.nakamas.hatfieldbackend.models.entities.ticket.Invoice;
-import com.nakamas.hatfieldbackend.models.entities.ticket.Model;
 import com.nakamas.hatfieldbackend.models.entities.ticket.Ticket;
-import com.nakamas.hatfieldbackend.models.enums.InvoiceType;
-import com.nakamas.hatfieldbackend.models.enums.PaymentMethod;
-import com.nakamas.hatfieldbackend.models.enums.WarrantyPeriod;
 import com.nakamas.hatfieldbackend.models.views.outgoing.PdfAndImageDoc;
-import com.nakamas.hatfieldbackend.repositories.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -32,7 +25,6 @@ import org.springframework.stereotype.Service;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.*;
-import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.ZonedDateTime;
@@ -45,7 +37,6 @@ import java.util.List;
 @RequiredArgsConstructor
 public class DocumentService implements ApplicationRunner {
     private final ResourceLoader resourceLoader;
-    private final UserRepository userRepository;
     @Value(value = "${printer-ip:#{null}}")
     private String printerIp = "";
 
@@ -234,9 +225,9 @@ public class DocumentService implements ApplicationRunner {
         acroForm.getField("shop_locations").setValue(invoice.getCreatedBy().getShop().getAddress());
 
         acroForm.getField("invoice_device_brand_model_name").
-                setValue(invoice.getDeviceBrand().getBrand() + " " + invoice.getDeviceModel().getModel());
+                setValue(invoice.getDeviceBrand() + " " + invoice.getDeviceModel());
         acroForm.getField("device_num_or_imei").setValue(invoice.getSerialNumber());
-        acroForm.getField("device_count").setValue("1");//todo : should get count in invoice
+        acroForm.getField("device_count").setValue(invoice.getCount().toString());
         acroForm.getField("device_price").setValue(invoice.getTotalPrice().toString());
         acroForm.getField("invoice_note").setValue("Notes : " + invoice.getNotes());
 
@@ -304,31 +295,31 @@ public class DocumentService implements ApplicationRunner {
 
     @Override
     public void run(ApplicationArguments args) {
-        Ticket ticket = new Ticket();
-        User user = new User();
-        user.setFullName("FullName");
-        user.setPhones(List.of("+452 2413 435 12", "+452 8513 654 12"));
-        ticket.setAccessories("One USB Cable");
-        ticket.setDeviceBrand(new Brand("Samsung"));
-        ticket.setDeviceModel(new Model("Galaxy 20"));
-        ticket.setTimestamp(ZonedDateTime.now());
-        ticket.setDeadline(ZonedDateTime.now().plusDays(5));
-        ticket.setDeviceCondition("A+");
-        ticket.setCustomerRequest("Do not reset phone");
-        ticket.setClient(user);
-        ticket.setDeposit(BigDecimal.valueOf(25.99));
-        ticket.setTotalPrice(BigDecimal.valueOf(25.99));
-        Invoice invoice = new Invoice();
-        invoice.setType(InvoiceType.SELL);
-        invoice.setDeviceModel(new Model("Galaxy 20 5G"));
-        invoice.setDeviceBrand(new Brand("SamsungS"));
-        invoice.setTimestamp(ZonedDateTime.now());
-        invoice.setNotes("blabla");
-        invoice.setSerialNumber("948376598745MASDF324");
-        invoice.setTotalPrice(BigDecimal.TEN);
-        invoice.setCreatedBy(userRepository.findUserByUsername("admin").orElse(null));
-        invoice.setPaymentMethod(PaymentMethod.CASH);
-        invoice.setWarrantyPeriod(WarrantyPeriod.ONE_MONTH);
+//        Ticket ticket = new Ticket();
+//        User user = new User();
+//        user.setFullName("FullName");
+//        user.setPhones(List.of("+452 2413 435 12", "+452 8513 654 12"));
+//        ticket.setAccessories("One USB Cable");
+//        ticket.setDeviceBrand(new Brand("Samsung"));
+//        ticket.setDeviceModel(new Model("Galaxy 20"));
+//        ticket.setTimestamp(ZonedDateTime.now());
+//        ticket.setDeadline(ZonedDateTime.now().plusDays(5));
+//        ticket.setDeviceCondition("A+");
+//        ticket.setCustomerRequest("Do not reset phone");
+//        ticket.setClient(user);
+//        ticket.setDeposit(BigDecimal.valueOf(25.99));
+//        ticket.setTotalPrice(BigDecimal.valueOf(25.99));
+//        Invoice invoice = new Invoice();
+//        invoice.setType(InvoiceType.SELL);
+//        invoice.setDeviceModel(new Model("Galaxy 20 5G"));
+//        invoice.setDeviceBrand(new Brand("SamsungS"));
+//        invoice.setTimestamp(ZonedDateTime.now());
+//        invoice.setNotes("blabla");
+//        invoice.setSerialNumber("948376598745MASDF324");
+//        invoice.setTotalPrice(BigDecimal.TEN);
+//        invoice.setCreatedBy(userRepository.findUserByUsername("admin").orElse(null));
+//        invoice.setPaymentMethod(PaymentMethod.CASH);
+//        invoice.setWarrantyPeriod(WarrantyPeriod.ONE_MONTH);
 //        if (printerIp != null && !printerIp.isBlank()) {
 //            File image = createRepairTag("QR", ticket);
 //            File image2 = createPriceTag("QR", "Some text", "Galaxy230", List.of("One detail", "SecondDetail"), 240f);

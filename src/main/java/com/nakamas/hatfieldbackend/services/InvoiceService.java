@@ -1,6 +1,5 @@
 package com.nakamas.hatfieldbackend.services;
 
-import com.nakamas.hatfieldbackend.models.entities.User;
 import com.nakamas.hatfieldbackend.models.entities.ticket.Invoice;
 import com.nakamas.hatfieldbackend.models.views.incoming.CreateInvoice;
 import com.nakamas.hatfieldbackend.models.views.outgoing.PdfAndImageDoc;
@@ -15,12 +14,13 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class InvoiceService {
     private final InvoiceRepository invoiceRepository;
+    private final UserService userService;
     private final DocumentService documentService;
 
-    public Invoice create(CreateInvoice create, User creator) {
-        Invoice invoice = new Invoice(create);
-        invoice.setCreatedBy(creator);
-        return invoiceRepository.save(invoice);
+    public Invoice create(CreateInvoice invoice) {
+        return invoiceRepository.save(new Invoice(invoice,
+                userService.getUser(invoice.getCreatedBy()),
+                userService.getUser(invoice.getClient())));
     }
 
     public Invoice getByTicketId(Long id){
@@ -29,13 +29,19 @@ public class InvoiceService {
         return null;
     }
 
-    public Invoice getById(Long invoiceId){return invoiceRepository.findById(invoiceId).orElse(null);}
+    public Invoice getById(Long invoiceId) {
+        return invoiceRepository.findById(invoiceId).orElse(null);
+    }
 
-    public List<Invoice> getByClientId(UUID clientId){return invoiceRepository.findAllByClient_Id(clientId);}
+    public List<Invoice> getByClientId(UUID clientId) {
+        return invoiceRepository.findAllByClient_Id(clientId);
+    }
 
-    public List<Invoice> getAll(){return invoiceRepository.findAll();}
+    public List<Invoice> getAll() {
+        return invoiceRepository.findAll();
+    }
 
-    public byte[] getAsBlob(Invoice invoice){
+    public byte[] getAsBlob(Invoice invoice) {
         //        todo: edit the qr information just like in documentController
         PdfAndImageDoc doc = documentService.createInvoice("QR", invoice);
         documentService.executePrint(doc.image());
