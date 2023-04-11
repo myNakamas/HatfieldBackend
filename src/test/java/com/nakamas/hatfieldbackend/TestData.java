@@ -12,7 +12,7 @@ import com.nakamas.hatfieldbackend.models.views.incoming.CreateTicket;
 import com.nakamas.hatfieldbackend.models.views.incoming.CreateUser;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -48,6 +48,6 @@ public final class TestData {
     }
 
     public static CreateTicket getTestTicket(User client) {
-        return new CreateTicket("TestDeviceModel" + random.nextInt(10), "TestDeviceBrand" + random.nextInt(10), "Lab" + random.nextInt(), "", "The screen is broken", "", random.nextInt() + "", "83753373", "none", LocalDateTime.now().plusDays(5), "", TicketStatus.PENDING, BigDecimal.valueOf(random.nextDouble()), BigDecimal.ZERO, client.getId(), random.nextInt(30));
+        return new CreateTicket("TestDeviceModel" + random.nextInt(10), "TestDeviceBrand" + random.nextInt(10), "Lab" + random.nextInt(), "", "The screen is broken", "", random.nextInt() + "", "83753373", "none", ZonedDateTime.now().plusDays(5), "", TicketStatus.PENDING, BigDecimal.valueOf(random.nextDouble()), BigDecimal.ZERO, client.getId(), random.nextInt(30));
     }
 }

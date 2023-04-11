@@ -14,7 +14,7 @@ import lombok.Setter;
 import org.springframework.data.jpa.domain.AbstractPersistable;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -39,9 +39,9 @@ public class Ticket extends AbstractPersistable<Long> {
     private String devicePassword;
     private String serialNumberOrImei;
     private String accessories;
-    private LocalDateTime timestamp;
+    private ZonedDateTime timestamp;
     //    manually set
-    private LocalDateTime deadline;
+    private ZonedDateTime deadline;
     @Column(columnDefinition = "text")
     private String notes;
     private BigDecimal totalPrice;
@@ -62,6 +62,7 @@ public class Ticket extends AbstractPersistable<Long> {
     private List<UsedPart> usedParts = new ArrayList<>();
 
     @OneToMany(cascade = CascadeType.ALL)
+    @JoinColumn(name = "ticket_id")
     private List<ChatMessage> chatMessages = new ArrayList<>();
 
     public Ticket(CreateTicket create, User user) {
@@ -81,7 +82,7 @@ public class Ticket extends AbstractPersistable<Long> {
         this.createdBy = user;
         this.shop = user.getShop();
 
-        this.timestamp = LocalDateTime.now();
+        this.timestamp = ZonedDateTime.now();
     }
 
     public void update(CreateTicket ticket) {

@@ -3,10 +3,13 @@ package com.nakamas.hatfieldbackend.services;
 import com.nakamas.hatfieldbackend.config.exception.CustomException;
 import com.nakamas.hatfieldbackend.models.entities.User;
 import com.nakamas.hatfieldbackend.models.entities.ticket.ChatMessage;
+import com.nakamas.hatfieldbackend.models.entities.ticket.Ticket;
+import com.nakamas.hatfieldbackend.models.enums.UserRole;
 import com.nakamas.hatfieldbackend.models.views.incoming.CreateChatMessage;
 import com.nakamas.hatfieldbackend.models.views.outgoing.ticket.ChatMessageView;
 import com.nakamas.hatfieldbackend.models.views.outgoing.ticket.UserChats;
 import com.nakamas.hatfieldbackend.repositories.MessageRepository;
+import com.nakamas.hatfieldbackend.repositories.TicketRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,7 +19,7 @@ import org.springframework.messaging.simp.SimpMessageType;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
@@ -28,22 +31,29 @@ public class MessageService {
     private final UserService userService;
     private final MessageRepository messageRepository;
     private final SimpMessagingTemplate messagingTemplate;
+    private final TicketRepository ticketRepository;
 
     public void createMessage(CreateChatMessage create) {
         User sender = userService.getUser(create.sender());
+        Ticket ticket = ticketRepository.findById(create.ticketId()).orElseThrow(()->new CustomException("Could not find ticket with such id") );
         ChatMessage message = new ChatMessage(create, sender);
         if (create.receiver() != null) message.setReceiver(userService.getUser(create.receiver()));
         ChatMessage save = messageRepository.save(message);
         ChatMessageView response = new ChatMessageView(save);
-        if (save.getReceiver() != null && save.getReceiver().getId() != null)
+
+        if (save.getSender().getRole().equals(UserRole.CLIENT)){
+            sendChatMessageToUser(ticket.getCreatedBy().getId().toString(), response);
+        }
+        else if(save.getReceiver() != null){
             sendChatMessageToUser(save.getReceiver().getId().toString(), response);
-        sendMessageSuccess(Objects.requireNonNull(sender.getId()).toString(), response);
+        }
+
     }
 
     @Transactional
     public void markMessageAsSeen(Long messageId) {
         ChatMessage byId = messageRepository.findById(messageId).orElseThrow(() -> new CustomException("Cannot find message with id"));
-        byId.setReadByReceiver(LocalDateTime.now());
+        byId.setReadByReceiver(ZonedDateTime.now());
         ChatMessage save = messageRepository.save(byId);
         messageRepository.markReadByUser(save.getSender().getId(), save.getReceiver().getId(), save.getReadByReceiver());
         sendMessageSeenToUser(Objects.requireNonNull(save.getSender().getId()).toString(), new ChatMessageView(save));
@@ -55,10 +65,6 @@ public class MessageService {
 
     public void sendMessageSeenToUser(String userId, ChatMessageView message) {
         messagingTemplate.convertAndSendToUser(userId, "/seen", message, createHeaders(userId));
-    }
-
-    public void sendMessageSuccess(String userId, ChatMessageView message) {
-        messagingTemplate.convertAndSendToUser(userId, "/sent", message, createHeaders(userId));
     }
 
     private MessageHeaders createHeaders(String sessionId) {

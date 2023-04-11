@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.data.jpa.domain.AbstractPersistable;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 
 @Getter
 @Setter
@@ -21,12 +21,13 @@ import java.time.LocalDateTime;
 public class ChatMessage extends AbstractPersistable<Long> {
     @Column(columnDefinition = "text")
     private String text;
-    private LocalDateTime timestamp;
-    private LocalDateTime readByReceiver;
+    private ZonedDateTime timestamp;
+    private ZonedDateTime readByReceiver;
     @ManyToOne
     private User sender;
     @ManyToOne
     private User receiver;
+    @Column(name = "ticket_id")
     private Long ticketId;
     private Long randomId;
 

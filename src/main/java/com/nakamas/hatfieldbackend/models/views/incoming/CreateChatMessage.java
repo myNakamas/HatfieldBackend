@@ -1,11 +1,11 @@
 package com.nakamas.hatfieldbackend.models.views.incoming;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.UUID;
 
 public record CreateChatMessage(
         String text,
-        LocalDateTime timestamp,
+        ZonedDateTime timestamp,
         UUID sender,
         UUID receiver,
         Long ticketId,

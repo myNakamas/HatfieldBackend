@@ -20,7 +20,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.List;
 
 @Service
@@ -93,7 +93,7 @@ public class TicketService {
         ticket.setDeviceLocation(deviceLocationRepository.findByName("at lab"));
         ticket.setStatus(TicketStatus.STARTED);
         messageService.createMessage(new CreateChatMessage("Hello! The repair of your device has been initiated.",
-                LocalDateTime.now(), user.getId(), ticket.getClient().getId(), ticket.getId(), null));
+                ZonedDateTime.now(), user.getId(), ticket.getClient().getId(), ticket.getId(), null));
         //send sms if options allow
         //to send email if options allow
         loggerService.createLog("Repair on ticket '%s' was started by %s".formatted(id, user.getUsername()), user.getId(), id);
@@ -106,7 +106,7 @@ public class TicketService {
         ticket.setStatus(TicketStatus.FINISHED);
         messageService.createMessage(new CreateChatMessage("Repairment actions have finished! Please come and pick " +
                                                            "up your device at a comfortable time.",
-                LocalDateTime.now(), user.getId(), ticket.getClient().getId(), ticket.getId(), null));
+                ZonedDateTime.now(), user.getId(), ticket.getClient().getId(), ticket.getId(), null));
         //send sms if options allow
         //to send email if options allow
         loggerService.createLog("The repair has been completed by " + user.getUsername(), user.getId(), id);
@@ -120,7 +120,7 @@ public class TicketService {
         Invoice result = invoiceService.create(invoice,user);
         messageService.createMessage(new CreateChatMessage("The device has been collected. Information can be found" +
                                                            " in your 'invoices' tab. If that action hasn't been done by you please contact the store.",
-                LocalDateTime.now(), user.getId(), ticket.getClient().getId(), ticket.getId(), null));
+                ZonedDateTime.now(), user.getId(), ticket.getClient().getId(), ticket.getId(), null));
         ticketRepository.save(ticket);
         loggerService.createLog("The device has been marked as collected by " + user.getUsername(), user.getId(), id);
         return invoiceService.getAsBlob(result);

@@ -12,7 +12,7 @@ import lombok.Setter;
 import org.springframework.data.jpa.domain.AbstractPersistable;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 
 @Getter
 @Setter
@@ -28,7 +28,7 @@ public class Invoice extends AbstractPersistable<Long> {
     private Brand deviceBrand;
     private String serialNumber;
     private Long ticketId;
-    private LocalDateTime timestamp;
+    private ZonedDateTime timestamp;
     @Column (columnDefinition = "text")
     private String notes;
     private BigDecimal totalPrice;
@@ -48,7 +48,7 @@ public class Invoice extends AbstractPersistable<Long> {
         this.deviceBrand = invoiceView.getDeviceBrand();
         this.serialNumber = invoiceView.getSerialNumber();
         this.ticketId = invoiceView.getTicketId();
-        this.timestamp = LocalDateTime.now();
+        this.timestamp = ZonedDateTime.now();
         this.notes = invoiceView.getNotes();
         this.totalPrice = invoiceView.getTotalPrice();
         this.createdBy = invoiceView.getCreatedBy();

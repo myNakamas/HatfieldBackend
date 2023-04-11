@@ -19,7 +19,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -64,7 +64,7 @@ public class InventoryItemService {
             throw new CustomException("Not enough Items in storage!");
         item.setCount(item.getCount() - count);
         inventoryItemRepository.save(item);
-        UsedPart usedPart = new UsedPart(ticket, item, count, LocalDateTime.now());
+        UsedPart usedPart = new UsedPart(ticket, item, count, ZonedDateTime.now());
         return usedPartRepository.save(usedPart);
     }
 

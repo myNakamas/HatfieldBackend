@@ -5,7 +5,7 @@ import com.nakamas.hatfieldbackend.models.enums.TicketStatus;
 import com.nakamas.hatfieldbackend.models.views.outgoing.user.UserProfile;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.List;
 
 public record TicketView(
@@ -19,8 +19,8 @@ public record TicketView(
         String devicePassword,
         String serialNumberOrImei,
         String accessories,
-        LocalDateTime timestamp,
-        LocalDateTime deadline,
+        ZonedDateTime timestamp,
+        ZonedDateTime deadline,
         String notes,
         TicketStatus status,
         BigDecimal totalPrice,
