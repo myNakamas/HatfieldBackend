@@ -12,7 +12,7 @@ public record InvoiceView(Long id, String type, String deviceModel, String devic
                           String warrantyPeriod) {
 
     public InvoiceView(Invoice invoice) {
-        this(invoice.getId(),invoice.getType().toString(), invoice.getDeviceModel().getModel(), invoice.getDeviceBrand().getBrand(),
+        this(invoice.getId(),invoice.getType().toString(), invoice.getDeviceModel(), invoice.getDeviceBrand(),
                 invoice.getSerialNumber(), invoice.getTimestamp(), invoice.getNotes(), invoice.getTotalPrice(),
                 new UserProfile(invoice.getCreatedBy()), new UserProfile(invoice.getClient()), invoice.getPaymentMethod().toString(), invoice.getWarrantyPeriod().toString());
     }

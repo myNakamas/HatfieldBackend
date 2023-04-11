@@ -6,6 +6,7 @@ import com.nakamas.hatfieldbackend.models.entities.shop.DeviceLocation;
 import com.nakamas.hatfieldbackend.models.entities.shop.UsedPart;
 import com.nakamas.hatfieldbackend.models.entities.ticket.Invoice;
 import com.nakamas.hatfieldbackend.models.entities.ticket.Ticket;
+import com.nakamas.hatfieldbackend.models.enums.InvoiceType;
 import com.nakamas.hatfieldbackend.models.enums.TicketStatus;
 import com.nakamas.hatfieldbackend.models.views.incoming.CreateChatMessage;
 import com.nakamas.hatfieldbackend.models.views.incoming.CreateInvoice;
@@ -117,7 +118,9 @@ public class TicketService {
         Ticket ticket = getTicket(id);
         ticket.setStatus(TicketStatus.COLLECTED);
         invoice.setTicketInfo(ticket);
-        Invoice result = invoiceService.create(invoice,user);
+        invoice.setType(InvoiceType.REPAIR);
+        invoice.setCreatedBy(user.getId());
+        Invoice result = invoiceService.create(invoice);
         messageService.createMessage(new CreateChatMessage("The device has been collected. Information can be found" +
                                                            " in your 'invoices' tab. If that action hasn't been done by you please contact the store.",
                 LocalDateTime.now(), user.getId(), ticket.getClient().getId(), ticket.getId(), null));
