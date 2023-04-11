@@ -14,19 +14,34 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class InvoiceService {
     private final InvoiceRepository invoiceRepository;
+    private final UserService userService;
     private final DocumentService documentService;
 
     public Invoice create(CreateInvoice invoice) {
-        return invoiceRepository.save(new Invoice(invoice));
+        return invoiceRepository.save(new Invoice(invoice,
+                userService.getUser(invoice.getCreatedBy()),
+                userService.getUser(invoice.getClient())));
     }
 
-    public Invoice getById(Long invoiceId){return invoiceRepository.findById(invoiceId).orElse(null);}
+    public Invoice getByTicketId(Long id){
+        List<Invoice> invoices = invoiceRepository.findByTicketId(id);
+        if(invoices.size() > 0) return invoices.get(0);
+        return null;
+    }
 
-    public List<Invoice> getByClientId(UUID clientId){return invoiceRepository.findAllByClient_Id(clientId);}
+    public Invoice getById(Long invoiceId) {
+        return invoiceRepository.findById(invoiceId).orElse(null);
+    }
 
-    public List<Invoice> getAll(){return invoiceRepository.findAll();}
+    public List<Invoice> getByClientId(UUID clientId) {
+        return invoiceRepository.findAllByClient_Id(clientId);
+    }
 
-    public byte[] getAsBlob(Invoice invoice){
+    public List<Invoice> getAll() {
+        return invoiceRepository.findAll();
+    }
+
+    public byte[] getAsBlob(Invoice invoice) {
         //        todo: edit the qr information just like in documentController
         PdfAndImageDoc doc = documentService.createInvoice("QR", invoice);
         documentService.executePrint(doc.image());

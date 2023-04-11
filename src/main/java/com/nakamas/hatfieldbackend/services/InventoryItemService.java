@@ -97,7 +97,7 @@ public class InventoryItemService {
     public void remove(Long id) {
         InventoryItem item = inventoryItemRepository.getReferenceById(id);
         item.setCount(0);
-        //todo: set interested boolean to false as well
+        item.setShoppingListNeeded(false);
         inventoryItemRepository.save(item);
     }
 
