@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.data.jpa.domain.AbstractPersistable;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 
 @Getter
 @Setter
@@ -19,11 +19,11 @@ public class SoldItem extends AbstractPersistable<Long> {
     @ManyToOne
     private InventoryItem item;
     private Integer soldCount;
-    private LocalDateTime timestamp;
+    private ZonedDateTime timestamp;
 
     public SoldItem(InventoryItem item, Integer soldCount) {
         this.item = item;
         this.soldCount = soldCount;
-        this.timestamp = LocalDateTime.now();
+        this.timestamp = ZonedDateTime.now();
     }
 }

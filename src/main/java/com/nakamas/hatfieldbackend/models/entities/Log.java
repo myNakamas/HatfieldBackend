@@ -9,7 +9,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.springframework.data.jpa.domain.AbstractPersistable;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.UUID;
 
 @Getter
@@ -22,12 +22,12 @@ public class Log extends AbstractPersistable<Long> {
     @Column(columnDefinition = "text")
     private String action;
     private UUID userId;
-    private LocalDateTime timestamp;
+    private ZonedDateTime timestamp;
     private Long ticketId;
     private Long partUsedId;
     private Long itemSoldId;
 
     public Log() {
-        this.timestamp = LocalDateTime.now();
+        this.timestamp = ZonedDateTime.now();
     }
 }

@@ -27,7 +27,7 @@ import java.awt.image.BufferedImage;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
 import java.util.List;
@@ -270,7 +270,7 @@ public class DocumentService implements ApplicationRunner {
     }
 
     private File createFile(String name) throws IOException {
-        String filename = name + LocalDateTime.now().format(shortDtf) + ".png";
+        String filename = name + ZonedDateTime.now().format(shortDtf) + ".png";
         String filePath = outputPath + "/" + filename;
         Files.createDirectories(Path.of(outputPath));
         File file = new File(filePath);
@@ -302,8 +302,8 @@ public class DocumentService implements ApplicationRunner {
 //        ticket.setAccessories("One USB Cable");
 //        ticket.setDeviceBrand(new Brand("Samsung"));
 //        ticket.setDeviceModel(new Model("Galaxy 20"));
-//        ticket.setTimestamp(LocalDateTime.now());
-//        ticket.setDeadline(LocalDateTime.now().plusDays(5));
+//        ticket.setTimestamp(ZonedDateTime.now());
+//        ticket.setDeadline(ZonedDateTime.now().plusDays(5));
 //        ticket.setDeviceCondition("A+");
 //        ticket.setCustomerRequest("Do not reset phone");
 //        ticket.setClient(user);
@@ -313,7 +313,7 @@ public class DocumentService implements ApplicationRunner {
 //        invoice.setType(InvoiceType.SELL);
 //        invoice.setDeviceModel(new Model("Galaxy 20 5G"));
 //        invoice.setDeviceBrand(new Brand("SamsungS"));
-//        invoice.setTimestamp(LocalDateTime.now());
+//        invoice.setTimestamp(ZonedDateTime.now());
 //        invoice.setNotes("blabla");
 //        invoice.setSerialNumber("948376598745MASDF324");
 //        invoice.setTotalPrice(BigDecimal.TEN);

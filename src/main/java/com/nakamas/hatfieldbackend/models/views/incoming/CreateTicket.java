@@ -1,10 +1,9 @@
 package com.nakamas.hatfieldbackend.models.views.incoming;
 
 import com.nakamas.hatfieldbackend.models.enums.TicketStatus;
-import org.springframework.format.annotation.DateTimeFormat;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.UUID;
 
 public record CreateTicket(String deviceModel,
@@ -16,8 +15,7 @@ public record CreateTicket(String deviceModel,
                            String devicePassword,
                            String serialNumberOrImei,
                            String accessories,
-                           @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
-                           LocalDateTime deadline,
+                           ZonedDateTime deadline,
                            String notes,
                            TicketStatus status,
                            BigDecimal totalPrice,

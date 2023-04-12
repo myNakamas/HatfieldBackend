@@ -15,7 +15,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.UUID;
 
 @Slf4j
@@ -26,7 +26,7 @@ public class LoggerService {
     private final UserRepository userRepository;
 
     public void createLog(Log logMessage) {
-        logMessage.setTimestamp(LocalDateTime.now());
+        logMessage.setTimestamp(ZonedDateTime.now());
         logRepository.save(logMessage);
         log.info("User '%s' performed: '%s'.".formatted(logMessage.getUserId(), logMessage.getAction()));
     }

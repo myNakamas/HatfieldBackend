@@ -4,10 +4,10 @@ import com.nakamas.hatfieldbackend.models.entities.ticket.Invoice;
 import com.nakamas.hatfieldbackend.models.views.outgoing.user.UserProfile;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 
 public record InvoiceView(Long id, String type, String deviceModel, String deviceBrand, String serialNumber,
-                          LocalDateTime timestamp,
+                          ZonedDateTime timestamp,
                           String notes, BigDecimal totalPrice, UserProfile createdBy, UserProfile client, String paymentMethod,
                           String warrantyPeriod) {
 

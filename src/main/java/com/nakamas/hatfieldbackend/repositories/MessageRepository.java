@@ -6,7 +6,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -29,5 +29,5 @@ public interface MessageRepository extends JpaRepository<ChatMessage, Long> {
 
     @Modifying
     @Query("update ChatMessage set readByReceiver = ?3 where receiver.id = ?2 and sender.id = ?1")
-    void markReadByUser(UUID senderId, UUID receiverId, LocalDateTime seenTime);
+    void markReadByUser(UUID senderId, UUID receiverId, ZonedDateTime seenTime);
 }

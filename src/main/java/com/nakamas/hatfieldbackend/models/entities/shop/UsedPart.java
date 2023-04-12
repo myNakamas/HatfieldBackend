@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.data.jpa.domain.AbstractPersistable;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 
 @Getter
 @Setter
@@ -24,5 +24,5 @@ public class UsedPart extends AbstractPersistable<Long> {
     @ManyToOne
     private InventoryItem item;
     private Integer usedCount;
-    private LocalDateTime timestamp;
+    private ZonedDateTime timestamp;
 }
