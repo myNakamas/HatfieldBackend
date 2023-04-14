@@ -32,7 +32,7 @@ public class TicketService {
     private final InventoryItemService inventoryService;
     private final UserService userService;
     private final LoggerService loggerService;
-    private final InvoiceService invoiceService;
+    private final InvoicingService invoiceService;
     private final MessageService messageService;
 
 

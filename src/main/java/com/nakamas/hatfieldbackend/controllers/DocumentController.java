@@ -6,7 +6,7 @@ import com.nakamas.hatfieldbackend.models.entities.ticket.Ticket;
 import com.nakamas.hatfieldbackend.models.views.outgoing.PdfAndImageDoc;
 import com.nakamas.hatfieldbackend.services.DocumentService;
 import com.nakamas.hatfieldbackend.services.InventoryItemService;
-import com.nakamas.hatfieldbackend.services.InvoiceService;
+import com.nakamas.hatfieldbackend.services.InvoicingService;
 import com.nakamas.hatfieldbackend.services.TicketService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
@@ -26,7 +26,7 @@ public class DocumentController {
     private final InventoryItemService inventoryItemService;
     private final DocumentService documentService;
 
-    private final InvoiceService invoiceService;
+    private final InvoicingService invoiceService;
 
     //todo: Assign the qrcodes to redirect to the frontend page that shows data of the item.
     @PostMapping(value = "print/ticket", produces = MediaType.APPLICATION_PDF_VALUE)
@@ -42,7 +42,7 @@ public class DocumentController {
         Invoice invoice = invoiceService.getById(invoiceId);
 //        todo: edit the qr information
         PdfAndImageDoc doc = documentService.createInvoice("QR", invoice);
-        documentService.executePrint(doc.image());
+//        documentService.executePrint(doc.image());
         byte[] bytes = doc.pdfBytes();
         return ResponseEntity.ok().contentType(MediaType.APPLICATION_PDF).body(bytes);
     }
