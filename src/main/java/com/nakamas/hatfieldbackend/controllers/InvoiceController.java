@@ -3,6 +3,7 @@ package com.nakamas.hatfieldbackend.controllers;
 import com.nakamas.hatfieldbackend.models.views.incoming.CreateInvoice;
 import com.nakamas.hatfieldbackend.models.views.incoming.PageRequestView;
 import com.nakamas.hatfieldbackend.models.views.incoming.filters.InvoiceFilter;
+import com.nakamas.hatfieldbackend.models.views.outgoing.reports.InvoiceReport;
 import com.nakamas.hatfieldbackend.models.views.outgoing.ticket.InvoiceView;
 import com.nakamas.hatfieldbackend.services.InvoicingService;
 import lombok.RequiredArgsConstructor;
@@ -34,12 +35,17 @@ public class InvoiceController {
     }
 
     @GetMapping("allByClient")
-    public List<InvoiceView> getAllByClient(@RequestParam UUID clientId){
-        return invoiceService.getByClientId(clientId).stream().map(InvoiceView :: new).toList();
+    public List<InvoiceView> getAllByClient(@RequestParam UUID clientId) {
+        return invoiceService.getByClientId(clientId).stream().map(InvoiceView::new).toList();
     }
 
     @GetMapping("all")
-    public Page<InvoiceView> getAllInvoices(InvoiceFilter invoiceFilter, PageRequestView pageRequestView){
-        return invoiceService.getAll(invoiceFilter,pageRequestView).map(InvoiceView::new);
+    public Page<InvoiceView> getAllInvoices(InvoiceFilter invoiceFilter, PageRequestView pageRequestView) {
+        return invoiceService.getAll(invoiceFilter, pageRequestView).map(InvoiceView::new);
+    }
+
+    @GetMapping("report")
+    public InvoiceReport getMonthlyReport(InvoiceFilter invoiceFilter) {
+        return invoiceService.getMonthlyReport(invoiceFilter);
     }
 }

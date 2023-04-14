@@ -7,6 +7,7 @@ import lombok.*;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -45,13 +46,13 @@ public class TicketFilter implements Specification<Ticket> {
         if (createdById != null)
             predicates.add(builder.equal(ticket.get("createdBy").get("id"), createdById));
         if (createdBefore != null)
-            predicates.add(builder.lessThanOrEqualTo(ticket.get("timestamp"), createdBefore.plusDays(1L).atStartOfDay()));
+            predicates.add(builder.lessThanOrEqualTo(ticket.get("timestamp"), createdBefore.plusDays(1L).atStartOfDay().atZone(ZoneId.systemDefault())));
         if (createdAfter != null)
-            predicates.add(builder.greaterThanOrEqualTo(ticket.get("timestamp"), createdAfter.atStartOfDay()));
+            predicates.add(builder.greaterThanOrEqualTo(ticket.get("timestamp"), createdAfter.atStartOfDay().atZone(ZoneId.systemDefault())));
         if (deadlineBefore != null)
-            predicates.add(builder.lessThanOrEqualTo(ticket.get("deadline"), deadlineBefore.plusDays(1L).atStartOfDay()));
+            predicates.add(builder.lessThanOrEqualTo(ticket.get("deadline"), deadlineBefore.plusDays(1L).atStartOfDay().atZone(ZoneId.systemDefault())));
         if (deadlineAfter != null)
-            predicates.add(builder.greaterThanOrEqualTo(ticket.get("deadline"), deadlineAfter.atStartOfDay()));
+            predicates.add(builder.greaterThanOrEqualTo(ticket.get("deadline"), deadlineAfter.atStartOfDay().atZone(ZoneId.systemDefault())));
         if (ticketStatuses != null && !ticketStatuses.isEmpty())
             predicates.add((ticket.get("status").in(ticketStatuses)));
         if (searchBy != null && !searchBy.isBlank()) {

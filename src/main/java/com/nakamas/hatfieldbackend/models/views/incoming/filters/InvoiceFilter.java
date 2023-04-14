@@ -7,6 +7,7 @@ import lombok.*;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -40,9 +41,9 @@ public class InvoiceFilter implements Specification<Invoice> {
         if (clientId != null)
             predicates.add(builder.equal(invoice.get("client").get("id"), clientId));
        if (createdBefore != null)
-            predicates.add(builder.lessThanOrEqualTo(invoice.get("timestamp"), createdBefore.plusDays(1L).atStartOfDay()));
+           predicates.add(builder.lessThanOrEqualTo(invoice.get("timestamp"), createdBefore.plusDays(1L).atStartOfDay().atZone(ZoneId.systemDefault())));
         if (createdAfter != null)
-            predicates.add(builder.greaterThanOrEqualTo(invoice.get("timestamp"), createdAfter.atStartOfDay()));
+            predicates.add(builder.greaterThanOrEqualTo(invoice.get("timestamp"), createdAfter.atStartOfDay().atZone(ZoneId.systemDefault())));
         if (type != null)
             predicates.add(builder.equal(invoice.get("type"),type));
         if (searchBy != null && !searchBy.isBlank()) {
