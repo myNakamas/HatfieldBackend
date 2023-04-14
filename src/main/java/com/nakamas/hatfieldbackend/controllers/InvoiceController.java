@@ -1,9 +1,12 @@
 package com.nakamas.hatfieldbackend.controllers;
 
 import com.nakamas.hatfieldbackend.models.views.incoming.CreateInvoice;
+import com.nakamas.hatfieldbackend.models.views.incoming.PageRequestView;
+import com.nakamas.hatfieldbackend.models.views.incoming.filters.InvoiceFilter;
 import com.nakamas.hatfieldbackend.models.views.outgoing.ticket.InvoiceView;
-import com.nakamas.hatfieldbackend.services.InvoiceService;
+import com.nakamas.hatfieldbackend.services.InvoicingService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -13,7 +16,7 @@ import java.util.UUID;
 @RequestMapping("api/invoice")
 @RequiredArgsConstructor
 public class InvoiceController {
-    private final InvoiceService invoiceService;
+    private final InvoicingService invoiceService;
 
     @PostMapping("create")
     public void createNonRepairInvoice( CreateInvoice createInvoice){
@@ -35,8 +38,8 @@ public class InvoiceController {
         return invoiceService.getByClientId(clientId).stream().map(InvoiceView :: new).toList();
     }
 
-    @GetMapping("all")//to be connected to a filter
-    public List<InvoiceView> getAllInvoices(){
-        return invoiceService.getAll().stream().map(InvoiceView :: new).toList();
+    @GetMapping("all")
+    public Page<InvoiceView> getAllInvoices(InvoiceFilter invoiceFilter, PageRequestView pageRequestView){
+        return invoiceService.getAll(invoiceFilter,pageRequestView).map(InvoiceView::new);
     }
 }
