@@ -1,20 +1,18 @@
 package com.nakamas.hatfieldbackend.services;
 
 import com.nakamas.hatfieldbackend.models.entities.User;
-import com.nakamas.hatfieldbackend.models.entities.shop.Category;
-import com.nakamas.hatfieldbackend.models.entities.shop.InventoryItem;
-import com.nakamas.hatfieldbackend.models.entities.shop.Shop;
-import com.nakamas.hatfieldbackend.models.entities.shop.UsedPart;
+import com.nakamas.hatfieldbackend.models.entities.shop.*;
 import com.nakamas.hatfieldbackend.models.entities.ticket.Ticket;
 import com.nakamas.hatfieldbackend.models.enums.ItemType;
+import com.nakamas.hatfieldbackend.models.enums.RequiredReason;
 import com.nakamas.hatfieldbackend.models.views.incoming.CreateInventoryItem;
 import com.nakamas.hatfieldbackend.models.views.incoming.CreateShop;
 import com.nakamas.hatfieldbackend.models.views.incoming.CreateTicket;
 import com.nakamas.hatfieldbackend.models.views.incoming.PageRequestView;
 import com.nakamas.hatfieldbackend.models.views.incoming.filters.InventoryItemFilter;
 import com.nakamas.hatfieldbackend.models.views.outgoing.PageView;
+import com.nakamas.hatfieldbackend.models.views.outgoing.inventory.InventoryItemView;
 import com.nakamas.hatfieldbackend.models.views.outgoing.shop.CategoryView;
-import com.nakamas.hatfieldbackend.models.views.outgoing.shop.InventoryItemView;
 import com.nakamas.hatfieldbackend.models.views.outgoing.shop.ShopSettingsView;
 import com.nakamas.hatfieldbackend.repositories.*;
 import jakarta.persistence.EntityManager;
@@ -189,7 +187,11 @@ class InventoryItemTest {
 
     @Test
     public void changeNeed_shouldChangeNeed() {
-        InventoryItem item = inventoryItemRepository.save(new InventoryItem());
+        InventoryItem inventoryItem = new InventoryItem();
+        inventoryItem.setCount(10);
+        inventoryItem.setName("Phillips 10");
+        inventoryItem.setRequiredItem(new RequiredItem(10));
+        InventoryItem item = inventoryItemRepository.save(inventoryItem);
         assertNotNull(item.getId());
         Boolean need = true;
 
@@ -197,7 +199,7 @@ class InventoryItemTest {
 
         InventoryItem result = inventoryItemRepository.findById(item.getId()).orElse(null);
         assertNotNull(result);
-        assertEquals(need, result.getShoppingListNeeded());
+        assertEquals(RequiredReason.REQUESTED, result.getRequiredItem().getReason());
     }
 
     @Test

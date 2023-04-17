@@ -9,6 +9,7 @@ import com.nakamas.hatfieldbackend.services.InventoryItemService;
 import com.nakamas.hatfieldbackend.services.InvoicingService;
 import com.nakamas.hatfieldbackend.services.TicketService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -16,23 +17,22 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
-
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("api/document")
 public class DocumentController {
+    @Value(value = "${fe-host:localhost:5173}")
+    private String frontendHost;
     private final TicketService ticketService;
     private final InventoryItemService inventoryItemService;
     private final DocumentService documentService;
-
     private final InvoicingService invoiceService;
 
     //todo: Assign the qrcodes to redirect to the frontend page that shows data of the item.
     @PostMapping(value = "print/ticket", produces = MediaType.APPLICATION_PDF_VALUE)
     private ResponseEntity<byte[]> printTicket(@RequestParam Long ticketId) {
         Ticket ticket = ticketService.getTicket(ticketId);
-        PdfAndImageDoc doc = documentService.createTicket(ticket.getClient().getEmail(), ticket);
+        PdfAndImageDoc doc = documentService.createTicket("%s/tickets?ticketId=%s".formatted(frontendHost, ticket.getId()), ticket);
         documentService.executePrint(doc.image());
         byte[] bytes = doc.pdfBytes();
         return ResponseEntity.ok().contentType(MediaType.APPLICATION_PDF).body(bytes);
@@ -40,8 +40,7 @@ public class DocumentController {
     @PostMapping(value = "print/invoice", produces = MediaType.APPLICATION_PDF_VALUE)
     private ResponseEntity<byte[]> printInvoice(@RequestParam Long invoiceId) {
         Invoice invoice = invoiceService.getById(invoiceId);
-//        todo: edit the qr information
-        PdfAndImageDoc doc = documentService.createInvoice("QR", invoice);
+        PdfAndImageDoc doc = documentService.createInvoice("%s/invoices/%s".formatted(frontendHost, invoice.getId()), invoice);
 //        documentService.executePrint(doc.image());
         byte[] bytes = doc.pdfBytes();
         return ResponseEntity.ok().contentType(MediaType.APPLICATION_PDF).body(bytes);
@@ -50,7 +49,7 @@ public class DocumentController {
     @PostMapping(value = "print/tag/repair", produces = MediaType.APPLICATION_PDF_VALUE)
     private ResponseEntity<byte[]> printRepairTag(@RequestParam Long ticketId) {
         Ticket ticket = ticketService.getTicket(ticketId);
-        PdfAndImageDoc doc = documentService.createRepairTag(ticketId.toString(), ticket);
+        PdfAndImageDoc doc = documentService.createRepairTag("%s/tickets?ticketId=%s".formatted(frontendHost, ticket.getId()), ticket);
         documentService.executePrint(doc.image());
         byte[] bytes = doc.pdfBytes();
         return ResponseEntity.ok().contentType(MediaType.APPLICATION_PDF).body(bytes);
@@ -60,8 +59,7 @@ public class DocumentController {
     private ResponseEntity<byte[]> printPriceTag(@RequestParam Long itemId) {
         InventoryItem item = inventoryItemService.getItem(itemId);
 //        todo: add price to inventory item and pass inventory item object instead of its params
-        List<String> properties = item.getOtherProperties().entrySet().stream().map(entry -> entry.getKey() + ": " + entry.getValue()).toList();
-        PdfAndImageDoc doc = documentService.createPriceTag(itemId.toString(), item.getBrand().getBrand(), item.getModel().getModel(), properties, 10f/*item.getPrice()*/);
+        PdfAndImageDoc doc = documentService.createPriceTag("%s/inventory?itemId=%s".formatted(frontendHost, item.getId()), item);
         documentService.executePrint(doc.image());
         byte[] bytes = doc.pdfBytes();
         return ResponseEntity.ok().contentType(MediaType.APPLICATION_PDF).body(bytes);

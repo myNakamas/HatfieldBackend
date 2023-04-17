@@ -17,6 +17,7 @@ import org.springframework.boot.jdbc.EmbeddedDatabaseConnection;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import java.math.BigDecimal;
 import java.util.HashMap;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -66,7 +67,7 @@ public class TestShopInventory {
     void add_item_with_existing_values() {
         Brand newBrand = brandRepository.save(new Brand("newBrand"));
         Model newModel = modelRepository.save(new Model("newModel"));
-        CreateInventoryItem inventoryItem = new CreateInventoryItem(newBrand.getId(), null, newModel.getId(), null, 10, shop.getId(), category.getId(), new HashMap<>());
+        CreateInventoryItem inventoryItem = new CreateInventoryItem(null, "ItemName", BigDecimal.TEN, null, newBrand.getId(), null, newModel.getId(), 10, shop.getId(), category.getId(), new HashMap<>());
         InventoryItem save = inventoryItemService.createInventoryItem(inventoryItem);
 
         Assertions.assertEquals(inventoryItem.brandId(), save.getBrand().getId());

@@ -2,10 +2,8 @@ package com.nakamas.hatfieldbackend.services;
 
 import com.nakamas.hatfieldbackend.config.exception.CustomException;
 import com.nakamas.hatfieldbackend.models.entities.Log;
-import com.nakamas.hatfieldbackend.models.entities.shop.Category;
-import com.nakamas.hatfieldbackend.models.entities.shop.InventoryItem;
-import com.nakamas.hatfieldbackend.models.entities.shop.SoldItem;
-import com.nakamas.hatfieldbackend.models.entities.shop.UsedPart;
+import com.nakamas.hatfieldbackend.models.entities.User;
+import com.nakamas.hatfieldbackend.models.entities.shop.*;
 import com.nakamas.hatfieldbackend.models.entities.ticket.Brand;
 import com.nakamas.hatfieldbackend.models.entities.ticket.Model;
 import com.nakamas.hatfieldbackend.models.entities.ticket.Ticket;
@@ -13,14 +11,20 @@ import com.nakamas.hatfieldbackend.models.views.incoming.CreateInventoryItem;
 import com.nakamas.hatfieldbackend.models.views.incoming.PageRequestView;
 import com.nakamas.hatfieldbackend.models.views.incoming.filters.InventoryItemFilter;
 import com.nakamas.hatfieldbackend.models.views.outgoing.PageView;
-import com.nakamas.hatfieldbackend.models.views.outgoing.shop.*;
+import com.nakamas.hatfieldbackend.models.views.outgoing.inventory.InventoryItemView;
+import com.nakamas.hatfieldbackend.models.views.outgoing.inventory.ItemPropertyView;
+import com.nakamas.hatfieldbackend.models.views.outgoing.inventory.ShortItemView;
+import com.nakamas.hatfieldbackend.models.views.outgoing.shop.CategoryView;
+import com.nakamas.hatfieldbackend.models.views.outgoing.shop.SoldItemView;
 import com.nakamas.hatfieldbackend.repositories.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -39,17 +43,36 @@ public class InventoryItemService {
     public InventoryItem createInventoryItem(CreateInventoryItem inventoryItem) {
         Brand brand = getOrCreateBrand(inventoryItem.brandId(), inventoryItem.brand());
         Model model = getOrCreateModel(inventoryItem.modelId(), inventoryItem.model());
-        Category category = categoryRepository.findById(inventoryItem.categoryId()).orElseThrow(() -> new CustomException("Missing category"));
-//        todo: Create tests for the categories
-        inventoryItem.properties().entrySet().removeIf(property -> !category.getFields().contains(property.getKey()));
+        Optional<Category> category = Optional.empty();
+        if (inventoryItem.categoryId() != null) {
+            category = categoryRepository.findById(inventoryItem.categoryId());
+            category.ifPresent(value -> inventoryItem.properties().entrySet().removeIf(property -> !value.getFields().contains(property.getKey())));
+        }
 
         InventoryItem item = new InventoryItem(
                 inventoryItem,
                 brand,
                 model,
                 shopRepository.getReferenceById(inventoryItem.shopId()),
-                category
+                category.orElse(null)
         );
+        return inventoryItemRepository.save(item);
+    }
+
+    public InventoryItem updateInventoryItem(CreateInventoryItem inventoryItem) {
+        InventoryItem item = inventoryItemRepository.findById(inventoryItem.id()).orElseThrow(() -> new CustomException("Item with provided id could not be found"));
+        Brand brand = getOrCreateBrand(inventoryItem.brandId(), inventoryItem.brand());
+        Model model = getOrCreateModel(inventoryItem.modelId(), inventoryItem.model());
+        Optional<Category> category = Optional.empty();
+        Optional<Shop> shop = Optional.empty();
+        if (inventoryItem.categoryId() != null) {
+            category = categoryRepository.findById(inventoryItem.categoryId());
+            category.ifPresent(value -> inventoryItem.properties().entrySet().removeIf(property -> !value.getFields().contains(property.getKey())));
+        }
+        if (inventoryItem.shopId() != null)
+            shop = shopRepository.findById(inventoryItem.shopId());
+
+        item.update(inventoryItem, brand, model, shop.orElse(null), category.orElse(null));
         return inventoryItemRepository.save(item);
     }
 
@@ -97,7 +120,7 @@ public class InventoryItemService {
     public void remove(Long id) {
         InventoryItem item = inventoryItemRepository.getReferenceById(id);
         item.setCount(0);
-        item.setShoppingListNeeded(false);
+        item.getRequiredItem().setNeeded(false);
         inventoryItemRepository.save(item);
     }
 
@@ -108,7 +131,7 @@ public class InventoryItemService {
     }
 
     public Model getOrCreateModel(String modelValue) {
-        if(modelValue==null || modelValue.isBlank()) return null;
+        if (modelValue == null || modelValue.isBlank()) return null;
         Model existingByName = modelRepository.findByName(modelValue);
         if (existingByName != null) return existingByName;
         return modelRepository.save(new Model(modelValue));
@@ -121,7 +144,7 @@ public class InventoryItemService {
     }
 
     public Brand getOrCreateBrand(String brandValue) {
-        if(brandValue==null || brandValue.isBlank()) return null;
+        if (brandValue == null || brandValue.isBlank()) return null;
         Brand existingByName = brandRepository.findByName(brandValue);
         if (existingByName != null) return existingByName;
         return brandRepository.save(new Brand(brandValue));
@@ -138,10 +161,26 @@ public class InventoryItemService {
         return new CategoryView(categoryRepository.save(category));
     }
 
+    public List<InventoryItemView> getShoppingList(InventoryItemFilter filter) {
+        filter.setIsNeeded(true);
+        List<InventoryItem> needed = inventoryItemRepository.findAll(filter);
+        return needed.stream().map(InventoryItemView::new).toList();
+    }
+
     public void changeNeed(Long id, Boolean need) {
         InventoryItem item = inventoryItemRepository.getReferenceById(id);
-        item.setShoppingListNeeded(need);
+        item.getRequiredItem().setNeeded(need);
         inventoryItemRepository.save(item);
+    }
+
+    public void changeNeed(List<Long> ids, Boolean need) {
+        List<InventoryItem> allById = inventoryItemRepository.findAllById(ids);
+        List<InventoryItem> modified = new ArrayList<>();
+        for (InventoryItem item : allById) {
+            item.getRequiredItem().setNeeded(need);
+            modified.add(item);
+        }
+        inventoryItemRepository.saveAll(modified);
     }
 
     public InventoryItem getItem(Long inventoryItem) {
@@ -162,9 +201,16 @@ public class InventoryItemService {
 
     public SoldItemView sellItem(Long id, Integer count) {
         InventoryItem inventoryItem = getItem(id);
-        SoldItem item = new SoldItem(inventoryItem,count);
+        SoldItem item = new SoldItem(inventoryItem, count);
         SoldItem save = soldItemRepository.save(item);
 //        todo: add invoice to response?
         return new SoldItemView(save);
+    }
+
+    public void updateRequiredItemCount(Long id, Integer count, User user) {
+        InventoryItem item = getItem(id);
+        item.getRequiredItem().setRequiredAmount(count);
+        item.getRequiredItem().setCurrentCount(item.getCount());
+        loggerService.createLogUpdatedRequiredItemAmount(item, user);
     }
 }

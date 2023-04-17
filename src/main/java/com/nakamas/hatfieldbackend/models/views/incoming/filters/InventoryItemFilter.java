@@ -33,10 +33,11 @@ public class InventoryItemFilter implements Specification<InventoryItem> {
         if (categoryId != null)
             predicates.add(criteriaBuilder.equal(item.get("categoryId"), categoryId));
         if (isNeeded != null)
-            predicates.add(criteriaBuilder.equal(item.<Boolean>get("shoppingListNeeded"), isNeeded));
+            if (isNeeded) predicates.add(criteriaBuilder.isNotNull(item.get("requiredItem").get("reason")));
+            else predicates.add(criteriaBuilder.isNull(item.get("requiredItem").get("reason")));
         if (searchBy != null && !searchBy.isBlank()) {
             MapJoin<InventoryItem, String, String> otherProperties = item.joinMap("otherProperties");
-            predicates.add(criteriaBuilder.like(criteriaBuilder.lower(otherProperties.value()), "%" + searchBy.toLowerCase() + "%"));
+            predicates.add(criteriaBuilder.like(criteriaBuilder.lower(criteriaBuilder.concat(otherProperties.value(), item.get("name"))), "%" + searchBy.toLowerCase() + "%"));
         }
 
         query.orderBy(criteriaBuilder.desc(item.get("id")));
