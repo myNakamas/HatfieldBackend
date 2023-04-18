@@ -1,4 +1,4 @@
-package com.nakamas.hatfieldbackend.models.views.outgoing.shop;
+package com.nakamas.hatfieldbackend.models.views.outgoing.inventory;
 
 import com.nakamas.hatfieldbackend.models.entities.shop.DeviceLocation;
 import com.nakamas.hatfieldbackend.models.entities.ticket.Brand;

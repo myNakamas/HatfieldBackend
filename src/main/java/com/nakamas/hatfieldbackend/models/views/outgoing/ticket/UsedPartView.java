@@ -1,7 +1,7 @@
 package com.nakamas.hatfieldbackend.models.views.outgoing.ticket;
 
 import com.nakamas.hatfieldbackend.models.entities.shop.UsedPart;
-import com.nakamas.hatfieldbackend.models.views.outgoing.shop.InventoryItemView;
+import com.nakamas.hatfieldbackend.models.views.outgoing.inventory.InventoryItemView;
 
 import java.time.ZonedDateTime;
 

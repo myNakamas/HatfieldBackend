@@ -1,5 +1,6 @@
 package com.nakamas.hatfieldbackend.services;
 
+import com.nakamas.hatfieldbackend.models.entities.shop.InventoryItem;
 import com.nakamas.hatfieldbackend.models.entities.ticket.Invoice;
 import com.nakamas.hatfieldbackend.models.entities.ticket.Ticket;
 import com.nakamas.hatfieldbackend.models.views.outgoing.PdfAndImageDoc;
@@ -40,16 +41,20 @@ public class DocumentService implements ApplicationRunner {
     @Value(value = "${printer-ip:#{null}}")
     private String printerIp = "";
 
-//    private final String outputPath = "C:\\Users\\Marti\\Documents\\out";
+    //    private final String outputPath = "C:\\Users\\Marti\\Documents\\out";
     private final String outputPath = System.getProperty("java.io.tmpdir");
     private final DateTimeFormatter dtf = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM);
     private final DateTimeFormatter shortDtf = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss");
 
     private final DateTimeFormatter invoiceFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
 
-    public PdfAndImageDoc createPriceTag(String qrContent, String deviceName, String model, List<String> details, Float price) {
+    public PdfAndImageDoc createPriceTag(String qrContent, InventoryItem item) {
         InputStream input = getTemplate("/smallTag.pdf");
         try (PDDocument document = PDDocument.load(input)) {
+            String deviceName = "%s %s".formatted(item.getName(), item.getBrand().getBrand());
+            String model = item.getModel().getModel();
+            List<String> details = item.getOtherProperties().entrySet().stream().map(entry -> entry.getKey() + ": " + entry.getValue()).toList();
+            Float price = item.getPrice().floatValue();
             fillPriceTagTemplate(qrContent, deviceName, model, details, price, document);
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             document.save(baos);
@@ -66,7 +71,7 @@ public class DocumentService implements ApplicationRunner {
             fillRepairTagTemplate(qrContent, ticket, document);
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             document.save(baos);
-            return new PdfAndImageDoc( getImage(document, "repairTag"), baos.toByteArray());
+            return new PdfAndImageDoc(getImage(document, "repairTag"), baos.toByteArray());
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -124,7 +129,7 @@ public class DocumentService implements ApplicationRunner {
         contents.setFont(pdfFont, 30);
         contents.newLine();
         addLine(contents, model);
-        contents.setFont(pdfFont, detailsFontSize);
+        contents.setFont(pdfFont, Math.min(detailsFontSize, 25));
         contents.setLeading(detailsLeading);
         for (String detail : details) {
             addLine(contents, detail);
@@ -224,6 +229,7 @@ public class DocumentService implements ApplicationRunner {
         acroForm.getField("shop_reg").setValue(invoice.getCreatedBy().getShop().getRegNumber());
         acroForm.getField("shop_locations").setValue(invoice.getCreatedBy().getShop().getAddress());
 
+//        todo: add category name
         acroForm.getField("invoice_device_brand_model_name").
                 setValue(invoice.getDeviceBrand() + " " + invoice.getDeviceModel());
         acroForm.getField("device_num_or_imei").setValue(invoice.getSerialNumber());

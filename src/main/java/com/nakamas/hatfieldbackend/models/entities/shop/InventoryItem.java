@@ -3,13 +3,16 @@ package com.nakamas.hatfieldbackend.models.entities.shop;
 import com.nakamas.hatfieldbackend.models.entities.ticket.Brand;
 import com.nakamas.hatfieldbackend.models.entities.ticket.Model;
 import com.nakamas.hatfieldbackend.models.views.incoming.CreateInventoryItem;
+import com.nakamas.hatfieldbackend.services.listeners.InventoryListener;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.Setter;
 import org.springframework.data.jpa.domain.AbstractPersistable;
+import org.springframework.lang.Nullable;
 
+import java.math.BigDecimal;
 import java.util.Map;
 
 @Getter
@@ -17,38 +20,56 @@ import java.util.Map;
 @NoArgsConstructor
 @Table
 @Entity
-@Inheritance(strategy=InheritanceType.SINGLE_TABLE)
+@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
+@EntityListeners(InventoryListener.class)
 public class InventoryItem extends AbstractPersistable<Long> {
+    private String name;
     @ManyToOne
     private Model model;
     @ManyToOne
     private Brand brand;
     private Integer count;
+    private BigDecimal price;
     @ManyToOne
     private Shop shop;
-    private Boolean shoppingListNeeded;
     @Column(name = "category_id")
     private Long categoryId;
     @ElementCollection
-    Map<String, String> otherProperties;
+    private Map<String, String> otherProperties;
+    @OneToOne(cascade = CascadeType.ALL)
+    private RequiredItem requiredItem;
 
     public String getPropertyValue(String key) {
         return otherProperties.get(key);
     }
 
-    public InventoryItem(CreateInventoryItem item, Brand brand, Model model, Shop shop, Category category) {
+    public InventoryItem(CreateInventoryItem item, Brand brand, Model model, Shop shop, @Nullable Category category) {
+        this.name = item.name();
         this.model = model;
         this.brand = brand;
         this.shop = shop;
-        this.shoppingListNeeded = true;
+        this.price = item.price();
         this.count = item.count();
-        this.categoryId = category.getId();
+        this.requiredItem = new RequiredItem(count);
+        if (category != null)
+            this.categoryId = category.getId();
         this.otherProperties = item.properties();
     }
 
     @Override
     @NonNull
     public String toString() {
-        return "model[%s] brand[%s]".formatted(model.getModel(), brand.getBrand());
+        return "name[%s] model[%s] brand[%s] count[%s]".formatted(name, model.getModel(), brand.getBrand(), count);
+    }
+
+    public void update(CreateInventoryItem item, Brand brand, Model model, @Nullable Shop shop, @Nullable Category category) {
+        if (item.name() != null) this.name = item.name();
+        if (model != null) this.model = model;
+        if (brand != null) this.brand = brand;
+        if (shop != null) this.shop = shop;
+        if (item.price() != null) this.price = item.price();
+        if (item.count() != null) this.count = item.count();
+        if (category != null) this.categoryId = category.getId();
+        if (item.properties() != null) this.otherProperties = item.properties();
     }
 }

@@ -9,6 +9,7 @@ import jakarta.persistence.PreUpdate;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.Hibernate;
 import org.springframework.stereotype.Service;
 
 @Slf4j
@@ -29,6 +30,8 @@ public class TicketListener {
 //    todo: test functionality
     @PreUpdate
     private void beforeUpdate(Ticket ticket) {
+        Ticket oldTicket = Hibernate.unproxy(ticket, Ticket.class);
+        if (ticket.getStatus().equals(oldTicket.getStatus())) return;
         switch (ticket.getStatus()) {
             case STARTED -> {
 //                Send notification
