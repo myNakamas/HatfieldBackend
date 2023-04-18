@@ -37,7 +37,7 @@ public class CreateInvoice {
         this.deviceModel = ticket.getDeviceModel().getModel();
         this.deviceBrand = ticket.getDeviceBrand().getBrand();
         this.serialNumber = ticket.getSerialNumberOrImei();
-        this.client = ticket.getClient().getId();
-        if(totalPrice!=null) this.totalPrice = ticket.getTotalPrice();
+        if (ticket.getClient() != null) this.client = ticket.getClient().getId();
+        if (ticket.getTotalPrice() != null) this.totalPrice = ticket.getTotalPrice();
     }
 }

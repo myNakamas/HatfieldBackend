@@ -75,7 +75,7 @@ public class TicketService {
     }
 
     public List<TicketView> findAllActive(TicketFilter ticketFilter) {
-//        todo: filter all active
+        ticketFilter.setTicketStatuses(List.of(TicketStatus.STARTED, TicketStatus.DIAGNOSED, TicketStatus.PENDING));
         return ticketRepository.findAll(ticketFilter).stream().map(TicketView::new).toList();
     }
 
@@ -106,7 +106,7 @@ public class TicketService {
         ticket.setDeviceLocation(getOrCreateLocation(location));
         ticket.setStatus(TicketStatus.FINISHED);
         messageService.createMessage(new CreateChatMessage("Repairment actions have finished! Please come and pick " +
-                                                           "up your device at a comfortable time.",
+                "up your device at a comfortable time.",
                 ZonedDateTime.now(), user.getId(), ticket.getClient().getId(), ticket.getId(), null));
         //send sms if options allow
         //to send email if options allow
@@ -122,8 +122,8 @@ public class TicketService {
         invoice.setCreatedBy(user.getId());
         Invoice result = invoiceService.create(invoice);
         messageService.createMessage(new CreateChatMessage("The device has been collected. Information can be found" +
-                                                           " in your 'invoices' tab. If that action hasn't been done by you please contact the store.",
-                ZonedDateTime.now(), user.getId(), ticket.getClient().getId(), ticket.getId(), null));
+                " in your 'invoices' tab. If that action hasn't been done by you please contact the store.",
+                ZonedDateTime.now(), user.getId(), ticket.getClient() == null ? null : ticket.getClient().getId(), ticket.getId(), null));
         ticketRepository.save(ticket);
         loggerService.createLog("The device has been marked as collected by " + user.getUsername(), user.getId(), id);
         return invoiceService.getAsBlob(result);
@@ -133,7 +133,7 @@ public class TicketService {
         Ticket ticket = getTicket(id);
         UsedPart usedPart = inventoryService.useItemForTicket(inventoryItemId, ticket, count);
         ticket.getUsedParts().add(usedPart);
-        loggerService.createLogUsedItem(usedPart,id, user);
+        loggerService.createLogUsedItem(usedPart, id, user);
         return ticketRepository.save(ticket);
     }
 
