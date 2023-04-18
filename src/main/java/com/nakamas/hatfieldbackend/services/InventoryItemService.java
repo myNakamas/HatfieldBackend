@@ -99,6 +99,7 @@ public class InventoryItemService {
         return new PageView<>(page);
     }
 
+    //    todo: do not fetch items with count 0
     public List<ShortItemView> getShortShopInventory(Long shopId, InventoryItemFilter filter) {
         filter.setShopId(shopId);
         List<InventoryItem> all = inventoryItemRepository.findAll(filter);

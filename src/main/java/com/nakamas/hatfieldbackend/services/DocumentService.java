@@ -229,6 +229,7 @@ public class DocumentService implements ApplicationRunner {
         acroForm.getField("shop_reg").setValue(invoice.getCreatedBy().getShop().getRegNumber());
         acroForm.getField("shop_locations").setValue(invoice.getCreatedBy().getShop().getAddress());
 
+//        todo: add category name
         acroForm.getField("invoice_device_brand_model_name").
                 setValue(invoice.getDeviceBrand() + " " + invoice.getDeviceModel());
         acroForm.getField("device_num_or_imei").setValue(invoice.getSerialNumber());
