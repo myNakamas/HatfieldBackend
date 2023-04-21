@@ -94,14 +94,13 @@ public class InventoryItemService {
     public PageView<InventoryItemView> getShopInventory(Long shopId, InventoryItemFilter filter, PageRequestView pageRequestView) {
         filter.setShopId(shopId);
         Page<InventoryItem> items = inventoryItemRepository.findAll(filter, pageRequestView.getPageRequest());
-//        getCategory returns null? todo: investigate
         Page<InventoryItemView> page = items.map(item -> new InventoryItemView(item, getCategory(item.getCategoryId())));
         return new PageView<>(page);
     }
 
-    //    todo: do not fetch items with count 0
     public List<ShortItemView> getShortShopInventory(Long shopId, InventoryItemFilter filter) {
         filter.setShopId(shopId);
+        filter.setMinCount(1);
         List<InventoryItem> all = inventoryItemRepository.findAll(filter);
         return all.stream().map(ShortItemView::new).toList();
     }
@@ -190,8 +189,9 @@ public class InventoryItemService {
 
     public void deleteCategory(Long id) {
         inventoryItemRepository.setItemsToNullCategory(id);
+        Category category = categoryRepository.findById(id).orElseThrow(() -> new CustomException("No such category exists"));
+        Log logMessage = Log.builder().action("Category '" + category.getName() + "'  was deleted").build();
         categoryRepository.deleteById(id);
-        Log logMessage = Log.builder().action("Category '" + id + "'  was deleted").build();
         loggerService.createLog(logMessage);
     }
 

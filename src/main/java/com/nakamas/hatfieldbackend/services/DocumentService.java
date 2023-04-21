@@ -41,8 +41,7 @@ public class DocumentService implements ApplicationRunner {
     @Value(value = "${printer-ip:#{null}}")
     private String printerIp = "";
 
-    //    private final String outputPath = "C:\\Users\\Marti\\Documents\\out";
-    private final String outputPath = System.getProperty("java.io.tmpdir");
+    private final String outputPath = Path.of(System.getProperty("user.dir"), "output").toString();
     private final DateTimeFormatter dtf = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM);
     private final DateTimeFormatter shortDtf = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss");
 
@@ -51,8 +50,8 @@ public class DocumentService implements ApplicationRunner {
     public PdfAndImageDoc createPriceTag(String qrContent, InventoryItem item) {
         InputStream input = getTemplate("/smallTag.pdf");
         try (PDDocument document = PDDocument.load(input)) {
-            String deviceName = "%s %s".formatted(item.getName(), item.getBrand().getBrand());
-            String model = item.getModel().getModel();
+            String deviceName = "%s %s".formatted(item.getName(), item.getBrandString());
+            String model = item.getModelString();
             List<String> details = item.getOtherProperties().entrySet().stream().map(entry -> entry.getKey() + ": " + entry.getValue()).toList();
             Float price = item.getPrice().floatValue();
             fillPriceTagTemplate(qrContent, deviceName, model, details, price, document);
@@ -114,8 +113,8 @@ public class DocumentService implements ApplicationRunner {
 
     private static void fillPriceTagTemplate(String qrContent, String deviceName, String model, List<String> details, Float price, PDDocument document) throws IOException {
         PDFont pdfFont = PDType1Font.HELVETICA_BOLD;
-        int detailsFontSize = 60 / details.size() - 5;
-        int detailsLeading = 60 / details.size();
+        int detailsFontSize = details.size() > 0 ? 50 / details.size() - 5 : 25;
+        int detailsLeading = details.size() > 0 ? 50 / details.size() : 30;
         PDPage page = document.getPage(0);
         PDPageContentStream contents = new PDPageContentStream(document, page, PDPageContentStream.AppendMode.APPEND, true, true);
         File code = QRCode.from(qrContent).withSize(250, 250).file();
@@ -129,7 +128,7 @@ public class DocumentService implements ApplicationRunner {
         contents.setFont(pdfFont, 30);
         contents.newLine();
         addLine(contents, model);
-        contents.setFont(pdfFont, Math.min(detailsFontSize, 25));
+        contents.setFont(pdfFont, detailsFontSize);
         contents.setLeading(detailsLeading);
         for (String detail : details) {
             addLine(contents, detail);
@@ -194,7 +193,7 @@ public class DocumentService implements ApplicationRunner {
         contents.setFont(pdfFont, 18);
         contents.setLeading(20);
         addLine(contents, "Created at: " + ticket.getTimestamp().format(dtf));
-        addLine(contents, "Brand & Model: %s ; %s".formatted(ticket.getDeviceBrand().getBrand(), ticket.getDeviceModel().getModel()));
+        addLine(contents, "Brand & Model: %s ; %s".formatted(ticket.getDeviceBrandString(), ticket.getDeviceModelString()));
         addLine(contents, "Condition: " + ticket.getDeviceCondition());
         addLine(contents, "Request: " + ticket.getCustomerRequest());
         addLine(contents, String.format("Payment: %s/ %.2f£/ %.2f£", ticket.getDeposit().equals(ticket.getTotalPrice()) ? "PAID" : "NOT PAID YET", ticket.getDeposit(), ticket.getTotalPrice()));

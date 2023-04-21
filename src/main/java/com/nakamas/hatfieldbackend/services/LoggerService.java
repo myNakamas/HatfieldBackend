@@ -17,6 +17,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import java.time.ZonedDateTime;
+import java.util.Optional;
 import java.util.UUID;
 
 @Slf4j
@@ -28,6 +29,8 @@ public class LoggerService {
 
     public void createLog(Log logMessage) {
         logMessage.setTimestamp(ZonedDateTime.now());
+        Optional<User> byId = userRepository.findById(logMessage.getUserId());
+        byId.ifPresent(user -> logMessage.setShopId(user.getShop().getId()));
         logRepository.save(logMessage);
         log.info("User '%s' performed: '%s'.".formatted(logMessage.getUserId(), logMessage.getAction()));
     }

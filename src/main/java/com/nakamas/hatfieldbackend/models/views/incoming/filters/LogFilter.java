@@ -5,15 +5,38 @@ import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.springframework.data.jpa.domain.Specification;
 
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+
+@Getter
+@Setter
 @NoArgsConstructor
+@AllArgsConstructor
 public class LogFilter implements Specification<Log> {
-//    todo: add filter
+    private Long shopId;
+    private UUID userId;
+    private LocalDate from;
+    private LocalDate to;
 
     @Override
-    public Predicate toPredicate(Root<Log> root, CriteriaQuery<?> query, CriteriaBuilder criteriaBuilder) {
-        return criteriaBuilder.conjunction();
+    public Predicate toPredicate(@NonNull Root<Log> log, @NonNull CriteriaQuery<?> query, @NonNull CriteriaBuilder builder) {
+        List<Predicate> predicates = new ArrayList<>();
+        if (shopId != null)
+            predicates.add(builder.equal(log.get("shopId"), shopId));
+        if (userId != null)
+            predicates.add(builder.equal(log.get("userId"), userId));
+        if (to != null)
+            predicates.add(builder.lessThanOrEqualTo(log.get("timestamp"), to.plusDays(1L).atStartOfDay().atZone(ZoneId.systemDefault())));
+        if (from != null)
+            predicates.add(builder.greaterThanOrEqualTo(log.get("timestamp"), from.atStartOfDay().atZone(ZoneId.systemDefault())));
+
+        query.orderBy(builder.desc(log.get("timestamp")));
+        return builder.and(predicates.toArray(Predicate[]::new));
     }
 }

@@ -18,6 +18,7 @@ public class InventoryItemFilter implements Specification<InventoryItem> {
     private Long brandId;
     private Long shopId;
     private Long categoryId;
+    private Integer minCount;
     private Boolean isNeeded;
 
     @Override
@@ -35,9 +36,12 @@ public class InventoryItemFilter implements Specification<InventoryItem> {
         if (isNeeded != null)
             if (isNeeded) predicates.add(criteriaBuilder.isNotNull(item.get("requiredItem").get("reason")));
             else predicates.add(criteriaBuilder.isNull(item.get("requiredItem").get("reason")));
+        if (minCount != null)
+            predicates.add(criteriaBuilder.ge(item.get("count"), minCount));
         if (searchBy != null && !searchBy.isBlank()) {
             MapJoin<InventoryItem, String, String> otherProperties = item.joinMap("otherProperties");
-            predicates.add(criteriaBuilder.like(criteriaBuilder.lower(criteriaBuilder.concat(otherProperties.value(), item.get("name"))), "%" + searchBy.toLowerCase() + "%"));
+            Expression<String> concat = criteriaBuilder.function("concat", String.class, item.get("name"), otherProperties.value());
+            predicates.add(criteriaBuilder.like(criteriaBuilder.lower(concat), "%" + searchBy.toLowerCase() + "%"));
         }
 
         query.orderBy(criteriaBuilder.desc(item.get("id")));
