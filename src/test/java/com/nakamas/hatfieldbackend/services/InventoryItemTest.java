@@ -78,7 +78,7 @@ class InventoryItemTest {
         InventoryItem item = inventoryItemService.createInventoryItem(getTestInventoryItem(shop, category));
         assertNotNull(item.getId());
 
-        inventoryItemService.deleteCategory(category.getId());
+        inventoryItemService.deleteCategory(category.getId(), loggedUser);
         assertFalse(categoryRepository.existsById(category.getId()));
 
         entityManager.refresh(item);

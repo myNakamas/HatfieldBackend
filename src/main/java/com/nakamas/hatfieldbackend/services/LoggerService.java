@@ -2,6 +2,7 @@ package com.nakamas.hatfieldbackend.services;
 
 import com.nakamas.hatfieldbackend.models.entities.Log;
 import com.nakamas.hatfieldbackend.models.entities.User;
+import com.nakamas.hatfieldbackend.models.entities.shop.Category;
 import com.nakamas.hatfieldbackend.models.entities.shop.InventoryItem;
 import com.nakamas.hatfieldbackend.models.entities.shop.UsedPart;
 import com.nakamas.hatfieldbackend.models.views.incoming.filters.LogFilter;
@@ -67,5 +68,10 @@ public class LoggerService {
                 .userId(user.getId())
                 .action("User %s updated the needed required amount of item %s".formatted(user.getFullName(), item.getName())).build();
         createLog(build);
+    }
+
+    public void createLogDeletedCategory(Category category, User user) {
+        Log logMessage = new Log("Category '" + category.getName() + "'  was deleted",user.getId());
+        createLog(logMessage);
     }
 }

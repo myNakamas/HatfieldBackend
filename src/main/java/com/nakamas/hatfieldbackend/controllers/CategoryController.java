@@ -1,8 +1,10 @@
 package com.nakamas.hatfieldbackend.controllers;
 
+import com.nakamas.hatfieldbackend.models.entities.User;
 import com.nakamas.hatfieldbackend.models.views.outgoing.shop.CategoryView;
 import com.nakamas.hatfieldbackend.services.InventoryItemService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -24,9 +26,10 @@ public class CategoryController {
     public CategoryView createCategory(@RequestBody CategoryView createView) {
         return inventoryItemService.createCategory(createView);
     }
+
     @DeleteMapping("admin/delete")
-    public void deleteCategory(@RequestParam Long id) {
-        inventoryItemService.deleteCategory(id);
+    public void deleteCategory(@RequestParam Long id, @AuthenticationPrincipal User user) {
+        inventoryItemService.deleteCategory(id, user);
     }
 
     @PutMapping("admin/update")

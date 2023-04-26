@@ -1,7 +1,6 @@
 package com.nakamas.hatfieldbackend.services;
 
 import com.nakamas.hatfieldbackend.config.exception.CustomException;
-import com.nakamas.hatfieldbackend.models.entities.Log;
 import com.nakamas.hatfieldbackend.models.entities.User;
 import com.nakamas.hatfieldbackend.models.entities.shop.*;
 import com.nakamas.hatfieldbackend.models.entities.ticket.Brand;
@@ -187,12 +186,11 @@ public class InventoryItemService {
         return inventoryItemRepository.findById(inventoryItem).orElseThrow(() -> new CustomException("Cannot find item with selected id"));
     }
 
-    public void deleteCategory(Long id) {
+    public void deleteCategory(Long id, User user) {
         inventoryItemRepository.setItemsToNullCategory(id);
         Category category = categoryRepository.findById(id).orElseThrow(() -> new CustomException("No such category exists"));
-        Log logMessage = Log.builder().action("Category '" + category.getName() + "'  was deleted").build();
         categoryRepository.deleteById(id);
-        loggerService.createLog(logMessage);
+        loggerService.createLogDeletedCategory(category,user);
     }
 
     public CategoryView getCategory(Long categoryId) {

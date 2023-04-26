@@ -31,4 +31,10 @@ public class Log extends AbstractPersistable<Long> {
     public Log() {
         this.timestamp = ZonedDateTime.now();
     }
+
+    public Log(String s, UUID id) {
+        this();
+        this.action = s;
+        this.userId = id;
+    }
 }
