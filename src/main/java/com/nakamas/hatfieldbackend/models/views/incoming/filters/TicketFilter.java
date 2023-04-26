@@ -56,7 +56,7 @@ public class TicketFilter implements Specification<Ticket> {
         if (ticketStatuses != null && !ticketStatuses.isEmpty())
             predicates.add((ticket.get("status").in(ticketStatuses)));
         if (searchBy != null && !searchBy.isBlank()) {
-            Expression<String> concat = builder.lower(builder.concat(ticket.get("serialNumberOrImei"), ticket.get("deviceProblemExplanation")));
+            Expression<String> concat = builder.lower(builder.concat(builder.concat(builder.concat(ticket.get("serialNumberOrImei"), ticket.get("deviceBrand").get("brand")), ticket.get("deviceModel").get("model")), ticket.get("deviceProblemExplanation")));
             predicates.add(builder.like(concat, "%" + searchBy.toLowerCase() + "%"));
         }
 

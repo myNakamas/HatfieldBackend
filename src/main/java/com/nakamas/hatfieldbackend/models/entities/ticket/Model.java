@@ -6,6 +6,7 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.NonNull;
 import lombok.Setter;
 import org.springframework.data.jpa.domain.AbstractPersistable;
 
@@ -25,5 +26,11 @@ public class Model extends AbstractPersistable<Long> {//    todo: add shopId col
 
     public Model(String model) {
         this.model = model;
+    }
+
+    @Override
+    @NonNull
+    public String toString() {
+        return model;
     }
 }

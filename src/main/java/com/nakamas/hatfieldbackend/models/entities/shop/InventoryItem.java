@@ -72,4 +72,12 @@ public class InventoryItem extends AbstractPersistable<Long> {
         if (category != null) this.categoryId = category.getId();
         if (item.properties() != null) this.otherProperties = item.properties();
     }
+
+    public String getModelString() {
+        return model != null ? model.getModel() : "";
+    }
+
+    public String getBrandString() {
+        return brand != null ? brand.getBrand() : "";
+    }
 }

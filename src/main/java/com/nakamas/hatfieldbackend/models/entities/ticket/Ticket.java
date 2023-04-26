@@ -58,6 +58,18 @@ public class Ticket extends AbstractPersistable<Long> {
     @Enumerated
     private TicketStatus status;
 
+    public String getDeviceModelString() {
+        return deviceModel != null ? deviceModel.getModel() : "";
+    }
+
+    public String getDeviceBrandString() {
+        return deviceBrand != null ? deviceBrand.getBrand() : "";
+    }
+
+    public String getDeviceLocationString() {
+        return deviceLocation != null ? deviceLocation.getLocation() : "";
+    }
+
     @OneToMany(mappedBy = "ticket", cascade = CascadeType.ALL)
     private List<UsedPart> usedParts = new ArrayList<>();
 

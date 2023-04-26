@@ -6,6 +6,7 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.NonNull;
 import lombok.Setter;
 import org.springframework.data.jpa.domain.AbstractPersistable;
 
@@ -24,5 +25,11 @@ public class Brand extends AbstractPersistable<Long> {
     public Brand(String brand) {
 
         this.brand = brand;
+    }
+
+    @Override
+    @NonNull
+    public String toString() {
+        return brand;
     }
 }

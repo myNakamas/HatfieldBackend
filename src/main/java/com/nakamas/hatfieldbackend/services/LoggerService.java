@@ -2,6 +2,7 @@ package com.nakamas.hatfieldbackend.services;
 
 import com.nakamas.hatfieldbackend.models.entities.Log;
 import com.nakamas.hatfieldbackend.models.entities.User;
+import com.nakamas.hatfieldbackend.models.entities.shop.Category;
 import com.nakamas.hatfieldbackend.models.entities.shop.InventoryItem;
 import com.nakamas.hatfieldbackend.models.entities.shop.UsedPart;
 import com.nakamas.hatfieldbackend.models.views.incoming.filters.LogFilter;
@@ -17,6 +18,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import java.time.ZonedDateTime;
+import java.util.Optional;
 import java.util.UUID;
 
 @Slf4j
@@ -28,6 +30,8 @@ public class LoggerService {
 
     public void createLog(Log logMessage) {
         logMessage.setTimestamp(ZonedDateTime.now());
+        Optional<User> byId = userRepository.findById(logMessage.getUserId());
+        byId.ifPresent(user -> logMessage.setShopId(user.getShop().getId()));
         logRepository.save(logMessage);
         log.info("User '%s' performed: '%s'.".formatted(logMessage.getUserId(), logMessage.getAction()));
     }
@@ -64,5 +68,10 @@ public class LoggerService {
                 .userId(user.getId())
                 .action("User %s updated the needed required amount of item %s".formatted(user.getFullName(), item.getName())).build();
         createLog(build);
+    }
+
+    public void createLogDeletedCategory(Category category, User user) {
+        Log logMessage = new Log("Category '" + category.getName() + "'  was deleted",user.getId());
+        createLog(logMessage);
     }
 }

@@ -58,7 +58,6 @@ public class DocumentController {
     @PostMapping(value = "print/tag/price", produces = MediaType.APPLICATION_PDF_VALUE)
     private ResponseEntity<byte[]> printPriceTag(@RequestParam Long itemId) {
         InventoryItem item = inventoryItemService.getItem(itemId);
-//        todo: add price to inventory item and pass inventory item object instead of its params
         PdfAndImageDoc doc = documentService.createPriceTag("%s/inventory?itemId=%s".formatted(frontendHost, item.getId()), item);
         documentService.executePrint(doc.image());
         byte[] bytes = doc.pdfBytes();

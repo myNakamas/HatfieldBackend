@@ -26,8 +26,15 @@ public class Log extends AbstractPersistable<Long> {
     private Long ticketId;
     private Long partUsedId;
     private Long itemSoldId;
+    private Long shopId;
 
     public Log() {
         this.timestamp = ZonedDateTime.now();
+    }
+
+    public Log(String s, UUID id) {
+        this();
+        this.action = s;
+        this.userId = id;
     }
 }

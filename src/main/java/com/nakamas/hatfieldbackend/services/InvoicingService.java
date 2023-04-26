@@ -9,6 +9,7 @@ import com.nakamas.hatfieldbackend.models.views.outgoing.reports.InvoiceDailyRep
 import com.nakamas.hatfieldbackend.models.views.outgoing.reports.InvoiceReport;
 import com.nakamas.hatfieldbackend.repositories.InvoiceRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
@@ -19,6 +20,8 @@ import java.util.*;
 @Service
 @RequiredArgsConstructor
 public class InvoicingService {
+    @Value(value = "${fe-host:localhost:5173}")
+    private String frontendHost;
     private final InvoiceRepository invoiceRepository;
     private final UserService userService;
     private final DocumentService documentService;
@@ -48,8 +51,7 @@ public class InvoicingService {
     }
 
     public byte[] getAsBlob(Invoice invoice) {
-        //        todo: edit the qr information just like in documentController
-        PdfAndImageDoc doc = documentService.createInvoice("QR", invoice);
+        PdfAndImageDoc doc = documentService.createInvoice("%s/invoices/%s".formatted(frontendHost, invoice.getId()), invoice);
         documentService.executePrint(doc.image());
         return doc.pdfBytes();
     }
