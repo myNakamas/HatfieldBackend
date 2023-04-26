@@ -34,8 +34,8 @@ public class CreateInvoice {
     public void setTicketInfo(Ticket ticket){
         this.ticketId = ticket.getId();
         this.type = InvoiceType.REPAIR;
-        this.deviceModel = ticket.getDeviceModel().getModel();
-        this.deviceBrand = ticket.getDeviceBrand().getBrand();
+        this.deviceModel = ticket.getDeviceModelString();
+        this.deviceBrand = ticket.getDeviceBrandString();
         this.serialNumber = ticket.getSerialNumberOrImei();
         if (ticket.getClient() != null) this.client = ticket.getClient().getId();
         if (ticket.getTotalPrice() != null) this.totalPrice = ticket.getTotalPrice();

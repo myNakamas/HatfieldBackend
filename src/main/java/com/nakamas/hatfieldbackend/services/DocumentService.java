@@ -4,6 +4,7 @@ import com.nakamas.hatfieldbackend.models.entities.shop.InventoryItem;
 import com.nakamas.hatfieldbackend.models.entities.ticket.Invoice;
 import com.nakamas.hatfieldbackend.models.entities.ticket.Ticket;
 import com.nakamas.hatfieldbackend.models.views.outgoing.PdfAndImageDoc;
+import com.nakamas.hatfieldbackend.repositories.InvoiceRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -38,6 +39,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class DocumentService implements ApplicationRunner {
     private final ResourceLoader resourceLoader;
+    private final InvoiceRepository invoiceRepository;
     @Value(value = "${printer-ip:#{null}}")
     private String printerIp = "";
 
@@ -177,6 +179,7 @@ public class DocumentService implements ApplicationRunner {
         PDFont pdfFont = PDType1Font.HELVETICA_BOLD;
         PDPage page = document.getPage(0);
         File code = QRCode.from(qrContent).withSize(250, 250).file();
+        boolean isPaid = invoiceRepository.existsByTicketId(ticket.getId());
         PDImageXObject qrCode = PDImageXObject.createFromFileByContent(code, document);
         PDPageContentStream contents = new PDPageContentStream(document, page, PDPageContentStream.AppendMode.APPEND, true, true);
         contents.drawImage(qrCode, -20, -10, 250, 250);
@@ -196,7 +199,7 @@ public class DocumentService implements ApplicationRunner {
         addLine(contents, "Brand & Model: %s ; %s".formatted(ticket.getDeviceBrandString(), ticket.getDeviceModelString()));
         addLine(contents, "Condition: " + ticket.getDeviceCondition());
         addLine(contents, "Request: " + ticket.getCustomerRequest());
-        addLine(contents, String.format("Payment: %s/ %.2f£/ %.2f£", ticket.getDeposit().equals(ticket.getTotalPrice()) ? "PAID" : "NOT PAID YET", ticket.getDeposit(), ticket.getTotalPrice()));
+        addLine(contents, String.format("Payment:  %.2f£/%s", ticket.getTotalPrice(), isPaid ? "PAID" : "NOT PAID"));
         contents.showText(String.format("Ready to collect by: %s", ticket.getDeadline().format(dtf)));
         contents.endText();
 
