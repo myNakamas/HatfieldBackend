@@ -1,6 +1,7 @@
 package com.nakamas.hatfieldbackend.services;
 
 import com.nakamas.hatfieldbackend.config.exception.CustomException;
+import com.nakamas.hatfieldbackend.models.entities.Photo;
 import com.nakamas.hatfieldbackend.models.entities.User;
 import com.nakamas.hatfieldbackend.models.entities.ticket.ChatMessage;
 import com.nakamas.hatfieldbackend.models.entities.ticket.Ticket;
@@ -9,6 +10,7 @@ import com.nakamas.hatfieldbackend.models.views.incoming.CreateChatMessage;
 import com.nakamas.hatfieldbackend.models.views.outgoing.ticket.ChatMessageView;
 import com.nakamas.hatfieldbackend.models.views.outgoing.ticket.UserChats;
 import com.nakamas.hatfieldbackend.repositories.MessageRepository;
+import com.nakamas.hatfieldbackend.repositories.PhotoRepository;
 import com.nakamas.hatfieldbackend.repositories.TicketRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -18,10 +20,13 @@ import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.SimpMessageType;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Objects;
+import java.util.Random;
 import java.util.UUID;
 
 @Slf4j
@@ -32,19 +37,20 @@ public class MessageService {
     private final MessageRepository messageRepository;
     private final SimpMessagingTemplate messagingTemplate;
     private final TicketRepository ticketRepository;
+    private final PhotoRepository photoRepository;
+    private final Random random = new Random();
 
     public void createMessage(CreateChatMessage create) {
         User sender = userService.getUser(create.sender());
-        Ticket ticket = ticketRepository.findById(create.ticketId()).orElseThrow(()->new CustomException("Could not find ticket with such id") );
+        Ticket ticket = ticketRepository.findById(create.ticketId()).orElseThrow(() -> new CustomException("Could not find ticket with such id"));
         ChatMessage message = new ChatMessage(create, sender);
-        if (create.receiver() != null) message.setReceiver(userService.getUser(create.receiver()));
+        if (create.receiver() != null && create.publicMessage()) message.setReceiver(userService.getUser(create.receiver()));
         ChatMessage save = messageRepository.save(message);
         ChatMessageView response = new ChatMessageView(save);
 
-        if (save.getSender().getRole().equals(UserRole.CLIENT)){
+        if (save.getSender().getRole().equals(UserRole.CLIENT)) {
             sendChatMessageToUser(ticket.getCreatedBy().getId().toString(), response);
-        }
-        else if(save.getReceiver() != null){
+        } else if (save.getReceiver() != null) {
             sendChatMessageToUser(save.getReceiver().getId().toString(), response);
         }
 
@@ -55,7 +61,6 @@ public class MessageService {
         ChatMessage byId = messageRepository.findById(messageId).orElseThrow(() -> new CustomException("Cannot find message with id"));
         byId.setReadByReceiver(ZonedDateTime.now());
         ChatMessage save = messageRepository.save(byId);
-        messageRepository.markReadByUser(save.getSender().getId(), save.getReceiver().getId(), save.getReadByReceiver());
         sendMessageSeenToUser(Objects.requireNonNull(save.getSender().getId()).toString(), new ChatMessageView(save));
     }
 
@@ -105,5 +110,18 @@ public class MessageService {
      */
     public List<ChatMessageView> getChatMessagesForClient(UUID userId) {
         return messageRepository.findAllForClient(userId).stream().map(ChatMessageView::new).toList();
+    }
+
+    public void createImageMessage(MultipartFile file, Long ticketId, Boolean publicMessage, User sender) {
+        try {
+            Photo photo = new Photo(file.getBytes(), false);
+            Photo save = photoRepository.save(photo);
+            Ticket ticket = ticketRepository.findById(ticketId).orElseThrow(() -> new CustomException("Could not find ticket with id"));
+            UUID receiverId = Objects.equals(ticket.getClient().getId(), sender.getId()) ? ticket.getCreatedBy().getId() : ticket.getClient().getId();
+            CreateChatMessage chatMessage = new CreateChatMessage("image/" + save.getId(), ZonedDateTime.now(), sender.getId(), receiverId, ticket.getId(), true,publicMessage, random.nextLong());
+            createMessage(chatMessage);
+        } catch (IOException e) {
+            throw new CustomException("Please try again later");
+        }
     }
 }

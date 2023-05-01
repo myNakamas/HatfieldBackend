@@ -9,5 +9,7 @@ public record CreateChatMessage(
         UUID sender,
         UUID receiver,
         Long ticketId,
+        Boolean isImage,
+        Boolean publicMessage,
         Long randomId) {
 }

@@ -13,10 +13,11 @@ public record ChatMessageView(
         UUID sender,
         UUID receiver,
         Long ticketId,
+        Boolean isImage,
         Long randomId
 ) {
 
     public ChatMessageView(ChatMessage message) {
-        this(message.getId(), message.getText(), message.getTimestamp(), message.getReadByReceiver(), message.getSender().getId(), message.getReceiver() != null ? message.getReceiver().getId() : null, message.getTicketId(), message.getRandomId());
+        this(message.getId(), message.getText(), message.getTimestamp(), message.getReadByReceiver(), message.getSender().getId(), message.getReceiver() != null ? message.getReceiver().getId() : null, message.getTicketId(), message.getIsImage(), message.getRandomId());
     }
 }

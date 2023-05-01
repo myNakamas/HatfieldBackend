@@ -30,6 +30,7 @@ public class ChatMessage extends AbstractPersistable<Long> {
     @Column(name = "ticket_id")
     private Long ticketId;
     private Long randomId;
+    private Boolean isImage;
 
     public ChatMessage(CreateChatMessage create, User sender) {
         this.text = create.text();
@@ -38,5 +39,6 @@ public class ChatMessage extends AbstractPersistable<Long> {
         this.sender = sender;
         this.ticketId = create.ticketId();
         this.randomId = create.randomId();
+        this.isImage = create.isImage() != null && create.isImage();
     }
 }
