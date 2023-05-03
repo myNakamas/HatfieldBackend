@@ -45,7 +45,8 @@ public class InventoryItemService {
         Optional<Category> category = Optional.empty();
         if (inventoryItem.categoryId() != null) {
             category = categoryRepository.findById(inventoryItem.categoryId());
-            category.ifPresent(value -> inventoryItem.properties().entrySet().removeIf(property -> !value.getFields().contains(property.getKey())));
+            if(inventoryItem.properties()!=null)
+                category.ifPresent(value -> inventoryItem.properties().entrySet().removeIf(property -> !value.getFields().contains(property.getKey())));
         }
 
         InventoryItem item = new InventoryItem(
