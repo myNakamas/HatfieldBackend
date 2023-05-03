@@ -158,6 +158,7 @@ public class UserService implements UserDetailsService, UserDetailsPasswordServi
         if (user.getId() == null && existingUsers.size() > 0 ||
                 existingUsers.stream().anyMatch(profile -> !Objects.equals(profile.getId(), user.getId())))
             throw new CustomException("Username or email already taken!");
+        if(user.getShop()==null) throw new CustomException("User must be attached to a shop!");
         return userRepository.save(user);
     }
 

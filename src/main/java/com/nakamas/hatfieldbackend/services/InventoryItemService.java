@@ -2,7 +2,10 @@ package com.nakamas.hatfieldbackend.services;
 
 import com.nakamas.hatfieldbackend.config.exception.CustomException;
 import com.nakamas.hatfieldbackend.models.entities.User;
-import com.nakamas.hatfieldbackend.models.entities.shop.*;
+import com.nakamas.hatfieldbackend.models.entities.shop.Category;
+import com.nakamas.hatfieldbackend.models.entities.shop.InventoryItem;
+import com.nakamas.hatfieldbackend.models.entities.shop.Shop;
+import com.nakamas.hatfieldbackend.models.entities.shop.UsedPart;
 import com.nakamas.hatfieldbackend.models.entities.ticket.Brand;
 import com.nakamas.hatfieldbackend.models.entities.ticket.Model;
 import com.nakamas.hatfieldbackend.models.entities.ticket.Ticket;
@@ -14,7 +17,6 @@ import com.nakamas.hatfieldbackend.models.views.outgoing.inventory.InventoryItem
 import com.nakamas.hatfieldbackend.models.views.outgoing.inventory.ItemPropertyView;
 import com.nakamas.hatfieldbackend.models.views.outgoing.inventory.ShortItemView;
 import com.nakamas.hatfieldbackend.models.views.outgoing.shop.CategoryView;
-import com.nakamas.hatfieldbackend.models.views.outgoing.shop.SoldItemView;
 import com.nakamas.hatfieldbackend.repositories.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -35,7 +37,6 @@ public class InventoryItemService {
     private final ShopRepository shopRepository;
     private final CategoryRepository categoryRepository;
     private final UsedPartRepository usedPartRepository;
-    private final SoldItemRepository soldItemRepository;
     private final LoggerService loggerService;
 
 
@@ -197,14 +198,6 @@ public class InventoryItemService {
     public CategoryView getCategory(Long categoryId) {
         if (categoryId == null) return null;
         return categoryRepository.findById(categoryId).map(CategoryView::new).orElse(null);
-    }
-
-    public SoldItemView sellItem(Long id, Integer count) {
-        InventoryItem inventoryItem = getItem(id);
-        SoldItem item = new SoldItem(inventoryItem, count);
-        SoldItem save = soldItemRepository.save(item);
-//        todo: add invoice to response?
-        return new SoldItemView(save);
     }
 
     public void updateRequiredItemCount(Long id, Integer count, User user) {
