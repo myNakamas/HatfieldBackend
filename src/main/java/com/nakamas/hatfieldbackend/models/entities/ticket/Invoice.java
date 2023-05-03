@@ -39,6 +39,7 @@ public class Invoice extends AbstractPersistable<Long> {
     private PaymentMethod paymentMethod;
     @Enumerated
     private WarrantyPeriod warrantyPeriod;
+    private Boolean valid;
 
 
     public Invoice(CreateInvoice invoiceView, User creator, User client) {
@@ -52,6 +53,7 @@ public class Invoice extends AbstractPersistable<Long> {
         }
         this.ticketId = invoiceView.getTicketId();
         this.timestamp = ZonedDateTime.now();
+        this.valid = true;
         if (invoiceView.getTicketId() != null) this.ticketId = invoiceView.getTicketId();
         if (invoiceView.getCount() != null) {
             this.count = invoiceView.getCount();
@@ -68,5 +70,9 @@ public class Invoice extends AbstractPersistable<Long> {
         } else {
             this.warrantyPeriod = WarrantyPeriod.NONE;
         }
+    }
+
+    public boolean isValid(){
+        return this.valid==null || this.valid;
     }
 }
