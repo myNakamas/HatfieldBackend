@@ -10,7 +10,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
-import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor
@@ -23,8 +22,8 @@ public class ChatController {
     }
 
     @GetMapping("client/all")
-    public List<ChatMessageView> getAllMessagesForClient(@RequestParam UUID userId){
-        return messageService.getChatMessagesForClient(userId);
+    public List<ChatMessageView> getAllMessagesForClient(@AuthenticationPrincipal User user){
+        return messageService.getChatMessagesForClient(user.getId());
     }
 
     @PostMapping(value = "/image",consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
