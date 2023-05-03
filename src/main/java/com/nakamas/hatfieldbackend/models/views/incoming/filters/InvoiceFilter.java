@@ -26,13 +26,17 @@ public class InvoiceFilter implements Specification<Invoice> {
     private LocalDate createdBefore;
     private LocalDate createdAfter;
     private InvoiceType type;
+    private Boolean valid;
 
     @Override
     public Predicate toPredicate(@NonNull Root<Invoice> invoice, @NonNull CriteriaQuery<?> query, @NonNull CriteriaBuilder builder) {
         List<Predicate> predicates = new ArrayList<>();
-        if (model != null  && !model.isBlank())
+        if (model != null && !model.isBlank())
             predicates.add(builder.like(invoice.get("deviceModel"), model));
-        if (brand != null  && !brand.isBlank())
+        if (valid != null)
+            predicates.add(builder.equal(invoice.get("valid"), valid));
+        else predicates.add(builder.isTrue(invoice.get("valid")));
+        if (brand != null && !brand.isBlank())
             predicates.add(builder.like(invoice.get("deviceBrand"), brand));
         if (createdById != null)
             predicates.add(builder.equal(invoice.get("createdBy").get("id"), createdById));
@@ -40,12 +44,12 @@ public class InvoiceFilter implements Specification<Invoice> {
             predicates.add(builder.equal(invoice.get("createdBy").get("shop").get("id"), shopId));
         if (clientId != null)
             predicates.add(builder.equal(invoice.get("client").get("id"), clientId));
-       if (createdBefore != null)
-           predicates.add(builder.lessThanOrEqualTo(invoice.get("timestamp"), createdBefore.plusDays(1L).atStartOfDay().atZone(ZoneId.systemDefault())));
+        if (createdBefore != null)
+            predicates.add(builder.lessThanOrEqualTo(invoice.get("timestamp"), createdBefore.plusDays(1L).atStartOfDay().atZone(ZoneId.systemDefault())));
         if (createdAfter != null)
             predicates.add(builder.greaterThanOrEqualTo(invoice.get("timestamp"), createdAfter.atStartOfDay().atZone(ZoneId.systemDefault())));
         if (type != null)
-            predicates.add(builder.equal(invoice.get("type"),type));
+            predicates.add(builder.equal(invoice.get("type"), type));
         if (searchBy != null && !searchBy.isBlank()) {
             Expression<String> concat = builder.lower(builder.concat(invoice.get("serialNumber"), invoice.get("notes")));
             predicates.add(builder.like(concat, "%" + searchBy.toLowerCase() + "%"));

@@ -47,6 +47,7 @@ public class InvoicingService {
     }
 
     public Page<Invoice> getAll(InvoiceFilter invoiceFilter, PageRequestView pageRequestView) {
+        invoiceFilter.setValid(true);
         return invoiceRepository.findAll(invoiceFilter, pageRequestView.getPageRequest());
     }
 
@@ -77,5 +78,11 @@ public class InvoicingService {
 
         List<InvoiceDailyReport> dailyReports = new ArrayList<>(dailyReportsByDate.values());
         return new InvoiceReport(all.size(), totalAmount, dailyReports);
+    }
+
+    public void invalidateInvoice(Long invoiceId){
+        Invoice byId = getById(invoiceId);
+        byId.setValid(false);
+        invoiceRepository.save(byId);
     }
 }

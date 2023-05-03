@@ -20,17 +20,17 @@ public class InvoiceController {
     private final InvoicingService invoiceService;
 
     @PostMapping("create")
-    public void createNonRepairInvoice( CreateInvoice createInvoice){
+    public void createNonRepairInvoice(CreateInvoice createInvoice) {
         invoiceService.create(createInvoice);
     }
 
     @GetMapping("byId")
-    public InvoiceView getById(@RequestParam Long invoiceId){
+    public InvoiceView getById(@RequestParam Long invoiceId) {
         return new InvoiceView(invoiceService.getById(invoiceId));
     }
 
     @GetMapping("byTicketId")
-    public InvoiceView getByTicketId(@RequestParam Long ticketId){
+    public InvoiceView getByTicketId(@RequestParam Long ticketId) {
         return new InvoiceView(invoiceService.getByTicketId(ticketId));
     }
 
@@ -47,5 +47,10 @@ public class InvoiceController {
     @GetMapping("report")
     public InvoiceReport getMonthlyReport(InvoiceFilter invoiceFilter) {
         return invoiceService.getMonthlyReport(invoiceFilter);
+    }
+
+    @DeleteMapping("invalidate")
+    public void invalidateInvoice(@RequestParam Long id) {
+        invoiceService.invalidateInvoice(id);
     }
 }
