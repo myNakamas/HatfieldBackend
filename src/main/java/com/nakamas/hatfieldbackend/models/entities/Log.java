@@ -1,5 +1,6 @@
 package com.nakamas.hatfieldbackend.models.entities;
 
+import com.nakamas.hatfieldbackend.models.enums.LogType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
@@ -23,18 +24,18 @@ public class Log extends AbstractPersistable<Long> {
     private String action;
     private UUID userId;
     private ZonedDateTime timestamp;
+    private LogType logType;
     private Long ticketId;
-    private Long partUsedId;
-    private Long itemSoldId;
+    private Long itemId;
+    private Long invoiceId;
     private Long shopId;
 
     public Log() {
         this.timestamp = ZonedDateTime.now();
     }
 
-    public Log(String s, UUID id) {
+    public Log(LogType type) {
         this();
-        this.action = s;
-        this.userId = id;
+        this.logType = type;
     }
 }
