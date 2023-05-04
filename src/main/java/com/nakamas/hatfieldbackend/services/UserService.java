@@ -1,8 +1,10 @@
 package com.nakamas.hatfieldbackend.services;
 
 import com.nakamas.hatfieldbackend.config.exception.CustomException;
+import com.nakamas.hatfieldbackend.models.entities.Log;
 import com.nakamas.hatfieldbackend.models.entities.Photo;
 import com.nakamas.hatfieldbackend.models.entities.User;
+import com.nakamas.hatfieldbackend.models.enums.LogType;
 import com.nakamas.hatfieldbackend.models.enums.UserRole;
 import com.nakamas.hatfieldbackend.models.views.incoming.CreateUser;
 import com.nakamas.hatfieldbackend.models.views.incoming.filters.UserFilter;
@@ -37,7 +39,7 @@ public class UserService implements UserDetailsService, UserDetailsPasswordServi
     private final UserRepository userRepository;
     private final PhotoRepository photoRepository;
     private final ShopRepository shopRepository;
-
+    private final LoggerService loggerService;
     public User getUser(UUID id) {
         return userRepository.findById(id).orElseThrow(() -> new CustomException("User does not exist"));
     }
@@ -64,6 +66,11 @@ public class UserService implements UserDetailsService, UserDetailsPasswordServi
     // admin changing the settings of other users
     @Transactional
     public void updateUserBan(UUID id, Boolean status) {
+        if (status) {
+            loggerService.userActions(new Log(LogType.BANNED_USER), id.toString());
+        } else {
+            loggerService.userActions(new Log(LogType.UNBANNED_USER), id.toString());
+        }
         userRepository.setBanned(id, status);
     }
 
@@ -73,6 +80,11 @@ public class UserService implements UserDetailsService, UserDetailsPasswordServi
 
     //user "deleting" his account
     public void updateUserActivity(User user, Boolean status) {
+        if (!status) {
+            loggerService.userActions(new Log(LogType.DELETED_USER), user.getFullName());
+        } else {
+            loggerService.userActions(new Log(LogType.RESTORED_USER), user.getFullName());
+        }
         user.setIsActive(status);
         userRepository.save(user);
     }
@@ -146,6 +158,7 @@ public class UserService implements UserDetailsService, UserDetailsPasswordServi
         try {
             Photo photo = photoRepository.save(new Photo(image.getBytes(), false));
             user.setImage(photo);
+            loggerService.userActions(new Log(LogType.UPDATED_USER), user.getFullName());
             userRepository.save(user);
         } catch (IOException e) {
             e.printStackTrace();
@@ -155,9 +168,18 @@ public class UserService implements UserDetailsService, UserDetailsPasswordServi
 
     private User validateAndSave(User user) {
         List<User> existingUsers = userRepository.uniqueUserExists(user.getUsername(), user.getEmail());
-        if (user.getId() == null && existingUsers.size() > 0 ||
+        if (user.isNew() && existingUsers.size() > 0 ||
                 existingUsers.stream().anyMatch(profile -> !Objects.equals(profile.getId(), user.getId())))
             throw new CustomException("Username or email already taken!");
+        if (user.isNew()) {
+            if (Objects.equals(user.getRole(), UserRole.CLIENT)) {
+                loggerService.userActions(new Log(LogType.CREATED_CLIENT), user.getFullName());
+            } else {
+                loggerService.userActions(new Log(LogType.CREATED_WORKER), user.getFullName());
+            }
+        }else{
+            loggerService.userActions(new Log(LogType.UPDATED_USER), user.getFullName());
+        }
         return userRepository.save(user);
     }
 

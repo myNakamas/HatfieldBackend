@@ -25,11 +25,14 @@ public class InvoicingService {
     private final InvoiceRepository invoiceRepository;
     private final UserService userService;
     private final DocumentService documentService;
+    private final LoggerService loggerService;
 
     public Invoice create(CreateInvoice invoice) {
-        return invoiceRepository.save(new Invoice(invoice,
+        Invoice newInvoice = invoiceRepository.save(new Invoice(invoice,
                 userService.getUser(invoice.getCreatedBy()),
                 invoice.getClient() == null ? null : userService.getUser(invoice.getClient())));
+        loggerService.invoiceActions(newInvoice.getType(), newInvoice.getId());
+        return newInvoice;
     }
 
     public Invoice getByTicketId(Long id) {

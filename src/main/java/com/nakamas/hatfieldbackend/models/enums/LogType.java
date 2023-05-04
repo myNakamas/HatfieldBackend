@@ -3,9 +3,11 @@ package com.nakamas.hatfieldbackend.models.enums;
 public enum LogType {
     //TICKED
     CREATED_TICKET,
-    MOVED_TICKET,//DEVICE LOCATION NA RUKA
+    MOVED_TICKET,
     UPDATED_TICKET,
+    STARTED_TICKET,
     FINISHED_TICKET,
+    COLLECTED_TICKET,
     //CATEGORY,
     CREATED_CATEGORY,
     UPDATED_CATEGORY,
@@ -29,6 +31,9 @@ public enum LogType {
     CREATED_CLIENT,
     UPDATED_USER,
     BANNED_USER,
+    UNBANNED_USER,
+    DELETED_USER,
+    RESTORED_USER,
     //SHOP
     CREATED_SHOP,
     UPDATED_SHOP

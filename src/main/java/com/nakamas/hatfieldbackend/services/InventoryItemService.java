@@ -2,7 +2,6 @@ package com.nakamas.hatfieldbackend.services;
 
 import com.nakamas.hatfieldbackend.config.exception.CustomException;
 import com.nakamas.hatfieldbackend.models.entities.Log;
-import com.nakamas.hatfieldbackend.models.entities.User;
 import com.nakamas.hatfieldbackend.models.entities.shop.*;
 import com.nakamas.hatfieldbackend.models.entities.ticket.Brand;
 import com.nakamas.hatfieldbackend.models.entities.ticket.Model;
@@ -92,6 +91,7 @@ public class InventoryItemService {
         item.setCount(item.getCount() - count);
         inventoryItemRepository.save(item);
         UsedPart usedPart = new UsedPart(ticket, item, count, ZonedDateTime.now());
+        loggerService.useItemForRepair(new Log(LogType.USED_PART), item, ticket.getId(), count);
         return usedPartRepository.save(usedPart);
     }
 
@@ -217,10 +217,9 @@ public class InventoryItemService {
         return new SoldItemView(save);
     }
 
-    public void updateRequiredItemCount(Long id, Integer count, User user) {
+    public void updateRequiredItemCount(Long id, Integer count) {
         InventoryItem item = inventoryItemRepository.findById(id).orElseThrow(() -> new CustomException("Item with provided id could not be found"));
         item.getRequiredItem().setRequiredAmount(count);
         item.getRequiredItem().setCurrentCount(item.getCount());
-        loggerService.createLogUpdatedRequiredItemAmount(item, user);
     }
 }
