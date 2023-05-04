@@ -121,7 +121,7 @@ public class TicketTests {
     void add_item_from_inventory() {
         CreateTicket createTicket = TestData.getTestTicket(client);
         Ticket ticket = ticketService.createTicket(createTicket, user);
-        ticket = ticketService.usePartFromInventory(ticket.getId(), items.get(0).getId(), 1, user);
+        ticket = ticketService.usePartFromInventory(ticket.getId(), items.get(0).getId(), 1);
 
         Assertions.assertEquals(1, ticket.getUsedParts().size());
         Assertions.assertEquals(1, usedPartRepository.count());

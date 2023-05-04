@@ -77,8 +77,8 @@ public class InventoryItemController {
     }
 
     @PutMapping("item/required/count")
-    public void updateRequiredItemCount(@RequestParam Long id, @RequestParam Integer count, @AuthenticationPrincipal User user) {
-        inventoryItemService.updateRequiredItemCount(id, count, user);
+    public void updateRequiredItemCount(@RequestParam Long id, @RequestParam Integer count) {
+        inventoryItemService.updateRequiredItemCount(id, count);
     }
 
     @GetMapping("model/all")

@@ -1,7 +1,9 @@
 package com.nakamas.hatfieldbackend.services;
 
 import com.nakamas.hatfieldbackend.config.exception.CustomException;
+import com.nakamas.hatfieldbackend.models.entities.Log;
 import com.nakamas.hatfieldbackend.models.entities.shop.Shop;
+import com.nakamas.hatfieldbackend.models.enums.LogType;
 import com.nakamas.hatfieldbackend.models.views.incoming.CreateShop;
 import com.nakamas.hatfieldbackend.models.views.outgoing.shop.ShopSettingsView;
 import com.nakamas.hatfieldbackend.models.views.outgoing.shop.ShopView;
@@ -17,6 +19,8 @@ import java.util.Optional;
 public class ShopService {
     private final ShopRepository shopRepository;
 
+    private final LoggerService loggerService;
+
     public List<Shop> getAllShops() {
         return shopRepository.findAll();
     }
@@ -30,13 +34,16 @@ public class ShopService {
         return new ShopView(shopRepository.findById(id).orElseThrow(() -> new CustomException("")));
     }
     public Shop create(CreateShop create) {
-        return shopRepository.save(new Shop(create));
+        Shop newShop = shopRepository.save(new Shop(create));
+        loggerService.shopActions(new Log(LogType.CREATED_SHOP), newShop);
+        return newShop;
     }
 
     public Shop update(CreateShop updateView) {
         Optional<Shop> byId = shopRepository.findById(updateView.id());
         Shop shop = byId.orElseThrow(() -> new CustomException("Could not find shop with id '%s'".formatted(updateView.id())));
         shop.update(updateView);
+        loggerService.shopActions(new Log(LogType.UPDATED_SHOP), shop);
         return shopRepository.save(shop);
     }
 }

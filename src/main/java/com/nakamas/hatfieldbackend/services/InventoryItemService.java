@@ -1,11 +1,12 @@
 package com.nakamas.hatfieldbackend.services;
 
 import com.nakamas.hatfieldbackend.config.exception.CustomException;
-import com.nakamas.hatfieldbackend.models.entities.User;
+import com.nakamas.hatfieldbackend.models.entities.Log;
 import com.nakamas.hatfieldbackend.models.entities.shop.*;
 import com.nakamas.hatfieldbackend.models.entities.ticket.Brand;
 import com.nakamas.hatfieldbackend.models.entities.ticket.Model;
 import com.nakamas.hatfieldbackend.models.entities.ticket.Ticket;
+import com.nakamas.hatfieldbackend.models.enums.LogType;
 import com.nakamas.hatfieldbackend.models.views.incoming.CreateInventoryItem;
 import com.nakamas.hatfieldbackend.models.views.incoming.PageRequestView;
 import com.nakamas.hatfieldbackend.models.views.incoming.filters.InventoryItemFilter;
@@ -56,7 +57,9 @@ public class InventoryItemService {
                 shopRepository.getReferenceById(inventoryItem.shopId()),
                 category.orElse(null)
         );
-        return inventoryItemRepository.save(item);
+        InventoryItem savedItem = inventoryItemRepository.save(item);
+        loggerService.itemActions(new Log(LogType.ADD_NEW_ITEM_TO_INVENTORY), savedItem, 0);
+        return savedItem;
     }
 
     public InventoryItem updateInventoryItem(CreateInventoryItem inventoryItem) {
@@ -73,6 +76,7 @@ public class InventoryItemService {
             shop = shopRepository.findById(inventoryItem.shopId());
 
         item.update(inventoryItem, brand, model, shop.orElse(null), category.orElse(null));
+        loggerService.itemActions(new Log(LogType.UPDATE_ITEM), item, 0);
         return inventoryItemRepository.save(item);
     }
 
@@ -88,6 +92,7 @@ public class InventoryItemService {
         item.setCount(item.getCount() - count);
         inventoryItemRepository.save(item);
         UsedPart usedPart = new UsedPart(ticket, item, count, ZonedDateTime.now());
+        loggerService.useItemForRepair(new Log(LogType.USED_PART), item, ticket.getId(), count);
         return usedPartRepository.save(usedPart);
     }
 
@@ -114,13 +119,16 @@ public class InventoryItemService {
     }
 
     public void updateQuantity(Long id, Integer quantity) {
+        InventoryItem item = inventoryItemRepository.findById(id).orElseThrow(() -> new CustomException("Item with provided id could not be found"));
+        loggerService.itemActions(new Log(LogType.UPDATE_ITEM_COUNT), item, quantity);
         inventoryItemRepository.updateQuantity(id, quantity);
     }
 
     public void remove(Long id) {
-        InventoryItem item = inventoryItemRepository.getReferenceById(id);
+        InventoryItem item = inventoryItemRepository.findById(id).orElseThrow(() -> new CustomException("Item with provided id could not be found"));
         item.setCount(0);
         item.getRequiredItem().setNeeded(false);
+        loggerService.itemActions(new Log(LogType.UPDATE_ITEM_COUNT), item, 0);
         inventoryItemRepository.save(item);
     }
 
@@ -152,12 +160,14 @@ public class InventoryItemService {
 
     public CategoryView createCategory(CategoryView createView) {
         Category save = categoryRepository.save(new Category(createView));
+        loggerService.categoryActions(new Log(LogType.CREATED_CATEGORY), createView.name());
         return new CategoryView(save);
     }
 
     public CategoryView updateCategory(CategoryView categoryView, Long id) {
         Category category = categoryRepository.findById(id).orElseThrow(() -> new CustomException("Cant find category by id"));
         category.update(categoryView);
+        loggerService.categoryActions(new Log(LogType.UPDATED_CATEGORY), categoryView.name());
         return new CategoryView(categoryRepository.save(category));
     }
 
@@ -168,8 +178,9 @@ public class InventoryItemService {
     }
 
     public void changeNeed(Long id, Boolean need) {
-        InventoryItem item = inventoryItemRepository.getReferenceById(id);
+        InventoryItem item = inventoryItemRepository.findById(id).orElseThrow(() -> new CustomException("Item with provided id could not be found"));
         item.getRequiredItem().setNeeded(need);
+        loggerService.itemActions(new Log(LogType.UPDATE_ITEM), item, 0);
         inventoryItemRepository.save(item);
     }
 
@@ -187,11 +198,11 @@ public class InventoryItemService {
         return inventoryItemRepository.findById(inventoryItem).orElseThrow(() -> new CustomException("Cannot find item with selected id"));
     }
 
-    public void deleteCategory(Long id, User user) {
+    public void deleteCategory(Long id) {
         inventoryItemRepository.setItemsToNullCategory(id);
         Category category = categoryRepository.findById(id).orElseThrow(() -> new CustomException("No such category exists"));
+        loggerService.categoryActions(new Log(LogType.DELETED_CATEGORY), category.getName());
         categoryRepository.deleteById(id);
-        loggerService.createLogDeletedCategory(category,user);
     }
 
     public CategoryView getCategory(Long categoryId) {
@@ -207,10 +218,9 @@ public class InventoryItemService {
         return new SoldItemView(save);
     }
 
-    public void updateRequiredItemCount(Long id, Integer count, User user) {
-        InventoryItem item = getItem(id);
+    public void updateRequiredItemCount(Long id, Integer count) {
+        InventoryItem item = inventoryItemRepository.findById(id).orElseThrow(() -> new CustomException("Item with provided id could not be found"));
         item.getRequiredItem().setRequiredAmount(count);
         item.getRequiredItem().setCurrentCount(item.getCount());
-        loggerService.createLogUpdatedRequiredItemAmount(item, user);
     }
 }
