@@ -9,7 +9,6 @@ import com.nakamas.hatfieldbackend.models.views.outgoing.PageView;
 import com.nakamas.hatfieldbackend.models.views.outgoing.inventory.InventoryItemView;
 import com.nakamas.hatfieldbackend.models.views.outgoing.inventory.ItemPropertyView;
 import com.nakamas.hatfieldbackend.models.views.outgoing.inventory.ShortItemView;
-import com.nakamas.hatfieldbackend.models.views.outgoing.shop.SoldItemView;
 import com.nakamas.hatfieldbackend.services.InventoryItemService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -54,11 +53,6 @@ public class InventoryItemController {
     @GetMapping("item/short")
     public List<ShortItemView> getAllShopInventory(@AuthenticationPrincipal User loggedUser, InventoryItemFilter filter) {
         return inventoryItemService.getShortShopInventory(loggedUser.getShop().getId(), filter);
-    }
-
-    @PostMapping("item/sell")
-    public SoldItemView sellItem(@RequestParam Long id, @RequestParam(required = false, defaultValue = "1") Integer count) {
-        return inventoryItemService.sellItem(id, count);
     }
 
     @GetMapping("item/required")

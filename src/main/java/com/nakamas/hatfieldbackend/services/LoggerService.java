@@ -145,11 +145,10 @@ public class LoggerService {
         createLog(logMessage);
     }
 
-    public void invoiceActions(InvoiceType invoiceType, Long invoiceId) {
+    public void createInvoiceActions(InvoiceType invoiceType, Long invoiceId) {
         Log logMessage = new Log();
         String loggedUserName = saveUser(logMessage);
         logMessage.setInvoiceId(invoiceId);
-        if(invoiceType != null) {
             switch (invoiceType) {
                 case SELL -> {
                     logMessage.setLogType(LogType.CREATED_SELL_INVOICE);
@@ -169,10 +168,15 @@ public class LoggerService {
                 }
                 default -> logMessage.setAction("User '%s' did an unknown action!".formatted(loggedUserName));
             }
-        }else{//to use when I merge the branches
-            logMessage.setLogType(LogType.INVALIDATED_INVOICE);
-            logMessage.setAction("User '%s' invalidated Invoice#'%s'.".formatted(loggedUserName, invoiceId));
+            createLog(logMessage);
         }
+
+    public void invalidateInvoiceActions(Long invoiceId){
+        Log logMessage = new Log();
+        String loggedUserName = saveUser(logMessage);
+        logMessage.setInvoiceId(invoiceId);
+        logMessage.setLogType(LogType.INVALIDATED_INVOICE);
+        logMessage.setAction("User '%s' invalidated Invoice#'%s'.".formatted(loggedUserName, invoiceId));
         createLog(logMessage);
     }
 }

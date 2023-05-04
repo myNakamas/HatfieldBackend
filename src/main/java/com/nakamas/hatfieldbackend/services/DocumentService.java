@@ -1,5 +1,6 @@
 package com.nakamas.hatfieldbackend.services;
 
+import com.nakamas.hatfieldbackend.models.entities.User;
 import com.nakamas.hatfieldbackend.models.entities.shop.InventoryItem;
 import com.nakamas.hatfieldbackend.models.entities.ticket.Invoice;
 import com.nakamas.hatfieldbackend.models.entities.ticket.Ticket;
@@ -76,6 +77,45 @@ public class DocumentService implements ApplicationRunner {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+    public PdfAndImageDoc createUserTag(String urlPrefix,User user) {
+        InputStream input = getTemplate("/smallTag.pdf");
+        String qrContent = "%s/login?username=%s&password=%s".formatted(urlPrefix, user.getUsername(),user.getFirstPassword());
+
+        try (PDDocument document = PDDocument.load(input)) {
+            fillUserTagTemplate(qrContent, user, document);
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            document.save(baos);
+            return new PdfAndImageDoc(getImage(document, "userTag"), baos.toByteArray());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void fillUserTagTemplate(String qrContent, User user, PDDocument document) throws IOException {
+        PDFont pdfFont = PDType1Font.HELVETICA_BOLD;
+        PDPage page = document.getPage(0);
+        PDPageContentStream contents = new PDPageContentStream(document, page, PDPageContentStream.AppendMode.APPEND, true, true);
+        File code = QRCode.from(qrContent).withSize(240, 240).file();
+        PDImageXObject qrCode = PDImageXObject.createFromFileByContent(code, document);
+        contents.drawImage(qrCode, -20, -10);
+        contents.setFont(pdfFont, 25);
+        contents.beginText();
+        contents.newLineAtOffset(200, 180);
+        contents.setLeading(35);
+        contents.showText("Username: "+user.getUsername());
+        contents.setFont(pdfFont, 20);
+        contents.newLine();
+        contents.showText("Password: "+user.getFirstPassword());
+        contents.newLine();
+        contents.setFont(pdfFont, 12);
+        contents.setLeading(15);
+        contents.showText("* You are strongly advised to change *");
+        contents.newLine();
+        contents.showText("* your first password once you log in! *");
+        contents.endText();
+
+        contents.close();
     }
 
     public PdfAndImageDoc createTicket(String qrContent, Ticket ticket) {

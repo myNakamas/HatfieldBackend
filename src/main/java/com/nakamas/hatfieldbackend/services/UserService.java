@@ -167,6 +167,7 @@ public class UserService implements UserDetailsService, UserDetailsPasswordServi
     }
 
     private User validateAndSave(User user) {
+        if(user.getShop()==null) throw new CustomException("User must be attached to a shop!");
         List<User> existingUsers = userRepository.uniqueUserExists(user.getUsername(), user.getEmail());
         if (user.isNew() && existingUsers.size() > 0 ||
                 existingUsers.stream().anyMatch(profile -> !Objects.equals(profile.getId(), user.getId())))

@@ -1,13 +1,11 @@
 package com.nakamas.hatfieldbackend.controllers;
 
+import com.nakamas.hatfieldbackend.models.entities.User;
 import com.nakamas.hatfieldbackend.models.entities.shop.InventoryItem;
 import com.nakamas.hatfieldbackend.models.entities.ticket.Invoice;
 import com.nakamas.hatfieldbackend.models.entities.ticket.Ticket;
 import com.nakamas.hatfieldbackend.models.views.outgoing.PdfAndImageDoc;
-import com.nakamas.hatfieldbackend.services.DocumentService;
-import com.nakamas.hatfieldbackend.services.InventoryItemService;
-import com.nakamas.hatfieldbackend.services.InvoicingService;
-import com.nakamas.hatfieldbackend.services.TicketService;
+import com.nakamas.hatfieldbackend.services.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
@@ -17,16 +15,19 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.UUID;
+
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("api/document")
 public class DocumentController {
-    @Value(value = "${fe-host:localhost:5173}")
+    @Value(value = "${fe-host:http://localhost:5173}")
     private String frontendHost;
     private final TicketService ticketService;
     private final InventoryItemService inventoryItemService;
     private final DocumentService documentService;
     private final InvoicingService invoiceService;
+    private final UserService userService;
 
     //todo: Assign the qrcodes to redirect to the frontend page that shows data of the item.
     @PostMapping(value = "print/ticket", produces = MediaType.APPLICATION_PDF_VALUE)
@@ -50,6 +51,14 @@ public class DocumentController {
     private ResponseEntity<byte[]> printRepairTag(@RequestParam Long ticketId) {
         Ticket ticket = ticketService.getTicket(ticketId);
         PdfAndImageDoc doc = documentService.createRepairTag("%s/tickets?ticketId=%s".formatted(frontendHost, ticket.getId()), ticket);
+        documentService.executePrint(doc.image());
+        byte[] bytes = doc.pdfBytes();
+        return ResponseEntity.ok().contentType(MediaType.APPLICATION_PDF).body(bytes);
+    }
+    @PostMapping(value = "print/tag/user", produces = MediaType.APPLICATION_PDF_VALUE)
+    private ResponseEntity<byte[]> printRepairTag(@RequestParam UUID userId) {
+        User user = userService.getUser(userId);
+        PdfAndImageDoc doc = documentService.createUserTag(frontendHost,user);
         documentService.executePrint(doc.image());
         byte[] bytes = doc.pdfBytes();
         return ResponseEntity.ok().contentType(MediaType.APPLICATION_PDF).body(bytes);
