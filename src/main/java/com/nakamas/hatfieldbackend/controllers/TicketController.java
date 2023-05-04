@@ -69,7 +69,7 @@ public class TicketController {
         return ticketService.collectedDevice(user, id, invoice);
     }
     @PostMapping("part/use")
-    public TicketView useItem(@AuthenticationPrincipal User user, @RequestBody CreateUsedItem usedItem){
-        return new TicketView(ticketService.usePartFromInventory(usedItem.ticketId(), usedItem.itemId(), usedItem.count(),user));
+    public TicketView useItem(@RequestBody CreateUsedItem usedItem){
+        return new TicketView(ticketService.usePartFromInventory(usedItem.ticketId(), usedItem.itemId(), usedItem.count()));
     }
 }

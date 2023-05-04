@@ -1,12 +1,14 @@
 package com.nakamas.hatfieldbackend.services;
 
 import com.nakamas.hatfieldbackend.config.exception.CustomException;
+import com.nakamas.hatfieldbackend.models.entities.Log;
 import com.nakamas.hatfieldbackend.models.entities.User;
 import com.nakamas.hatfieldbackend.models.entities.shop.DeviceLocation;
 import com.nakamas.hatfieldbackend.models.entities.shop.UsedPart;
 import com.nakamas.hatfieldbackend.models.entities.ticket.Invoice;
 import com.nakamas.hatfieldbackend.models.entities.ticket.Ticket;
 import com.nakamas.hatfieldbackend.models.enums.InvoiceType;
+import com.nakamas.hatfieldbackend.models.enums.LogType;
 import com.nakamas.hatfieldbackend.models.enums.TicketStatus;
 import com.nakamas.hatfieldbackend.models.views.incoming.CreateChatMessage;
 import com.nakamas.hatfieldbackend.models.views.incoming.CreateInvoice;
@@ -43,7 +45,7 @@ public class TicketService {
         setOptionalProperties(create, ticket);
         if (create.clientId() != null) ticket.setClient(userService.getUser(create.clientId()));
         Ticket save = ticketRepository.save(ticket);
-        loggerService.createLog("Ticket with id '%s' has been created by %s".formatted(save.getId(), loggedUser.getUsername()), loggedUser.getId(), save.getId());
+        loggerService.ticketActions(new Log(LogType.CREATED_TICKET), save);
         return save;
     }
 
@@ -52,6 +54,7 @@ public class TicketService {
         ticketEntity.update(ticket);
         if (ticket.clientId() != null) ticketEntity.setClient(userService.getUser(ticket.clientId()));
         setOptionalProperties(ticket, ticketEntity);
+        loggerService.ticketActions(new Log(LogType.UPDATED_TICKET), ticketEntity);
         return ticketRepository.save(ticketEntity).getId();
     }
     //endregion
@@ -60,7 +63,10 @@ public class TicketService {
     private void setOptionalProperties(CreateTicket create, Ticket ticket) {
         ticket.setDeviceModel(inventoryService.getOrCreateModel(create.deviceModel()));
         ticket.setDeviceBrand(inventoryService.getOrCreateBrand(create.deviceBrand()));
-        ticket.setDeviceLocation(getOrCreateLocation(create.deviceBrand()));
+        if(!ticket.getDeviceLocationString().equals(create.deviceLocation()) && ticket.getDeviceLocation() != null){
+            ticket.setDeviceLocation(getOrCreateLocation(create.deviceLocation()));
+            loggerService.ticketActions(new Log(LogType.MOVED_TICKET), ticket);
+        }
     }
 
     public DeviceLocation getOrCreateLocation(String location) {
@@ -97,7 +103,7 @@ public class TicketService {
         createMessageForTicket("Hello! The repair of your device has been initiated.", user, ticket);
         //send sms if options allow
         //to send email if options allow
-        loggerService.createLog("Repair on ticket '%s' was started by %s".formatted(id, user.getUsername()), user.getId(), id);
+        loggerService.ticketActions(new Log(LogType.STARTED_TICKET), ticket);
         ticketRepository.save(ticket);
     }
 
@@ -115,7 +121,7 @@ public class TicketService {
                                "up your device at a comfortable time.", user, ticket);
         //send sms if options allow
         //to send email if options allow
-        loggerService.createLog("The repair has been completed by " + user.getUsername(), user.getId(), id);
+        loggerService.ticketActions(new Log(LogType.FINISHED_TICKET), ticket);
         ticketRepository.save(ticket);
     }
 
@@ -129,15 +135,14 @@ public class TicketService {
         createMessageForTicket("The device has been collected. Information can be found" +
                                " in your 'invoices' tab. If that action hasn't been done by you please contact the store.", user, ticket);
         ticketRepository.save(ticket);
-        loggerService.createLog("The device has been marked as collected by " + user.getUsername(), user.getId(), id);
+        loggerService.ticketActions(new Log(LogType.COLLECTED_TICKET), ticket);
         return invoiceService.getAsBlob(result);
     }
 
-    public Ticket usePartFromInventory(Long id, Long inventoryItemId, int count, User user) {
+    public Ticket usePartFromInventory(Long id, Long inventoryItemId, int count) {
         Ticket ticket = getTicket(id);
         UsedPart usedPart = inventoryService.useItemForTicket(inventoryItemId, ticket, count);
         ticket.getUsedParts().add(usedPart);
-        loggerService.createLogUsedItem(usedPart, id, user);
         return ticketRepository.save(ticket);
     }
 

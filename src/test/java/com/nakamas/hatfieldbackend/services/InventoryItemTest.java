@@ -78,7 +78,7 @@ class InventoryItemTest {
         InventoryItem item = inventoryItemService.createInventoryItem(getTestInventoryItem(shop, category));
         assertNotNull(item.getId());
 
-        inventoryItemService.deleteCategory(category.getId(), loggedUser);
+        inventoryItemService.deleteCategory(category.getId());
         assertFalse(categoryRepository.existsById(category.getId()));
 
         entityManager.refresh(item);
@@ -127,15 +127,15 @@ class InventoryItemTest {
         InventoryItem item = inventoryItemService.createInventoryItem(testInventoryItem);
         Long itemId = item.getId();
         CreateTicket createTicket = getTestTicket(loggedUser);
-        Ticket ticket = ticketRepository.save(new Ticket(createTicket,loggedUser));
-        UsedPart result = inventoryItemService.useItemForTicket(itemId, ticket,2);
+        Ticket ticket = ticketRepository.save(new Ticket(createTicket, loggedUser));
+        UsedPart result = inventoryItemService.useItemForTicket(itemId, ticket, 2);
 
         assertNotNull(result.getId());
         assertEquals(itemId, result.getItem().getId());
         assertEquals(2, result.getUsedCount());
         assertNotNull(result.getTimestamp());
         assertNotNull(itemId);
-        assertEquals(ticket.getId(),result.getTicket().getId());
+        assertEquals(ticket.getId(), result.getTicket().getId());
         InventoryItem updatedItem = inventoryItemRepository.findById(itemId).orElse(null);
         assertNotNull(updatedItem);
         assertEquals(testInventoryItem.count() - 2, updatedItem.getCount().intValue());
