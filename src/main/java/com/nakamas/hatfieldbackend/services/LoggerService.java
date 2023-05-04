@@ -17,6 +17,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
@@ -30,7 +31,9 @@ public class LoggerService {
     private final UserRepository userRepository;
 
     private String saveUser(Log logMessage) {
-        User loggedUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if(authentication == null) return "";
+        User loggedUser = (User) authentication.getPrincipal();
         logMessage.setUserId(loggedUser.getId());
         logMessage.setShopId(loggedUser.getShop().getId());
         return loggedUser.getFullName();
