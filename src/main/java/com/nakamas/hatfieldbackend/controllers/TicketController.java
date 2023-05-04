@@ -48,9 +48,9 @@ public class TicketController {
         return ticketService.findAllActive(ticketFilter);
     }
 //todo: dive deeper into priorities' issues
-    @PutMapping("priority")
-    public void updatePriority( @RequestParam Long id, @RequestParam Integer priority){
-        ticketService.setPriorityTo(id, priority);
+    @PatchMapping("priority")
+    public void updatePriority( @RequestParam Long id,@RequestParam Long newIndexId){
+        ticketService.updatePriority(id, newIndexId);
     }
 
 //    todo: Post Start repair (move to lab, status started + message in chat + Open chat)

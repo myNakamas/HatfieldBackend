@@ -31,7 +31,7 @@ public class InvoicingService {
         Invoice newInvoice = invoiceRepository.save(new Invoice(invoice,
                 userService.getUser(invoice.getCreatedBy()),
                 invoice.getClient() == null ? null : userService.getUser(invoice.getClient())));
-        loggerService.invoiceActions(newInvoice.getType(), newInvoice.getId());
+        loggerService.createInvoiceActions(newInvoice.getType(), newInvoice.getId());
         return newInvoice;
     }
 
@@ -86,6 +86,7 @@ public class InvoicingService {
     public void invalidateInvoice(Long invoiceId){
         Invoice byId = getById(invoiceId);
         byId.setValid(false);
+        loggerService.invalidateInvoiceActions(invoiceId);
         invoiceRepository.save(byId);
     }
 }

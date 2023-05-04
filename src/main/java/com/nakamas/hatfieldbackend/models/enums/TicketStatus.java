@@ -17,5 +17,9 @@ public enum TicketStatus {
     UNFIXABLE,
 
     SHIPPED_TO_CUSTOMER,
-    COLLECTED
+    COLLECTED;
+
+    public boolean isActive() {
+        return this == PENDING || this == DIAGNOSED || this == STARTED;
+    }
 }

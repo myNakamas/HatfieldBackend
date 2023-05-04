@@ -130,16 +130,19 @@ public class TicketTests {
     @Test
     @Transactional
     void update_ticket_priority_should_succeed() {
-        int currPriority = ticket.getPriority();
-        ticketService.setPriorityTo(ticket.getId(),  currPriority+ 2);
-        Assertions.assertEquals(currPriority + 2, ticketService.getTicket(ticket.getId()).getPriority());
+        CreateTicket createTicket = TestData.getTestTicket(client);
+        Ticket secondTicket = ticketService.createTicket(createTicket, user);
+        ticketService.updatePriority(ticket.getId(), secondTicket.getId());
+        Assertions.assertEquals(secondTicket.getPriority() + 1, ticketService.getTicket(ticket.getId()).getPriority());
     }
 
     @Test
     @Transactional
     void update_ticket_priority_should_fail() {
         int currPriority = ticket.getPriority();
-        ticketService.setPriorityTo(ticket.getId(),  currPriority+ 2);
+        CreateTicket createTicket = TestData.getTestTicket(client);
+        Ticket secondTicket = ticketService.createTicket(createTicket, user);
+        ticketService.updatePriority(ticket.getId(), secondTicket.getId());
         Assertions.assertNotEquals(currPriority, ticketService.getTicket(ticket.getId()).getPriority());
     }
 
@@ -149,6 +152,7 @@ public class TicketTests {
         ticketService.startRepair(user, ticket.getId());
         Assertions.assertEquals(ticketService.getTicket(ticket.getId()).getStatus(), TicketStatus.STARTED);
     }
+
     @Test
     @Transactional
     void complete_ticket_repair_should_succeed() {

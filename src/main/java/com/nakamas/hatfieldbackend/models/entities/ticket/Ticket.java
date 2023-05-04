@@ -9,7 +9,6 @@ import com.nakamas.hatfieldbackend.models.views.incoming.CreateTicket;
 import com.nakamas.hatfieldbackend.services.listeners.TicketListener;
 import jakarta.persistence.*;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.data.jpa.domain.AbstractPersistable;
 
@@ -20,7 +19,6 @@ import java.util.List;
 
 @Getter
 @Setter
-@NoArgsConstructor
 @Table
 @Entity
 @EntityListeners(TicketListener.class)
@@ -46,7 +44,7 @@ public class Ticket extends AbstractPersistable<Long> {
     private String notes;
     private BigDecimal totalPrice;
     private BigDecimal deposit = BigDecimal.ZERO;
-    private Integer priority = 0;
+    private Integer priority;
 
     @ManyToOne
     private User createdBy;
@@ -77,7 +75,13 @@ public class Ticket extends AbstractPersistable<Long> {
     @JoinColumn(name = "ticket_id")
     private List<ChatMessage> chatMessages = new ArrayList<>();
 
+    public Ticket() {
+        this.timestamp = ZonedDateTime.now();
+        this.priority = 0;
+    }
+
     public Ticket(CreateTicket create, User user) {
+        this();
         this.customerRequest = create.customerRequest();
         this.deviceProblemExplanation = create.problemExplanation();
         this.deviceCondition = create.deviceCondition();
@@ -90,11 +94,8 @@ public class Ticket extends AbstractPersistable<Long> {
         this.deposit = create.deposit();
         this.priority = create.priority();
         this.status = create.status();
-
         this.createdBy = user;
         this.shop = user.getShop();
-
-        this.timestamp = ZonedDateTime.now();
     }
 
     public void update(CreateTicket ticket) {
