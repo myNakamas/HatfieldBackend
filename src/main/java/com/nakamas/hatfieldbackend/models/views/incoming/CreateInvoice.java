@@ -26,7 +26,6 @@ public class CreateInvoice {
     private Long ticketId;
     private String notes;
     private BigDecimal totalPrice;
-    private UUID createdBy;
     private UUID client;
     private PaymentMethod paymentMethod;
     private WarrantyPeriod warrantyPeriod;

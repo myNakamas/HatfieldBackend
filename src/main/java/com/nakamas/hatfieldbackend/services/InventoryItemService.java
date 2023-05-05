@@ -19,6 +19,7 @@ import com.nakamas.hatfieldbackend.models.views.outgoing.inventory.ItemPropertyV
 import com.nakamas.hatfieldbackend.models.views.outgoing.inventory.ShortItemView;
 import com.nakamas.hatfieldbackend.models.views.outgoing.shop.CategoryView;
 import com.nakamas.hatfieldbackend.repositories.*;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
@@ -119,6 +120,7 @@ public class InventoryItemService {
         return brandRepository.findAllBrands();
     }
 
+    @Transactional
     public void updateQuantity(Long id, Integer quantity) {
         InventoryItem item = inventoryItemRepository.findById(id).orElseThrow(() -> new CustomException("Item with provided id could not be found"));
         loggerService.itemActions(new Log(LogType.UPDATE_ITEM_COUNT), item, quantity);

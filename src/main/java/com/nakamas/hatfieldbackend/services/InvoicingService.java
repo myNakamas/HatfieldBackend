@@ -1,5 +1,6 @@
 package com.nakamas.hatfieldbackend.services;
 
+import com.nakamas.hatfieldbackend.models.entities.User;
 import com.nakamas.hatfieldbackend.models.entities.ticket.Invoice;
 import com.nakamas.hatfieldbackend.models.views.incoming.CreateInvoice;
 import com.nakamas.hatfieldbackend.models.views.incoming.PageRequestView;
@@ -27,9 +28,9 @@ public class InvoicingService {
     private final DocumentService documentService;
     private final LoggerService loggerService;
 
-    public Invoice create(CreateInvoice invoice) {
+    public Invoice create(CreateInvoice invoice, User user) {
         Invoice newInvoice = invoiceRepository.save(new Invoice(invoice,
-                userService.getUser(invoice.getCreatedBy()),
+                user,
                 invoice.getClient() == null ? null : userService.getUser(invoice.getClient())));
         loggerService.createInvoiceActions(newInvoice.getType(), newInvoice.getId());
         return newInvoice;
