@@ -2,21 +2,19 @@ package com.nakamas.hatfieldbackend.services;
 
 import com.nakamas.hatfieldbackend.config.exception.CustomException;
 import com.nakamas.hatfieldbackend.models.entities.Log;
-import com.nakamas.hatfieldbackend.models.entities.User;
 import com.nakamas.hatfieldbackend.models.entities.shop.Category;
 import com.nakamas.hatfieldbackend.models.entities.shop.InventoryItem;
 import com.nakamas.hatfieldbackend.models.entities.shop.Shop;
 import com.nakamas.hatfieldbackend.models.entities.shop.UsedPart;
 import com.nakamas.hatfieldbackend.models.entities.ticket.Brand;
-import com.nakamas.hatfieldbackend.models.entities.ticket.Invoice;
 import com.nakamas.hatfieldbackend.models.entities.ticket.Model;
 import com.nakamas.hatfieldbackend.models.entities.ticket.Ticket;
 import com.nakamas.hatfieldbackend.models.enums.LogType;
 import com.nakamas.hatfieldbackend.models.views.incoming.CreateInventoryItem;
-import com.nakamas.hatfieldbackend.models.views.incoming.CreateInvoice;
 import com.nakamas.hatfieldbackend.models.views.incoming.PageRequestView;
 import com.nakamas.hatfieldbackend.models.views.incoming.filters.InventoryItemFilter;
 import com.nakamas.hatfieldbackend.models.views.outgoing.PageView;
+import com.nakamas.hatfieldbackend.models.views.outgoing.inventory.BrandView;
 import com.nakamas.hatfieldbackend.models.views.outgoing.inventory.InventoryItemView;
 import com.nakamas.hatfieldbackend.models.views.outgoing.inventory.ItemPropertyView;
 import com.nakamas.hatfieldbackend.models.views.outgoing.inventory.ShortItemView;
@@ -47,7 +45,8 @@ public class InventoryItemService {
 
     public InventoryItem createInventoryItem(CreateInventoryItem inventoryItem) {
         Brand brand = getOrCreateBrand(inventoryItem.brandId(), inventoryItem.brand());
-        Model model = getOrCreateModel(inventoryItem.modelId(), inventoryItem.model());
+        Model model = getOrCreateModel(inventoryItem.modelId(), inventoryItem.model(), brand.getId());
+        if (!brand.getModels().contains(model)) brand.getModels().add(model);
         Optional<Category> category = Optional.empty();
         if (inventoryItem.categoryId() != null) {
             category = categoryRepository.findById(inventoryItem.categoryId());
@@ -70,7 +69,8 @@ public class InventoryItemService {
     public InventoryItem updateInventoryItem(CreateInventoryItem inventoryItem) {
         InventoryItem item = inventoryItemRepository.findById(inventoryItem.id()).orElseThrow(() -> new CustomException("Item with provided id could not be found"));
         Brand brand = getOrCreateBrand(inventoryItem.brandId(), inventoryItem.brand());
-        Model model = getOrCreateModel(inventoryItem.modelId(), inventoryItem.model());
+        Model model = getOrCreateModel(inventoryItem.modelId(), inventoryItem.model(), brand.getId());
+        if (!brand.getModels().contains(model)) brand.getModels().add(model);
         Optional<Category> category = Optional.empty();
         Optional<Shop> shop = Optional.empty();
         if (inventoryItem.categoryId() != null) {
@@ -123,7 +123,7 @@ public class InventoryItemService {
         return modelRepository.findAllModels();
     }
 
-    public List<ItemPropertyView> getAllBrands() {
+    public List<BrandView> getAllBrands() {
         return brandRepository.findAllBrands();
     }
 
@@ -142,17 +142,17 @@ public class InventoryItemService {
         inventoryItemRepository.save(item);
     }
 
-    public Model getOrCreateModel(Long modelId, String modelValue) {
+    public Model getOrCreateModel(Long modelId, String modelValue, Long brandId) {
         if (modelId != null)
             return modelRepository.findById(modelId).orElseThrow(() -> new CustomException("Model with that Id does not exist"));
-        return getOrCreateModel(modelValue);
+        return getOrCreateModel(modelValue, brandId);
     }
 
-    public Model getOrCreateModel(String modelValue) {
+    public Model getOrCreateModel(String modelValue, Long brandId) {
         if (modelValue == null || modelValue.isBlank()) return null;
-        Model existingByName = modelRepository.findByName(modelValue);
+        Model existingByName = modelRepository.findByName(modelValue, brandId);
         if (existingByName != null) return existingByName;
-        return modelRepository.save(new Model(modelValue));
+        return modelRepository.save(new Model(modelValue, brandId));
     }
 
     public Brand getOrCreateBrand(Long brandId, String brandValue) {

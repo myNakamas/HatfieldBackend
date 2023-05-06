@@ -3,10 +3,10 @@ package com.nakamas.hatfieldbackend.controllers;
 import com.nakamas.hatfieldbackend.models.entities.User;
 import com.nakamas.hatfieldbackend.models.entities.shop.InventoryItem;
 import com.nakamas.hatfieldbackend.models.views.incoming.CreateInventoryItem;
-import com.nakamas.hatfieldbackend.models.views.incoming.CreateInvoice;
 import com.nakamas.hatfieldbackend.models.views.incoming.PageRequestView;
 import com.nakamas.hatfieldbackend.models.views.incoming.filters.InventoryItemFilter;
 import com.nakamas.hatfieldbackend.models.views.outgoing.PageView;
+import com.nakamas.hatfieldbackend.models.views.outgoing.inventory.BrandView;
 import com.nakamas.hatfieldbackend.models.views.outgoing.inventory.InventoryItemView;
 import com.nakamas.hatfieldbackend.models.views.outgoing.inventory.ItemPropertyView;
 import com.nakamas.hatfieldbackend.models.views.outgoing.inventory.ShortItemView;
@@ -87,7 +87,7 @@ public class InventoryItemController {
     }
 
     @GetMapping("brand/all")
-    public List<ItemPropertyView> getAllBrands() {
+    public List<BrandView> getAllBrands() {
         return inventoryItemService.getAllBrands();
     }
 
