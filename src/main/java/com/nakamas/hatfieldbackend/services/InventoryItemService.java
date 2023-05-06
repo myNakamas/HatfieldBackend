@@ -2,15 +2,18 @@ package com.nakamas.hatfieldbackend.services;
 
 import com.nakamas.hatfieldbackend.config.exception.CustomException;
 import com.nakamas.hatfieldbackend.models.entities.Log;
+import com.nakamas.hatfieldbackend.models.entities.User;
 import com.nakamas.hatfieldbackend.models.entities.shop.Category;
 import com.nakamas.hatfieldbackend.models.entities.shop.InventoryItem;
 import com.nakamas.hatfieldbackend.models.entities.shop.Shop;
 import com.nakamas.hatfieldbackend.models.entities.shop.UsedPart;
 import com.nakamas.hatfieldbackend.models.entities.ticket.Brand;
+import com.nakamas.hatfieldbackend.models.entities.ticket.Invoice;
 import com.nakamas.hatfieldbackend.models.entities.ticket.Model;
 import com.nakamas.hatfieldbackend.models.entities.ticket.Ticket;
 import com.nakamas.hatfieldbackend.models.enums.LogType;
 import com.nakamas.hatfieldbackend.models.views.incoming.CreateInventoryItem;
+import com.nakamas.hatfieldbackend.models.views.incoming.CreateInvoice;
 import com.nakamas.hatfieldbackend.models.views.incoming.PageRequestView;
 import com.nakamas.hatfieldbackend.models.views.incoming.filters.InventoryItemFilter;
 import com.nakamas.hatfieldbackend.models.views.outgoing.PageView;
@@ -48,7 +51,7 @@ public class InventoryItemService {
         Optional<Category> category = Optional.empty();
         if (inventoryItem.categoryId() != null) {
             category = categoryRepository.findById(inventoryItem.categoryId());
-            if(inventoryItem.properties()!=null)
+            if (inventoryItem.properties() != null)
                 category.ifPresent(value -> inventoryItem.properties().entrySet().removeIf(property -> !value.getFields().contains(property.getKey())));
         }
 
@@ -89,13 +92,17 @@ public class InventoryItemService {
 
     public UsedPart useItemForTicket(Long inventoryItemId, Ticket ticket, Integer count) {
         InventoryItem item = getItem(inventoryItemId);
-        if (item.getCount() < count)
-            throw new CustomException("Not enough Items in storage!");
-        item.setCount(item.getCount() - count);
+        updateItemCount(count, item);
         inventoryItemRepository.save(item);
         UsedPart usedPart = new UsedPart(ticket, item, count, ZonedDateTime.now());
         loggerService.useItemForRepair(new Log(LogType.USED_PART), item, ticket.getId(), count);
         return usedPartRepository.save(usedPart);
+    }
+
+    private static void updateItemCount(Integer count, InventoryItem item) {
+        if (item.getCount() < count)
+            throw new CustomException("Not enough Items in storage!");
+        item.setCount(item.getCount() - count);
     }
 
     public PageView<InventoryItemView> getShopInventory(Long shopId, InventoryItemFilter filter, PageRequestView pageRequestView) {
@@ -212,7 +219,14 @@ public class InventoryItemService {
         if (categoryId == null) return null;
         return categoryRepository.findById(categoryId).map(CategoryView::new).orElse(null);
     }
-    
+
+    public void sellItem(Long id, Integer count) {
+        InventoryItem item = getItem(id);
+        updateItemCount(count, item);
+        loggerService.itemActions(new Log(LogType.CREATED_SELL_INVOICE), item, count);
+        inventoryItemRepository.save(item);
+    }
+
     public void updateRequiredItemCount(Long id, Integer count) {
         InventoryItem item = getItem(id);
         item.getRequiredItem().setRequiredAmount(count);

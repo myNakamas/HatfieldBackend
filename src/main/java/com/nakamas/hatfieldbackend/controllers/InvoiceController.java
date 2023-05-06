@@ -22,8 +22,8 @@ public class InvoiceController {
     private final InvoicingService invoiceService;
 
     @PostMapping("create")
-    public void createNonRepairInvoice(@RequestBody CreateInvoice createInvoice, @AuthenticationPrincipal User user) {
-        invoiceService.create(createInvoice, user);
+    public Long createNonRepairInvoice(@RequestBody CreateInvoice invoice, @AuthenticationPrincipal User user) {
+        return invoiceService.create(invoice, user).getId();
     }
 
     @GetMapping("byId")
