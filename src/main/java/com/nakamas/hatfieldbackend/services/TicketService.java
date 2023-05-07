@@ -63,8 +63,9 @@ public class TicketService {
     //region Ticket population
     private void setOptionalProperties(CreateTicket create, Ticket ticket) {
         ticket.setDeviceBrand(inventoryService.getOrCreateBrand(create.deviceBrand()));
-        ticket.setDeviceModel(inventoryService.getOrCreateModel(create.deviceModel(), ticket.getDeviceBrand().getId()));
-        if(!ticket.getDeviceLocationString().equals(create.deviceLocation()) && ticket.getDeviceLocation() != null){
+        if (ticket.getDeviceBrand() != null)
+            ticket.setDeviceModel(inventoryService.getOrCreateModel(create.deviceModel(), ticket.getDeviceBrand()));
+        if (!ticket.getDeviceLocationString().equals(create.deviceLocation()) && ticket.getDeviceLocation() != null) {
             ticket.setDeviceLocation(getOrCreateLocation(create.deviceLocation()));
             loggerService.ticketActions(new Log(LogType.MOVED_TICKET), ticket);
         }
