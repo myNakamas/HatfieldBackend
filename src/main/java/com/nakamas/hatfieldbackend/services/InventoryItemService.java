@@ -28,6 +28,7 @@ import org.springframework.stereotype.Service;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -183,6 +184,7 @@ public class InventoryItemService {
 
     public List<InventoryItemView> getShoppingList(InventoryItemFilter filter) {
         filter.setIsNeeded(true);
+        filter.setInShoppingList(true);
         List<InventoryItem> needed = inventoryItemRepository.findAll(filter);
         return needed.stream().map(InventoryItemView::new).toList();
     }
@@ -227,9 +229,10 @@ public class InventoryItemService {
         inventoryItemRepository.save(item);
     }
 
-    public void updateRequiredItemCount(Long id, Integer count) {
+    public void updateItemSetRequiredAmount(Long id, Integer count, Boolean isNeeded) {
         InventoryItem item = getItem(id);
         item.getRequiredItem().setRequiredAmount(count);
-        item.getRequiredItem().setCurrentCount(item.getCount());
+        item.getRequiredItem().setNeeded(Objects.requireNonNullElse(isNeeded, true));
+        inventoryItemRepository.save(item);
     }
 }

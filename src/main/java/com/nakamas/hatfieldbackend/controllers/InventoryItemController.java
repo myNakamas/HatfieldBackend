@@ -31,7 +31,7 @@ public class InventoryItemController {
     }
 
     @GetMapping("item")
-    public InventoryItemView createInventoryItem(@RequestParam Long id) {
+    public InventoryItemView getById(@RequestParam Long id) {
         return new InventoryItemView(inventoryItemService.getItem(id));
     }
 
@@ -66,19 +66,14 @@ public class InventoryItemController {
         return inventoryItemService.getShoppingList(filter);
     }
 
-    @PutMapping("item/required")
-    public void getShoppingList(@RequestBody List<Long> ids, @RequestParam Boolean isNeeded) {
-        inventoryItemService.changeNeed(ids, isNeeded);
-    }
-
-    @PostMapping("item/changeNeed")
+    @PatchMapping("item/changeNeed")
     public void changeNeed(@RequestParam Long id, @RequestParam Boolean need) {
         inventoryItemService.changeNeed(id, need);
     }
 
-    @PutMapping("item/required/count")
-    public void updateRequiredItemCount(@RequestParam Long id, @RequestParam Integer count) {
-        inventoryItemService.updateRequiredItemCount(id, count);
+    @PatchMapping("item/required")
+    public void updateRequiredItemCount(@RequestParam Long id, @RequestParam Integer count, @RequestParam(required = false) Boolean isNeeded) {
+        inventoryItemService.updateItemSetRequiredAmount(id, count, isNeeded);
     }
 
     @GetMapping("model/all")
