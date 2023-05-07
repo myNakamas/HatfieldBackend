@@ -1,7 +1,10 @@
 package com.nakamas.hatfieldbackend.models.views.incoming.filters;
 
 import com.nakamas.hatfieldbackend.models.entities.shop.InventoryItem;
-import jakarta.persistence.criteria.*;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
 import lombok.*;
 import org.springframework.data.jpa.domain.Specification;
 
@@ -39,9 +42,7 @@ public class InventoryItemFilter implements Specification<InventoryItem> {
         if (minCount != null)
             predicates.add(criteriaBuilder.ge(item.get("count"), minCount));
         if (searchBy != null && !searchBy.isBlank()) {
-            MapJoin<InventoryItem, String, String> otherProperties = item.joinMap("otherProperties");
-            Expression<String> concat = criteriaBuilder.function("concat", String.class, item.get("name"), otherProperties.value());
-            predicates.add(criteriaBuilder.like(criteriaBuilder.lower(concat), "%" + searchBy.toLowerCase() + "%"));
+            predicates.add(criteriaBuilder.like(criteriaBuilder.lower(item.get("name")), "%" + searchBy.toLowerCase() + "%"));
         }
 
         query.orderBy(criteriaBuilder.desc(item.get("id")));
