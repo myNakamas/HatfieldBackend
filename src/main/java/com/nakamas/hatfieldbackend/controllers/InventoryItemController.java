@@ -66,6 +66,10 @@ public class InventoryItemController {
         return inventoryItemService.getShoppingList(filter);
     }
 
+    @PutMapping("item/changeNeed")
+    public void changeNeed(@RequestBody List<Long> ids, @RequestParam Boolean need) {
+        inventoryItemService.changeNeed(ids, need);
+    }
     @PatchMapping("item/changeNeed")
     public void changeNeed(@RequestParam Long id, @RequestParam Boolean need) {
         inventoryItemService.changeNeed(id, need);
