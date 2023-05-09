@@ -6,7 +6,6 @@ import com.nakamas.hatfieldbackend.models.entities.shop.Shop;
 import com.nakamas.hatfieldbackend.models.entities.shop.UsedPart;
 import com.nakamas.hatfieldbackend.models.enums.TicketStatus;
 import com.nakamas.hatfieldbackend.models.views.incoming.CreateTicket;
-import com.nakamas.hatfieldbackend.services.listeners.TicketListener;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -21,7 +20,6 @@ import java.util.List;
 @Setter
 @Table
 @Entity
-@EntityListeners(TicketListener.class)
 public class Ticket extends AbstractPersistable<Long> {
     @ManyToOne
     private Model deviceModel;

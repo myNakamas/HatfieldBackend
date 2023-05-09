@@ -28,6 +28,7 @@ import org.springframework.stereotype.Service;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -45,7 +46,7 @@ public class InventoryItemService {
 
     public InventoryItem createInventoryItem(CreateInventoryItem inventoryItem) {
         Brand brand = getOrCreateBrand(inventoryItem.brandId(), inventoryItem.brand());
-        Model model = getOrCreateModel(inventoryItem.modelId(), inventoryItem.model(), brand.getId());
+        Model model = getOrCreateModel(inventoryItem.modelId(), inventoryItem.model(), brand);
         if (!brand.getModels().contains(model)) brand.getModels().add(model);
         Optional<Category> category = Optional.empty();
         if (inventoryItem.categoryId() != null) {
@@ -69,8 +70,8 @@ public class InventoryItemService {
     public InventoryItem updateInventoryItem(CreateInventoryItem inventoryItem) {
         InventoryItem item = inventoryItemRepository.findById(inventoryItem.id()).orElseThrow(() -> new CustomException("Item with provided id could not be found"));
         Brand brand = getOrCreateBrand(inventoryItem.brandId(), inventoryItem.brand());
-        Model model = getOrCreateModel(inventoryItem.modelId(), inventoryItem.model(), brand.getId());
-        if (!brand.getModels().contains(model)) brand.getModels().add(model);
+        Model model = getOrCreateModel(inventoryItem.modelId(), inventoryItem.model(), brand);
+        if (brand != null && !brand.getModels().contains(model)) brand.getModels().add(model);
         Optional<Category> category = Optional.empty();
         Optional<Shop> shop = Optional.empty();
         if (inventoryItem.categoryId() != null) {
@@ -142,17 +143,23 @@ public class InventoryItemService {
         inventoryItemRepository.save(item);
     }
 
-    public Model getOrCreateModel(Long modelId, String modelValue, Long brandId) {
+    public Model getOrCreateModel(Long modelId, String modelValue, Brand brand) {
         if (modelId != null)
             return modelRepository.findById(modelId).orElseThrow(() -> new CustomException("Model with that Id does not exist"));
-        return getOrCreateModel(modelValue, brandId);
+        return getOrCreateModel(modelValue, brand);
     }
 
-    public Model getOrCreateModel(String modelValue, Long brandId) {
-        if (modelValue == null || modelValue.isBlank()) return null;
+    public Model getOrCreateModel(String modelValue, Brand brand) {
+        if (modelValue == null || modelValue.isBlank() || brand == null) return null;
+        Long brandId = brand.getId();
         Model existingByName = modelRepository.findByName(modelValue, brandId);
-        if (existingByName != null) return existingByName;
-        return modelRepository.save(new Model(modelValue, brandId));
+        if (existingByName != null) {
+            if(!brand.getModels().contains(existingByName)) brand.getModels().add(new Model(existingByName.getModel(), brandId));
+            return existingByName;
+        }
+        Model save = modelRepository.save(new Model(modelValue, brandId));
+        brand.getModels().add(save);
+        return save;
     }
 
     public Brand getOrCreateBrand(Long brandId, String brandValue) {
@@ -183,6 +190,7 @@ public class InventoryItemService {
 
     public List<InventoryItemView> getShoppingList(InventoryItemFilter filter) {
         filter.setIsNeeded(true);
+        filter.setInShoppingList(true);
         List<InventoryItem> needed = inventoryItemRepository.findAll(filter);
         return needed.stream().map(InventoryItemView::new).toList();
     }
@@ -227,9 +235,10 @@ public class InventoryItemService {
         inventoryItemRepository.save(item);
     }
 
-    public void updateRequiredItemCount(Long id, Integer count) {
+    public void updateItemSetRequiredAmount(Long id, Integer count, Boolean isNeeded) {
         InventoryItem item = getItem(id);
         item.getRequiredItem().setRequiredAmount(count);
-        item.getRequiredItem().setCurrentCount(item.getCount());
+        item.getRequiredItem().setNeeded(Objects.requireNonNullElse(isNeeded, true));
+        inventoryItemRepository.save(item);
     }
 }

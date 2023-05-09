@@ -3,7 +3,6 @@ package com.nakamas.hatfieldbackend.models.entities.shop;
 import com.nakamas.hatfieldbackend.models.entities.ticket.Brand;
 import com.nakamas.hatfieldbackend.models.entities.ticket.Model;
 import com.nakamas.hatfieldbackend.models.views.incoming.CreateInventoryItem;
-import com.nakamas.hatfieldbackend.services.listeners.InventoryListener;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -21,7 +20,6 @@ import java.util.Map;
 @Table
 @Entity
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
-@EntityListeners(InventoryListener.class)
 public class InventoryItem extends AbstractPersistable<Long> {
     private String name;
     @ManyToOne

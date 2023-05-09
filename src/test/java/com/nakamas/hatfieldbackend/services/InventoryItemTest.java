@@ -4,7 +4,6 @@ import com.nakamas.hatfieldbackend.models.entities.User;
 import com.nakamas.hatfieldbackend.models.entities.shop.*;
 import com.nakamas.hatfieldbackend.models.entities.ticket.Ticket;
 import com.nakamas.hatfieldbackend.models.enums.ItemType;
-import com.nakamas.hatfieldbackend.models.enums.RequiredReason;
 import com.nakamas.hatfieldbackend.models.views.incoming.CreateInventoryItem;
 import com.nakamas.hatfieldbackend.models.views.incoming.CreateShop;
 import com.nakamas.hatfieldbackend.models.views.incoming.CreateTicket;
@@ -48,7 +47,6 @@ class InventoryItemTest {
     private UserService userService;
     @Autowired
     private TicketRepository ticketRepository;
-    @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     @Autowired
     private EntityManager entityManager;
     @Autowired
@@ -199,7 +197,7 @@ class InventoryItemTest {
 
         InventoryItem result = inventoryItemRepository.findById(item.getId()).orElse(null);
         assertNotNull(result);
-        assertEquals(RequiredReason.REQUESTED, result.getRequiredItem().getReason());
+        assertTrue(result.getRequiredItem().getNeeded());
     }
 
     @Test

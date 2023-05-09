@@ -23,6 +23,7 @@ public class InventoryItemFilter implements Specification<InventoryItem> {
     private Long categoryId;
     private Integer minCount;
     private Boolean isNeeded;
+    private Boolean inShoppingList;
 
     @Override
     public Predicate toPredicate(@NonNull Root<InventoryItem> item, @NonNull CriteriaQuery<?> query, @NonNull CriteriaBuilder criteriaBuilder) {
@@ -37,10 +38,12 @@ public class InventoryItemFilter implements Specification<InventoryItem> {
         if (categoryId != null)
             predicates.add(criteriaBuilder.equal(item.get("categoryId"), categoryId));
         if (isNeeded != null)
-            if (isNeeded) predicates.add(criteriaBuilder.isNotNull(item.get("requiredItem").get("reason")));
-            else predicates.add(criteriaBuilder.isNull(item.get("requiredItem").get("reason")));
+            predicates.add(criteriaBuilder.equal(item.get("requiredItem").get("needed"), isNeeded));
         if (minCount != null)
             predicates.add(criteriaBuilder.ge(item.get("count"), minCount));
+        if (inShoppingList != null && inShoppingList) {
+            predicates.add(criteriaBuilder.gt(item.get("requiredItem").get("requiredAmount"), item.get("count")));
+        }
         if (searchBy != null && !searchBy.isBlank()) {
             predicates.add(criteriaBuilder.like(criteriaBuilder.lower(item.get("name")), "%" + searchBy.toLowerCase() + "%"));
         }
