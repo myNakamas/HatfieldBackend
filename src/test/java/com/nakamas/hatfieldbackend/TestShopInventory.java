@@ -8,6 +8,7 @@ import com.nakamas.hatfieldbackend.models.entities.ticket.Model;
 import com.nakamas.hatfieldbackend.models.views.incoming.CreateInventoryItem;
 import com.nakamas.hatfieldbackend.repositories.*;
 import com.nakamas.hatfieldbackend.services.InventoryItemService;
+import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -64,9 +65,11 @@ public class TestShopInventory {
     }
 
     @Test
+    @Transactional
     void add_item_with_existing_values() {
         Brand newBrand = brandRepository.save(new Brand("newBrand"));
-        Model newModel = modelRepository.save(new Model("newModel"));
+        Model newModel = modelRepository.save(new Model("newModel", newBrand.getId()));
+        newBrand.getModels().add(newModel);
         CreateInventoryItem inventoryItem = new CreateInventoryItem(null, "ItemName", BigDecimal.TEN, null, newBrand.getId(), null, newModel.getId(), 10, shop.getId(), category.getId(), new HashMap<>());
         InventoryItem save = inventoryItemService.createInventoryItem(inventoryItem);
 

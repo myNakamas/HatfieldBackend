@@ -10,7 +10,7 @@ import java.util.List;
 
 @Repository
 public interface DeviceLocationRepository extends JpaRepository<DeviceLocation, Long> {
-    @Query("select new com.nakamas.hatfieldbackend.models.views.outgoing.inventory.ItemPropertyView(d.id,d.location) from DeviceLocation d")
+    @Query("select new com.nakamas.hatfieldbackend.models.views.outgoing.inventory.ItemPropertyView(d) from DeviceLocation d")
     List<ItemPropertyView> findAllLocations();
 
     @Query("from DeviceLocation d where d.location = ?1")

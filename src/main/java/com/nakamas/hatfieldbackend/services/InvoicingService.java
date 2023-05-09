@@ -1,5 +1,7 @@
 package com.nakamas.hatfieldbackend.services;
 
+import com.nakamas.hatfieldbackend.models.entities.User;
+import com.nakamas.hatfieldbackend.models.entities.shop.InventoryItem;
 import com.nakamas.hatfieldbackend.models.entities.ticket.Invoice;
 import com.nakamas.hatfieldbackend.models.views.incoming.CreateInvoice;
 import com.nakamas.hatfieldbackend.models.views.incoming.PageRequestView;
@@ -24,13 +26,19 @@ public class InvoicingService {
     private String frontendHost;
     private final InvoiceRepository invoiceRepository;
     private final UserService userService;
+    private final InventoryItemService inventoryItemService;
     private final DocumentService documentService;
     private final LoggerService loggerService;
 
-    public Invoice create(CreateInvoice invoice) {
+    public Invoice create(CreateInvoice invoice, User user) {
+        if(invoice.getItemId()!=null ) {
+            InventoryItem item = inventoryItemService.getItem(invoice.getItemId());
+            invoice.setItemInfo(item);
+            inventoryItemService.sellItem(item.getId(), invoice.getCount());
+        }
         Invoice newInvoice = invoiceRepository.save(new Invoice(invoice,
-                userService.getUser(invoice.getCreatedBy()),
-                invoice.getClient() == null ? null : userService.getUser(invoice.getClient())));
+                user,
+                invoice.getClientId() == null ? null : userService.getUser(invoice.getClientId())));
         loggerService.createInvoiceActions(newInvoice.getType(), newInvoice.getId());
         return newInvoice;
     }

@@ -11,9 +11,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface InventoryItemRepository extends JpaRepository<InventoryItem, Long>, JpaSpecificationExecutor<InventoryItem> {
     @Modifying
-    @Query("update InventoryItem " +
-            "set count = ?2" +
-            "where id = ?1")
+    @Query("update InventoryItem set count = ?2 where id = ?1")
     void updateQuantity(Long id, Integer count);
 
     @Modifying

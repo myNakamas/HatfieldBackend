@@ -46,7 +46,7 @@ public class Invoice extends AbstractPersistable<Long> {
         if (invoiceView.getType() != null) this.type = invoiceView.getType();
         if (invoiceView.getDeviceModel() != null) this.deviceModel = invoiceView.getDeviceModel();
         if (invoiceView.getDeviceBrand() != null) this.deviceBrand = invoiceView.getDeviceBrand();
-        if (invoiceView.getSerialNumber() != null || invoiceView.getSerialNumber().isBlank()) {
+        if (invoiceView.getSerialNumber() != null && invoiceView.getSerialNumber().isBlank()) {
             this.serialNumber = invoiceView.getSerialNumber();
         } else {
             this.serialNumber = "-";
@@ -62,8 +62,8 @@ public class Invoice extends AbstractPersistable<Long> {
         }
         if (invoiceView.getNotes() != null) this.notes = invoiceView.getNotes();
         if (invoiceView.getTotalPrice() != null) this.totalPrice = invoiceView.getTotalPrice();
-        if (invoiceView.getCreatedBy() != null) this.createdBy = creator;
-        if (invoiceView.getClient() != null) this.client = client;
+        if (creator != null) this.createdBy = creator;
+        if (client != null) this.client = client;
         if (invoiceView.getPaymentMethod() != null) this.paymentMethod = invoiceView.getPaymentMethod();
         if (invoiceView.getWarrantyPeriod() != null) {
             this.warrantyPeriod = invoiceView.getWarrantyPeriod();

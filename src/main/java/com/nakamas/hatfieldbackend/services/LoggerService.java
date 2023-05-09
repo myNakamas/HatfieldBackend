@@ -49,6 +49,7 @@ public class LoggerService {
     }
 
     private UserProfile getUserProfile(UUID id) {
+        if(id==null)return null;
         return userRepository.findById(id).map(UserProfile::new).orElse(null);
     }
     public void categoryActions(Log logMessage, String categoryName) {

@@ -10,6 +10,7 @@ import lombok.NonNull;
 import lombok.Setter;
 import org.springframework.data.jpa.domain.AbstractPersistable;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Getter
@@ -21,9 +22,10 @@ public class Brand extends AbstractPersistable<Long> {
     private String brand;
     @OneToMany(mappedBy = "brand")
     private List<InventoryItem> items;
+    @OneToMany()
+    private List<Model> models = new ArrayList<>();
 
     public Brand(String brand) {
-
         this.brand = brand;
     }
 

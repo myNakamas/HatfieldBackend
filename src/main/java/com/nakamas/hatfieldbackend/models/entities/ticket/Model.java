@@ -23,9 +23,11 @@ public class Model extends AbstractPersistable<Long> {//    todo: add shopId col
     private List<InventoryItem> items;
     @OneToMany(mappedBy = "deviceModel")
     private List<Invoice> invoices;
+    private Long brandId;
 
-    public Model(String model) {
+    public Model(String model, Long brandId) {
         this.model = model;
+        this.brandId = brandId;
     }
 
     @Override

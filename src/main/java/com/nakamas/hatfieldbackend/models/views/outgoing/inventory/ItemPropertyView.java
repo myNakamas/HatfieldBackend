@@ -9,9 +9,6 @@ public record ItemPropertyView(Long id, String value) {
         this(m.getId(), m.getModel());
     }
 
-    public ItemPropertyView(Brand b) {
-        this(b.getId(), b.getBrand());
-    }
     public ItemPropertyView(DeviceLocation d) {
         this(d.getId(), d.getLocation());
     }
