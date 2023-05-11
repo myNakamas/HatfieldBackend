@@ -88,7 +88,9 @@ public class TicketTests {
     void create_ticket() {
         CreateTicket createTicket = TestData.getTestTicket(client);
         Ticket ticket = ticketService.createTicket(createTicket, user);
-        Assertions.assertEquals(ticket.getShop().getId(), user.getShop().getId());
+        Assertions.assertEquals(user.getShop().getId(), ticket.getShop().getId());
+        Assertions.assertEquals(createTicket.deviceLocation(), ticket.getDeviceLocation().getLocation());
+        Assertions.assertEquals(createTicket.deviceBrand(), ticket.getDeviceBrandString());
     }
 
 
@@ -96,7 +98,11 @@ public class TicketTests {
     void update_ticket_should_succeed() {
         CreateTicket createTicket = TestData.getTestTicket(client);
         Long ticketId = ticketService.update(createTicket, ticket.getId());
-        Assertions.assertEquals(ticketId, ticket.getId());
+        Ticket result = ticketService.getTicket(ticketId);
+        Assertions.assertEquals(ticketId, result.getId());
+        Assertions.assertEquals(user.getShop().getId(), result.getShop().getId());
+        Assertions.assertEquals(createTicket.deviceLocation(), result.getDeviceLocation().getLocation());
+        Assertions.assertEquals(createTicket.deviceBrand(), result.getDeviceBrandString());
     }
 
     @Test

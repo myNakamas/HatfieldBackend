@@ -70,7 +70,7 @@ public class TestShopInventory {
         Brand newBrand = brandRepository.save(new Brand("newBrand"));
         Model newModel = modelRepository.save(new Model("newModel", newBrand.getId()));
         newBrand.getModels().add(newModel);
-        CreateInventoryItem inventoryItem = new CreateInventoryItem(null, "ItemName", BigDecimal.TEN, null, newBrand.getId(), null, newModel.getId(), 10, shop.getId(), category.getId(), new HashMap<>());
+        CreateInventoryItem inventoryItem = new CreateInventoryItem(null, "ItemName", BigDecimal.TEN, null, newModel.getId(), null, newBrand.getId(), 10, shop.getId(), category.getId(), new HashMap<>());
         InventoryItem save = inventoryItemService.createInventoryItem(inventoryItem);
 
         Assertions.assertEquals(inventoryItem.brandId(), save.getBrand().getId());
