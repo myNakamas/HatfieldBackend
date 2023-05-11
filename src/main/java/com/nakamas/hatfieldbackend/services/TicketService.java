@@ -65,11 +65,11 @@ public class TicketService {
         ticket.setDeviceBrand(inventoryService.getOrCreateBrand(create.deviceBrand()));
         if (ticket.getDeviceBrand() != null)
             ticket.setDeviceModel(inventoryService.getOrCreateModel(create.deviceModel(), ticket.getDeviceBrand()));
-        if (!ticket.getDeviceLocationString().equals(create.deviceLocation())) {
+        if (!ticket.getDeviceLocationString().isBlank() && !ticket.getDeviceLocationString().equals(create.deviceLocation())) {
             loggerService.ticketActions(new Log(LogType.MOVED_TICKET), ticket);
         }
-        ticket.setDeviceLocation(getOrCreateLocation(create.deviceLocation()));
-
+        DeviceLocation location = getOrCreateLocation(create.deviceLocation());
+        if(location != null){ticket.setDeviceLocation(location);}
     }
 
     public DeviceLocation getOrCreateLocation(String location) {
