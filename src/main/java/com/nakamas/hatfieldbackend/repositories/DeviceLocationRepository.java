@@ -13,6 +13,6 @@ public interface DeviceLocationRepository extends JpaRepository<DeviceLocation, 
     @Query("select new com.nakamas.hatfieldbackend.models.views.outgoing.inventory.ItemPropertyView(d) from DeviceLocation d")
     List<ItemPropertyView> findAllLocations();
 
-    @Query("from DeviceLocation d where d.location = ?1")
+    @Query("from DeviceLocation d where d.location like ?1")
     DeviceLocation findByName(String location);
 }
