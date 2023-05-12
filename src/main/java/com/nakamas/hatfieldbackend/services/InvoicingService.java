@@ -58,7 +58,6 @@ public class InvoicingService {
     }
 
     public Page<Invoice> getAll(InvoiceFilter invoiceFilter, PageRequestView pageRequestView) {
-        invoiceFilter.setValid(true);
         return invoiceRepository.findAll(invoiceFilter, pageRequestView.getPageRequest());
     }
 
