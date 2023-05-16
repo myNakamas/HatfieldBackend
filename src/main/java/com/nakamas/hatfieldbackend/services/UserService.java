@@ -15,6 +15,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsPasswordService;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -134,6 +136,11 @@ public class UserService implements UserDetailsService, UserDetailsPasswordServi
     public List<User> getAllClients(UserFilter filter) {
         filter.setRoles(List.of(UserRole.CLIENT));
         return userRepository.findAll(filter);
+    }
+
+    public Page<User> getAllClients(UserFilter filter, PageRequest pageRequest) {
+        filter.setRoles(List.of(UserRole.CLIENT));
+        return userRepository.findAll(filter, pageRequest);
     }
 
     public List<User> getAllWorkers(UserFilter filter) {
