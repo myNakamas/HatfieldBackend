@@ -60,7 +60,7 @@ public class TicketFilter implements Specification<Ticket> {
             predicates.add(builder.like(concat, "%" + searchBy.toLowerCase() + "%"));
         }
 
-        query.orderBy(builder.asc(ticket.get("priority")));
+        query.orderBy(builder.asc(ticket.get("deadline")));
         return builder.and(predicates.toArray(Predicate[]::new));
     }
 }

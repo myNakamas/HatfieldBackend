@@ -27,7 +27,6 @@ public record TicketView(
         BigDecimal deposit,
         UserProfile createdBy,
         UserProfile client,
-        Integer priority,
         List<UsedPartView> usedParts
 ) {
     public TicketView(Ticket ticket) {
@@ -49,7 +48,6 @@ public record TicketView(
                 ticket.getDeposit(),
                 new UserProfile(ticket.getCreatedBy()),
                 (ticket.getClient() != null) ? new UserProfile(ticket.getClient()) : null,
-                ticket.getPriority(),
                 ticket.getUsedParts().stream().map(UsedPartView::new).toList());
     }
 }

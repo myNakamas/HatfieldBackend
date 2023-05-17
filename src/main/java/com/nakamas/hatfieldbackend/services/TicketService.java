@@ -24,7 +24,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
 import java.time.ZonedDateTime;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
 
@@ -92,22 +91,6 @@ public class TicketService {
     //endregion
 
     //region Ticket buttons
-
-    public void updatePriority(Long id, Long newPositionId) {
-        Ticket ticket = getTicket(id);
-        Ticket newPositionTicket = getTicket(newPositionId);
-        List<Ticket> tickets = new LinkedList<>(ticketRepository.findAll());
-        int newIndex = tickets.indexOf(newPositionTicket);
-        tickets.remove(ticket);
-        tickets.add(newIndex, ticket);
-
-        int newPriority = 0;
-        for (Ticket t : tickets) {
-            t.setPriority(newPriority++);
-        }
-
-        ticketRepository.saveAll(tickets);
-    }
 
     public void startRepair(User user, Long id) {
         Ticket ticket = ticketRepository.getReferenceById(id);

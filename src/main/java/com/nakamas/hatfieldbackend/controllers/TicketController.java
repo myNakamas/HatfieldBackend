@@ -47,11 +47,6 @@ public class TicketController {
         if (!user.getRole().equals(UserRole.ADMIN)) ticketFilter.setShopId(user.getShop().getId());
         return ticketService.findAllActive(ticketFilter);
     }
-//todo: dive deeper into priorities' issues
-    @PatchMapping("priority")
-    public void updatePriority( @RequestParam Long id,@RequestParam Long newIndexId){
-        ticketService.updatePriority(id, newIndexId);
-    }
 
 //    todo: Post Start repair (move to lab, status started + message in chat + Open chat)
     @PutMapping("start")

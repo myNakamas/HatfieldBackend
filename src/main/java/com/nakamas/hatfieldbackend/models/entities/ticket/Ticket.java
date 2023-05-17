@@ -42,7 +42,6 @@ public class Ticket extends AbstractPersistable<Long> {
     private String notes;
     private BigDecimal totalPrice;
     private BigDecimal deposit = BigDecimal.ZERO;
-    private Integer priority;
 
     @ManyToOne
     private User createdBy;
@@ -75,7 +74,6 @@ public class Ticket extends AbstractPersistable<Long> {
 
     public Ticket() {
         this.timestamp = ZonedDateTime.now();
-        this.priority = 0;
     }
 
     public Ticket(CreateTicket create, User user) {
@@ -90,7 +88,6 @@ public class Ticket extends AbstractPersistable<Long> {
         this.notes = create.notes();
         this.totalPrice = create.totalPrice();
         this.deposit = create.deposit();
-        this.priority = create.priority();
         this.status = create.status();
         this.createdBy = user;
         this.shop = user.getShop();
@@ -107,7 +104,6 @@ public class Ticket extends AbstractPersistable<Long> {
         if (ticket.notes() != null) this.notes = ticket.notes();
         if (ticket.totalPrice() != null) this.totalPrice = ticket.totalPrice();
         if (ticket.deposit() != null) this.deposit = ticket.deposit();
-        if (ticket.priority() != null) this.priority = ticket.priority();
         if (ticket.status() != null) this.status = ticket.status();
     }
 }
