@@ -18,7 +18,7 @@ public interface UserRepository extends JpaRepository<User, UUID>, JpaSpecificat
     @Query("""
              select u
              from User u
-             where (u.username = ?1 or u.email = ?2)
+             where u.username = ?1 or (u.email = ?2 and u.email not like '')
             """)
     List<User> uniqueUserExists(String username, String email);
 

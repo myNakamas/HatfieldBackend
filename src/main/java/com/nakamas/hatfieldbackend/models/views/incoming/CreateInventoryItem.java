@@ -6,7 +6,9 @@ import java.util.Map;
 public record CreateInventoryItem(
         Long id,
         String name,
-        BigDecimal price, String model, Long modelId,
+        BigDecimal purchasePrice,
+        BigDecimal sellPrice,
+        String model, Long modelId,
         String brand, Long brandId,
         Integer count,
         Long shopId,

@@ -1,6 +1,7 @@
 package com.nakamas.hatfieldbackend.models.views.incoming.filters;
 
 import com.nakamas.hatfieldbackend.models.entities.Log;
+import com.nakamas.hatfieldbackend.models.enums.LogType;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Predicate;
@@ -23,6 +24,7 @@ public class LogFilter implements Specification<Log> {
     private UUID userId;
     private LocalDate from;
     private LocalDate to;
+    private LogType type;
 
     @Override
     public Predicate toPredicate(@NonNull Root<Log> log, @NonNull CriteriaQuery<?> query, @NonNull CriteriaBuilder builder) {
@@ -31,6 +33,8 @@ public class LogFilter implements Specification<Log> {
             predicates.add(builder.equal(log.get("shopId"), shopId));
         if (userId != null)
             predicates.add(builder.equal(log.get("userId"), userId));
+        if (type != null)
+            predicates.add(builder.equal(log.get("logType"), type));
         if (to != null)
             predicates.add(builder.lessThanOrEqualTo(log.get("timestamp"), to.plusDays(1L).atStartOfDay().atZone(ZoneId.systemDefault())));
         if (from != null)

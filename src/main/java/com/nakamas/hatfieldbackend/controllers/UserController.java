@@ -3,7 +3,9 @@ package com.nakamas.hatfieldbackend.controllers;
 import com.nakamas.hatfieldbackend.models.entities.User;
 import com.nakamas.hatfieldbackend.models.views.incoming.ChangePasswordView;
 import com.nakamas.hatfieldbackend.models.views.incoming.CreateUser;
+import com.nakamas.hatfieldbackend.models.views.incoming.PageRequestView;
 import com.nakamas.hatfieldbackend.models.views.incoming.filters.UserFilter;
+import com.nakamas.hatfieldbackend.models.views.outgoing.PageView;
 import com.nakamas.hatfieldbackend.models.views.outgoing.user.UserProfile;
 import com.nakamas.hatfieldbackend.services.UserService;
 import jakarta.servlet.http.HttpServletResponse;
@@ -71,6 +73,10 @@ public class UserController {
     @GetMapping("worker/all/clients")
     public List<UserProfile> getAllClients(UserFilter filter) {
         return userService.getAllClients(filter).stream().map(UserProfile::new).toList();
+    }
+    @GetMapping("worker/all/clientsPages")
+    public PageView<UserProfile> getAllClientsPages(UserFilter filter, PageRequestView pageRequestView) {
+        return new PageView<>(userService.getAllClients(filter, pageRequestView.getPageRequest()).map(UserProfile::new));
     }
     //do tuk :D
     @GetMapping("profile")

@@ -154,7 +154,7 @@ class InventoryItemTest {
         filter.setCategoryId(category.getId());
         filter.setShopId(shop1.getId());
 
-        PageView<InventoryItemView> result = inventoryItemService.getShopInventory(shop1.getId(), filter, new PageRequestView());
+        PageView<InventoryItemView> result = inventoryItemService.getShopInventory(shop1.getId(), filter, new PageRequestView(10,1));
         assertEquals(2, result.getContent().size());
         assertTrue(result.getContent().stream().anyMatch(item -> item.id().equals(item1.getId())));
         assertTrue(result.getContent().stream().anyMatch(item -> item.id().equals(item2.getId())));

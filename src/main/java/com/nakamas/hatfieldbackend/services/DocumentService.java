@@ -56,7 +56,7 @@ public class DocumentService implements ApplicationRunner {
             String deviceName = "%s %s".formatted(item.getName(), item.getBrandString());
             String model = item.getModelString();
             List<String> details = item.getOtherProperties().entrySet().stream().map(entry -> entry.getKey() + ": " + entry.getValue()).toList();
-            Float price = item.getPrice().floatValue();
+            Float price = item.getSellPrice().floatValue();
             fillPriceTagTemplate(qrContent, deviceName, model, details, price, document);
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             document.save(baos);
@@ -280,8 +280,8 @@ public class DocumentService implements ApplicationRunner {
         acroForm.getField("invoice_note").setValue("Notes : " + invoice.getNotes());
 
         acroForm.getField("invoice_payment_method").setValue(invoice.getPaymentMethod().toString());
-        acroForm.getField("invoice_80").setValue(String.valueOf((invoice.getTotalPrice().doubleValue() / 100) * 80));
-        acroForm.getField("invoice_20").setValue(String.valueOf((invoice.getTotalPrice().doubleValue() / 100) * 20));
+        acroForm.getField("invoice_80").setValue(String.format("%.2f",(invoice.getTotalPrice().doubleValue() / 100) * 80));
+        acroForm.getField("invoice_20").setValue(String.format("%.2f",(invoice.getTotalPrice().doubleValue() / 100) * 20));
         acroForm.getField("invoice_price").setValue(invoice.getTotalPrice().toString());
         acroForm.getField("invoice_warranty").setValue(invoice.getWarrantyPeriod().toString());
 

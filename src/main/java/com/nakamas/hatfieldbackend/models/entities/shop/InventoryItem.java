@@ -27,7 +27,8 @@ public class InventoryItem extends AbstractPersistable<Long> {
     @ManyToOne
     private Brand brand;
     private Integer count;
-    private BigDecimal price;
+    private BigDecimal purchasePrice;
+    private BigDecimal sellPrice;
     @ManyToOne
     private Shop shop;
     @Column(name = "category_id")
@@ -46,7 +47,8 @@ public class InventoryItem extends AbstractPersistable<Long> {
         this.model = model;
         this.brand = brand;
         this.shop = shop;
-        this.price = item.price();
+        this.purchasePrice = item.purchasePrice()!= null ? item.purchasePrice() : BigDecimal.ZERO;
+        this.sellPrice = item.sellPrice() != null ? item.sellPrice() : BigDecimal.ZERO ;
         this.count = item.count();
         this.requiredItem = new RequiredItem(count);
         if (category != null)
@@ -65,7 +67,8 @@ public class InventoryItem extends AbstractPersistable<Long> {
         if (model != null) this.model = model;
         if (brand != null) this.brand = brand;
         if (shop != null) this.shop = shop;
-        if (item.price() != null) this.price = item.price();
+        if (item.purchasePrice() != null) this.purchasePrice = item.purchasePrice();else this.purchasePrice = BigDecimal.ZERO;
+        if (item.sellPrice() != null) this.sellPrice = item.sellPrice();else this.sellPrice = BigDecimal.ZERO;
         if (item.count() != null) this.count = item.count();
         if (category != null) this.categoryId = category.getId();
         if (item.properties() != null) this.otherProperties = item.properties();

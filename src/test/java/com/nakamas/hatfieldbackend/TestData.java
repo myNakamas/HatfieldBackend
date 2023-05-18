@@ -44,10 +44,24 @@ public final class TestData {
     }
 
     public static CreateInventoryItem getTestInventoryItem(Shop shop, Category category) {
-        return new CreateInventoryItem(null, "phone Samsung s4", BigDecimal.TEN, "Brand" + random.nextInt(), null, "Model" + random.nextInt(), null, 10, shop.getId(), category.getId(), new HashMap<>());
+        return new CreateInventoryItem(null, "phone Samsung s4", BigDecimal.TEN, BigDecimal.TEN, "Brand" + random.nextInt(), null, "Model" + random.nextInt(), null, 10, shop.getId(), category.getId(), new HashMap<>());
     }
 
     public static CreateTicket getTestTicket(User client) {
-        return new CreateTicket("TestDeviceModel" + random.nextInt(10), "TestDeviceBrand" + random.nextInt(10), "Lab" + random.nextInt(), "", "The screen is broken", "", random.nextInt() + "", "83753373", "none", ZonedDateTime.now().plusDays(5), "", TicketStatus.PENDING, BigDecimal.valueOf(random.nextDouble()), BigDecimal.ZERO, client.getId(), random.nextInt(30));
+        return new CreateTicket("TestDeviceModel" + random.nextInt(10),
+                "TestDeviceBrand" + random.nextInt(10),
+                "Lab" + random.nextInt(),
+                "",
+                "The screen is broken",
+                "",
+                random.nextInt() + "",
+                "83753373",
+                "none",
+                ZonedDateTime.now().plusDays(5),
+                "",
+                TicketStatus.PENDING,
+                BigDecimal.valueOf(random.nextDouble()),
+                BigDecimal.ZERO,
+                client.getId());
     }
 }

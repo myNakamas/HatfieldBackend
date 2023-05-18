@@ -115,8 +115,8 @@ public class TicketTests {
         ticketService.createTicket(createTicket, user2);
         TicketFilter ticketFilter = new TicketFilter();
         ticketFilter.setCreatedById(user.getId());
-        PageView<TicketView> filtered = ticketService.findAll(ticketFilter, new PageRequestView());
-        PageView<TicketView> all = ticketService.findAll(new TicketFilter(), new PageRequestView());
+        PageView<TicketView> filtered = ticketService.findAll(ticketFilter, new PageRequestView(10,1));
+        PageView<TicketView> all = ticketService.findAll(new TicketFilter(), new PageRequestView(10,1));
 
         Assertions.assertEquals(2, filtered.getTotalCount());
         Assertions.assertEquals(3, all.getTotalCount());
@@ -131,25 +131,6 @@ public class TicketTests {
 
         Assertions.assertEquals(1, ticket.getUsedParts().size());
         Assertions.assertEquals(1, usedPartRepository.count());
-    }
-
-    @Test
-    @Transactional
-    void update_ticket_priority_should_succeed() {
-        CreateTicket createTicket = TestData.getTestTicket(client);
-        Ticket secondTicket = ticketService.createTicket(createTicket, user);
-        ticketService.updatePriority(ticket.getId(), secondTicket.getId());
-        Assertions.assertEquals(secondTicket.getPriority() + 1, ticketService.getTicket(ticket.getId()).getPriority());
-    }
-
-    @Test
-    @Transactional
-    void update_ticket_priority_should_fail() {
-        int currPriority = ticket.getPriority();
-        CreateTicket createTicket = TestData.getTestTicket(client);
-        Ticket secondTicket = ticketService.createTicket(createTicket, user);
-        ticketService.updatePriority(ticket.getId(), secondTicket.getId());
-        Assertions.assertNotEquals(currPriority, ticketService.getTicket(ticket.getId()).getPriority());
     }
 
     @Test

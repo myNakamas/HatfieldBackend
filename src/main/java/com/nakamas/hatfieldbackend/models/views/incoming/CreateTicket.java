@@ -20,7 +20,6 @@ public record CreateTicket(String deviceModel,
                            TicketStatus status,
                            BigDecimal totalPrice,
                            BigDecimal deposit,
-                           UUID clientId,
-                           Integer priority) {
+                           UUID clientId) {
 
 }
