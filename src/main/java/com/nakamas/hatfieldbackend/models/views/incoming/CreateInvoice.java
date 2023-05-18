@@ -46,7 +46,7 @@ public class CreateInvoice {
         this.itemId = item.getId();
         this.deviceModel = item.getModelString();
         this.deviceBrand = item.getBrandString();
-        if (this.totalPrice == null) this.totalPrice = item.getPrice();
+        if (this.totalPrice == null) this.totalPrice = item.getPurchasePrice();
         this.itemName = item.getName();
     }
 }

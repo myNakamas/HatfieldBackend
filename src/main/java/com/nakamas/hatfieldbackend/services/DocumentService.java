@@ -56,7 +56,7 @@ public class DocumentService implements ApplicationRunner {
             String deviceName = "%s %s".formatted(item.getName(), item.getBrandString());
             String model = item.getModelString();
             List<String> details = item.getOtherProperties().entrySet().stream().map(entry -> entry.getKey() + ": " + entry.getValue()).toList();
-            Float price = item.getPrice().floatValue();
+            Float price = item.getSellPrice().floatValue();
             fillPriceTagTemplate(qrContent, deviceName, model, details, price, document);
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             document.save(baos);

@@ -10,6 +10,7 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 @Getter
@@ -33,9 +34,7 @@ public class InvoiceFilter implements Specification<Invoice> {
         List<Predicate> predicates = new ArrayList<>();
         if (model != null && !model.isBlank())
             predicates.add(builder.like(invoice.get("deviceModel"), model));
-        if (valid != null)
-            predicates.add(builder.equal(invoice.get("valid"), valid));
-        else predicates.add(builder.isTrue(invoice.get("valid")));
+        predicates.add(builder.equal(invoice.get("valid"), Objects.requireNonNullElse(valid, true)));
         if (brand != null && !brand.isBlank())
             predicates.add(builder.like(invoice.get("deviceBrand"), brand));
         if (createdById != null)
