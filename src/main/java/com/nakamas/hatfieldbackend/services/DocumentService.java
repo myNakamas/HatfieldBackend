@@ -7,16 +7,20 @@ import com.nakamas.hatfieldbackend.models.entities.ticket.Ticket;
 import com.nakamas.hatfieldbackend.models.views.outgoing.PdfAndImageDoc;
 import com.nakamas.hatfieldbackend.repositories.InvoiceRepository;
 import jakarta.transaction.Transactional;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.glxn.qrgen.javase.QRCode;
+import org.apache.pdfbox.cos.COSName;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
+import org.apache.pdfbox.pdmodel.PDResources;
 import org.apache.pdfbox.pdmodel.font.PDFont;
+import org.apache.pdfbox.pdmodel.font.PDType0Font;
 import org.apache.pdfbox.pdmodel.font.PDType1Font;
 import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
 import org.apache.pdfbox.pdmodel.interactive.form.PDAcroForm;
+import org.apache.pdfbox.pdmodel.interactive.form.PDField;
+import org.apache.pdfbox.pdmodel.interactive.form.PDTextField;
 import org.apache.pdfbox.rendering.PDFRenderer;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;
@@ -37,7 +41,6 @@ import java.util.List;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class DocumentService implements ApplicationRunner {
     private final ResourceLoader resourceLoader;
     private final InvoiceRepository invoiceRepository;
@@ -49,6 +52,13 @@ public class DocumentService implements ApplicationRunner {
     private final DateTimeFormatter shortDtf = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss");
 
     private final DateTimeFormatter invoiceFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+    private final Resource fontResource;
+
+    public DocumentService(ResourceLoader resourceLoader, InvoiceRepository invoiceRepository) {
+        this.resourceLoader = resourceLoader;
+        this.invoiceRepository = invoiceRepository;
+        this.fontResource = resourceLoader.getResource("classpath:templates/fonts/arial.ttf");
+    }
 
     public PdfAndImageDoc createPriceTag(String qrContent, InventoryItem item) {
         InputStream input = getTemplate("/smallTag.pdf");
@@ -93,7 +103,7 @@ public class DocumentService implements ApplicationRunner {
     }
 
     private void fillUserTagTemplate(String qrContent, User user, PDDocument document) throws IOException {
-        PDFont pdfFont = PDType1Font.HELVETICA_BOLD;
+        PDFont pdfFont = PDType0Font.load(document, fontResource.getInputStream(), false);
         PDPage page = document.getPage(0);
         PDPageContentStream contents = new PDPageContentStream(document, page, PDPageContentStream.AppendMode.APPEND, true, true);
         File code = QRCode.from(qrContent).withSize(240, 240).file();
@@ -153,8 +163,8 @@ public class DocumentService implements ApplicationRunner {
         return result;
     }
 
-    private static void fillPriceTagTemplate(String qrContent, String deviceName, String model, List<String> details, Float price, PDDocument document) throws IOException {
-        PDFont pdfFont = PDType1Font.HELVETICA_BOLD;
+    private void fillPriceTagTemplate(String qrContent, String deviceName, String model, List<String> details, Float price, PDDocument document) throws IOException {
+        PDFont pdfFont = PDType0Font.load(document, fontResource.getInputStream(), false);
         int detailsFontSize = details.size() > 0 ? 50 / details.size() - 5 : 25;
         int detailsLeading = details.size() > 0 ? 50 / details.size() : 30;
         PDPage page = document.getPage(0);
@@ -183,8 +193,8 @@ public class DocumentService implements ApplicationRunner {
         contents.close();
     }
 
-    private static void fillRepairTagTemplate(String qrContent, Ticket ticket, PDDocument document) throws IOException {
-        PDFont pdfFont = PDType1Font.HELVETICA_BOLD;
+    private void fillRepairTagTemplate(String qrContent, Ticket ticket, PDDocument document) throws IOException {
+        PDFont pdfFont = PDType0Font.load(document, fontResource.getInputStream(), false);
         int rows = ticket.getClient().getPhones().size() > 0 ? 5 : 6;
         int detailsFontSize = 160 / rows - 5;
         int detailsLeading = 160 / rows;
@@ -216,7 +226,7 @@ public class DocumentService implements ApplicationRunner {
     }
 
     private void fillTicketTemplate(String qrContent, Ticket ticket, PDDocument document) throws IOException {
-        PDFont pdfFont = PDType1Font.HELVETICA_BOLD;
+        PDFont pdfFont = PDType0Font.load(document, fontResource.getInputStream(), false);
         PDPage page = document.getPage(0);
         File code = QRCode.from(qrContent).withSize(250, 250).file();
         boolean isPaid = invoiceRepository.existsByTicketId(ticket.getId());
@@ -247,9 +257,10 @@ public class DocumentService implements ApplicationRunner {
     }
 
     private void fillInvoiceTemplate(String qrContent, Invoice invoice, PDDocument document) throws IOException {
-        PDFont pdfFont = PDType1Font.HELVETICA_BOLD;
+        PDFont pdfFont = PDType0Font.load(document, fontResource.getInputStream(), false);
 
         PDAcroForm acroForm = document.getDocumentCatalog().getAcroForm();
+        setUTF8Font(acroForm, pdfFont);
 
         PDPage page = document.getPage(0);
         File code = QRCode.from(qrContent).withSize(170, 170).file();
@@ -258,7 +269,7 @@ public class DocumentService implements ApplicationRunner {
         contents.drawImage(qrCode, 360, 470, 170, 170);
         contents.setLeading(6);
         contents.setFont(pdfFont, 11);
-        contents.setFont(PDType1Font.HELVETICA_BOLD, 11);
+        contents.setFont(pdfFont, 11);
 
         String id = String.format("%019d", invoice.getId());
         acroForm.getField("invoice_id").setValue(id);
@@ -340,6 +351,20 @@ public class DocumentService implements ApplicationRunner {
             return null;
         }
     }
+
+    private void setUTF8Font(PDAcroForm acroForm, PDFont font) {
+        PDResources defaultResources = acroForm.getDefaultResources();
+        COSName fontName = defaultResources.add(font);
+        acroForm.setDefaultResources(defaultResources);
+        for (PDField field : acroForm.getFields()) {
+            if (field instanceof PDTextField textField) {
+                String defaultAppearance = textField.getDefaultAppearance();
+                defaultAppearance = defaultAppearance.replaceFirst("/Helv", "/" + fontName.getName());
+                textField.setDefaultAppearance(defaultAppearance);
+            }
+        }
+    }
+
 
     @Override
     public void run(ApplicationArguments args) {
