@@ -59,7 +59,6 @@ public class WebSecurityConfig {
                         .requestMatchers("/public/**", "/ws").permitAll()
                         .anyRequest().authenticated().and())
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and()
-                .requiresChannel().anyRequest().requiresSecure().and()
                 .exceptionHandling().authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED));
         return http.build();
     }
