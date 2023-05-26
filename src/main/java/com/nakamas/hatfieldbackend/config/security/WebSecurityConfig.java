@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -24,6 +25,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.util.matcher.RegexRequestMatcher;
+import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -42,6 +45,17 @@ public class WebSecurityConfig {
     private final JwtTokenFilter jwtFilter;
     private final JwtUtil jwtUtil;
 
+    private final RequestMatcher[] adminUrlMatchers = new RegexRequestMatcher[]{RegexRequestMatcher.regexMatcher(".*/admin/.*")};
+    private final RequestMatcher[] workerUrlMatchers = new RegexRequestMatcher[]{
+            RegexRequestMatcher.regexMatcher(".*/worker/.*"),
+            RegexRequestMatcher.regexMatcher(".*/logs/.*"),
+            RegexRequestMatcher.regexMatcher(".*/document/.*"),
+            RegexRequestMatcher.regexMatcher(".*/item/.*"),
+            RegexRequestMatcher.regexMatcher(HttpMethod.POST,".*/invoice/.*"),
+            RegexRequestMatcher.regexMatcher(HttpMethod.DELETE,".*/invoice/.*"),
+    };
+    private final RequestMatcher[] clientUrlMatchers = new RegexRequestMatcher[]{RegexRequestMatcher.regexMatcher(".*/client/.*")};
+
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
@@ -55,7 +69,9 @@ public class WebSecurityConfig {
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
                 .authenticationProvider(authenticationProvider())
                 .authorizeHttpRequests((authorize) -> authorize
-                        .requestMatchers("/admin/**").hasAuthority(UserRole.ADMIN.getRole())
+                        .requestMatchers(adminUrlMatchers).hasAuthority(UserRole.ADMIN_VALUE)
+                        .requestMatchers(workerUrlMatchers).hasAnyAuthority(UserRole.WORKER_VALUE, UserRole.ADMIN_VALUE)
+                        .requestMatchers(clientUrlMatchers).hasAnyAuthority(UserRole.CLIENT_VALUE,UserRole.WORKER_VALUE, UserRole.ADMIN_VALUE)
                         .requestMatchers("/public/**", "/ws").permitAll()
                         .anyRequest().authenticated().and())
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and()
