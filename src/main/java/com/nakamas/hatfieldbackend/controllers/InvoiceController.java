@@ -1,6 +1,9 @@
 package com.nakamas.hatfieldbackend.controllers;
 
+import com.nakamas.hatfieldbackend.config.exception.CustomException;
+import com.nakamas.hatfieldbackend.config.exception.ForbiddenActionException;
 import com.nakamas.hatfieldbackend.models.entities.User;
+import com.nakamas.hatfieldbackend.models.enums.UserRole;
 import com.nakamas.hatfieldbackend.models.views.incoming.CreateInvoice;
 import com.nakamas.hatfieldbackend.models.views.incoming.PageRequestView;
 import com.nakamas.hatfieldbackend.models.views.incoming.filters.InvoiceFilter;
@@ -27,8 +30,12 @@ public class InvoiceController {
     }
 
     @GetMapping("byId")
-    public InvoiceView getById(@RequestParam Long invoiceId) {
-        return new InvoiceView(invoiceService.getById(invoiceId));
+    public InvoiceView getById(@AuthenticationPrincipal User user, @RequestParam Long invoiceId) {
+        if (user == null || user.getRole() == null) throw new CustomException("Invalid session or logged user data.");
+        InvoiceView invoiceView = new InvoiceView(invoiceService.getById(invoiceId));
+        if (user.getRole().equals(UserRole.CLIENT) && !invoiceView.client().userId().equals(user.getId()))
+            throw new ForbiddenActionException("You have no rights to viewing this invoice");
+        return invoiceView;
     }
 
     @GetMapping("byTicketId")
