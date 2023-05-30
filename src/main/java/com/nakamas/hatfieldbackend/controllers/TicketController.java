@@ -42,9 +42,28 @@ public class TicketController {
         if (!user.getRole().equals(UserRole.ADMIN)) ticketFilter.setShopId(user.getShop().getId());
         return ticketService.findAll(ticketFilter, pageRequestView);
     }
+
+    /**
+     * @param user The logged in user
+     * @param ticketFilter The ticket filter
+     * @param pageRequestView View containing the requested page and pageSize
+     * @return all tickets that the logged user is assigned as client
+     */
+    @GetMapping("client/all")
+    public PageView<TicketView> getAllTicketsForClient(@AuthenticationPrincipal User user, TicketFilter ticketFilter, PageRequestView pageRequestView) {
+        ticketFilter.setShopId(user.getShop().getId());
+        ticketFilter.setClientId(user.getId());
+        return ticketService.findAll(ticketFilter, pageRequestView);
+    }
     @GetMapping("active")
-    public List<TicketView> getAllTickets(@AuthenticationPrincipal User user, TicketFilter ticketFilter) {
+    public List<TicketView> getAllActiveTickets(@AuthenticationPrincipal User user, TicketFilter ticketFilter) {
         if (!user.getRole().equals(UserRole.ADMIN)) ticketFilter.setShopId(user.getShop().getId());
+        return ticketService.findAllActive(ticketFilter);
+    }
+    @GetMapping("client/active")
+    public List<TicketView> getAllActiveTicketsForClient(@AuthenticationPrincipal User user, TicketFilter ticketFilter) {
+        ticketFilter.setShopId(user.getShop().getId());
+        ticketFilter.setClientId(user.getId());
         return ticketService.findAllActive(ticketFilter);
     }
 

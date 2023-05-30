@@ -33,4 +33,10 @@ public class AppExceptionHandler {
         ErrorResponse.Builder responseBuilder = ErrorResponse.builder(ex, HttpStatus.UNAUTHORIZED, ex.getMessage());
         return responseBuilder.build();
     }
+
+    @ExceptionHandler({ForbiddenActionException.class})
+    public ErrorResponse handleJWTExceptions(ForbiddenActionException ex) {
+        ErrorResponse.Builder responseBuilder = ErrorResponse.builder(ex, HttpStatus.FORBIDDEN, ex.getMessage());
+        return responseBuilder.build();
+    }
 }

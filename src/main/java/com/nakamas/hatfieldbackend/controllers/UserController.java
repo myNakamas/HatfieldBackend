@@ -6,6 +6,7 @@ import com.nakamas.hatfieldbackend.models.views.incoming.CreateUser;
 import com.nakamas.hatfieldbackend.models.views.incoming.PageRequestView;
 import com.nakamas.hatfieldbackend.models.views.incoming.filters.UserFilter;
 import com.nakamas.hatfieldbackend.models.views.outgoing.PageView;
+import com.nakamas.hatfieldbackend.models.views.outgoing.user.UserLogin;
 import com.nakamas.hatfieldbackend.models.views.outgoing.user.UserProfile;
 import com.nakamas.hatfieldbackend.services.UserService;
 import jakarta.servlet.http.HttpServletResponse;
@@ -33,6 +34,7 @@ public class UserController {
     public UserProfile createUser(@RequestBody @Valid CreateUser user) {
         return new UserProfile(userService.createUser(user));
     }
+
     @PutMapping("admin/update")
     public UserProfile updateUser(@RequestBody @Valid CreateUser user) {
         return new UserProfile(userService.updateUser(user));
@@ -48,8 +50,8 @@ public class UserController {
         userService.updateUserActivity(id, status);
     }
 
-    //worker i nagore toest admin
 
+    //worker i nagore toest admin
     @PostMapping("worker/client")
     public UserProfile createClient(@RequestBody @Valid CreateUser user) {
         return new UserProfile(userService.createClient(user));
@@ -74,16 +76,19 @@ public class UserController {
     public List<UserProfile> getAllClients(UserFilter filter) {
         return userService.getAllClients(filter).stream().map(UserProfile::new).toList();
     }
+
     @GetMapping("worker/all/clientsPages")
     public PageView<UserProfile> getAllClientsPages(UserFilter filter, PageRequestView pageRequestView) {
         return new PageView<>(userService.getAllClients(filter, pageRequestView.getPageRequest()).map(UserProfile::new));
     }
+
     //do tuk :D
     @GetMapping("profile")
     public UserProfile getLoggedUser(@AuthenticationPrincipal User user) {
         User fromDb = userService.getUser(user.getId());
         return new UserProfile(fromDb);
     }
+
     @PutMapping("profile/edit")
     public UserProfile editLoggedUser(@AuthenticationPrincipal User user, @RequestBody CreateUser update) {
         return new UserProfile(userService.updateUser(user, update));
@@ -98,12 +103,19 @@ public class UserController {
     public void editPassword(@AuthenticationPrincipal User user, @RequestBody ChangePasswordView changePassword) {
         userService.changePassword(user, changePassword.oldPassword(), changePassword.newPassword());
     }
+
     @GetMapping(path = "profile/image", produces = {MediaType.IMAGE_JPEG_VALUE})
     public void getUserImage(@RequestParam UUID id, @Autowired HttpServletResponse response) {
         userService.getUserImage(id, response);
     }
+
     @PostMapping(path = "profile/edit/image", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
     public void updateUserImage(@AuthenticationPrincipal User user, @RequestBody MultipartFile image) {
         userService.updateUserImage(user, image);
+    }
+
+    @GetMapping("all")
+    public List<UserLogin> getAllSimple(UserFilter filter) {
+        return userService.getAll(filter).stream().map(UserLogin::new).toList();
     }
 }
