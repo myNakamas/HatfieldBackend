@@ -32,7 +32,8 @@ public class InventoryItemController {
 
     @GetMapping("item")
     public InventoryItemView getById(@RequestParam Long id) {
-        return new InventoryItemView(inventoryItemService.getItem(id));
+        InventoryItem save = inventoryItemService.getItem(id);
+        return new InventoryItemView(save, inventoryItemService.getCategory(save.getCategoryId()));
     }
 
     @PostMapping("item/update")
@@ -73,6 +74,11 @@ public class InventoryItemController {
     @PatchMapping("item/changeNeed")
     public void changeNeed(@RequestParam Long id, @RequestParam Boolean need) {
         inventoryItemService.changeNeed(id, need);
+    }
+
+    @PostMapping("item/sendToShop")
+    public void sendToShop(@RequestParam Long itemId, @RequestParam Long shopId, @RequestParam Integer count) {
+        inventoryItemService.sendToShop(itemId, shopId, count);
     }
 
     @PatchMapping("item/required")

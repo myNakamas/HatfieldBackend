@@ -17,7 +17,7 @@ import java.util.List;
 @NoArgsConstructor
 @Table
 @Entity
-public class Model extends AbstractPersistable<Long> {//    todo: add shopId column to the table
+public class Model extends AbstractPersistable<Long> {
     private String model;
     @OneToMany(mappedBy = "model")
     private List<InventoryItem> items;
