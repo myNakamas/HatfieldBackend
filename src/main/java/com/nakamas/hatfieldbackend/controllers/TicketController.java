@@ -22,7 +22,7 @@ import java.util.List;
 public class TicketController {
     private final TicketService ticketService;
 
-    @PostMapping
+    @PostMapping("worker/create")
     public Long createTicket(@RequestBody CreateTicket ticket , @AuthenticationPrincipal User user){
         return ticketService.createTicket(ticket,user).getId();
     }
@@ -32,7 +32,7 @@ public class TicketController {
         return new TicketView(ticketService.getTicket(id));
     }
 
-    @PutMapping("update/{id}")
+    @PutMapping("worker/update/{id}")
     public Long updateTicket(@RequestBody CreateTicket ticket, @PathVariable Long id){
         return ticketService.update(ticket,id);
     }
@@ -68,21 +68,21 @@ public class TicketController {
     }
 
 //    todo: Post Start repair (move to lab, status started + message in chat + Open chat)
-    @PutMapping("start")
+    @PutMapping("worker/start")
     public void startTicket(@AuthenticationPrincipal User user, @RequestParam Long id){
         ticketService.startRepair(user, id);
     }
 //    todo: Complete repair(move to? Status Completed, send notification)
-    @PutMapping("complete")
+    @PutMapping("worker/complete")
     public void completeTicket(@AuthenticationPrincipal User user, @RequestParam Long id, @RequestParam String location){
         ticketService.completeRepair(user, id, location);
     }
 //    todo: Mark as collected + chat message + generate invoice
-    @PutMapping("collected")
+    @PutMapping("worker/collected")
     public byte[] collectedDevice(@AuthenticationPrincipal User user, @RequestParam Long id, @RequestBody CreateInvoice invoice){
         return ticketService.collectedDevice(user, id, invoice);
     }
-    @PostMapping("part/use")
+    @PostMapping("worker/part/use")
     public TicketView useItem(@RequestBody CreateUsedItem usedItem){
         return new TicketView(ticketService.usePartFromInventory(usedItem.ticketId(), usedItem.itemId(), usedItem.count()));
     }
