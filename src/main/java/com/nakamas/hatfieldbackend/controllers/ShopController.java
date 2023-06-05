@@ -4,6 +4,7 @@ import com.nakamas.hatfieldbackend.models.entities.User;
 import com.nakamas.hatfieldbackend.models.views.incoming.CreateShop;
 import com.nakamas.hatfieldbackend.models.views.outgoing.shop.ShopSettingsView;
 import com.nakamas.hatfieldbackend.models.views.outgoing.shop.ShopView;
+import com.nakamas.hatfieldbackend.models.views.outgoing.shop.WorkerShopView;
 import com.nakamas.hatfieldbackend.services.ShopService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -35,6 +36,12 @@ public class ShopController {
     public List<ShopView> getAllShops() {
         return shopService.getAllShops().stream().map(ShopView::new).collect(Collectors.toList());
     }
+
+    @GetMapping("worker/all")
+    public List<WorkerShopView> getAllWorkerShops() {
+        return shopService.workerShops();
+    }
+
     @GetMapping("admin/byId")
     public ShopView getShopsById(@RequestParam Long shopId) {
         return shopService.getShopById(shopId);
