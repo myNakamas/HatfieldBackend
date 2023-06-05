@@ -89,5 +89,9 @@ public class InventoryItemController {
     public List<BrandView> getAllBrands() {
         return inventoryItemService.getAllBrands();
     }
+    @GetMapping("location/all")
+    public List<ItemPropertyView> getAllDeviceLocations() {
+        return inventoryItemService.getAllDeviceLocations();
+    }
 
 }

@@ -41,6 +41,7 @@ public class InventoryItemService {
     private final ShopRepository shopRepository;
     private final CategoryRepository categoryRepository;
     private final UsedPartRepository usedPartRepository;
+    private final DeviceLocationRepository deviceLocationRepository;
     private final LoggerService loggerService;
 
 
@@ -240,5 +241,9 @@ public class InventoryItemService {
         item.getRequiredItem().setRequiredAmount(count);
         item.getRequiredItem().setNeeded(Objects.requireNonNullElse(isNeeded, true));
         inventoryItemRepository.save(item);
+    }
+
+    public List<ItemPropertyView> getAllDeviceLocations() {
+        return deviceLocationRepository.findAllLocations();
     }
 }
