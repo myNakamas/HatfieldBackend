@@ -26,10 +26,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
 import java.time.ZonedDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -41,6 +38,7 @@ public class InventoryItemService {
     private final ShopRepository shopRepository;
     private final CategoryRepository categoryRepository;
     private final UsedPartRepository usedPartRepository;
+    private final DeviceLocationRepository deviceLocationRepository;
     private final LoggerService loggerService;
 
 
@@ -89,6 +87,24 @@ public class InventoryItemService {
     public List<CategoryView> getAllCategoryViews() {
         List<Category> all = categoryRepository.findAll();
         return all.stream().map(CategoryView::new).collect(Collectors.toList());
+    }
+
+    public void sendToShop(Long itemId, Long shopId, Integer count) {
+        InventoryItem item = getItem(itemId);
+        Shop shop = shopRepository.findById(shopId).orElseThrow(() -> new CustomException("Shop with provided id could not be found!"));
+        if (count < 1) {
+            throw new CustomException("Invalid count!");
+        }
+        if (item.getCount() < count) {
+            throw new CustomException("Not enough items in inventory!");
+        }
+        CreateInventoryItem itemView = new CreateInventoryItem(null, item.getName(), item.getPurchasePrice(), item.getSellPrice(), null, null, null, null, 0, null, null, new HashMap<>(item.getOtherProperties()));
+        InventoryItem newItem = inventoryItemRepository.findDublicateByShop(item.getBrand(), item.getModel(), item.getCategoryId(), shop).
+                orElse(new InventoryItem(itemView, item.getBrand(), item.getModel(), shop, categoryRepository.findById(item.getCategoryId()).orElse(null)));
+        newItem.setCount(newItem.getCount() + count);
+        item.setCount(item.getCount() - count);
+        inventoryItemRepository.save(newItem);
+        inventoryItemRepository.save(item);
     }
 
     public UsedPart useItemForTicket(Long inventoryItemId, Ticket ticket, Integer count) {
@@ -154,7 +170,8 @@ public class InventoryItemService {
         Long brandId = brand.getId();
         Model existingByName = modelRepository.findByName(modelValue, brandId);
         if (existingByName != null) {
-            if(!brand.getModels().contains(existingByName)) brand.getModels().add(new Model(existingByName.getModel(), brandId));
+            if (!brand.getModels().contains(existingByName))
+                brand.getModels().add(new Model(existingByName.getModel(), brandId));
             return existingByName;
         }
         Model save = modelRepository.save(new Model(modelValue, brandId));
@@ -240,5 +257,9 @@ public class InventoryItemService {
         item.getRequiredItem().setRequiredAmount(count);
         item.getRequiredItem().setNeeded(Objects.requireNonNullElse(isNeeded, true));
         inventoryItemRepository.save(item);
+    }
+
+    public List<ItemPropertyView> getAllDeviceLocations() {
+        return deviceLocationRepository.findAllLocations();
     }
 }

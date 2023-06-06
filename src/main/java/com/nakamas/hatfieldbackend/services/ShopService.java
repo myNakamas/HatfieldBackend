@@ -7,10 +7,12 @@ import com.nakamas.hatfieldbackend.models.enums.LogType;
 import com.nakamas.hatfieldbackend.models.views.incoming.CreateShop;
 import com.nakamas.hatfieldbackend.models.views.outgoing.shop.ShopSettingsView;
 import com.nakamas.hatfieldbackend.models.views.outgoing.shop.ShopView;
+import com.nakamas.hatfieldbackend.models.views.outgoing.shop.WorkerShopView;
 import com.nakamas.hatfieldbackend.repositories.ShopRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -46,4 +48,15 @@ public class ShopService {
         loggerService.shopActions(new Log(LogType.UPDATED_SHOP), shop);
         return shopRepository.save(shop);
     }
+
+    public List<WorkerShopView> workerShops(){
+        List<Shop> allAdminShops = shopRepository.findAll();
+        List<WorkerShopView> allWorkerShops = new ArrayList<>();
+        for (Shop shop: allAdminShops) {
+            allWorkerShops.add(new WorkerShopView(shop.getId(), shop.getShopName()));
+        }
+        return allWorkerShops;
+    }
+
+
 }

@@ -85,6 +85,7 @@ public class TicketTests {
     }
 
     @Test
+    @Transactional
     void create_ticket() {
         CreateTicket createTicket = TestData.getTestTicket(client);
         Ticket ticket = ticketService.createTicket(createTicket, user);
@@ -95,6 +96,7 @@ public class TicketTests {
 
 
     @Test
+    @Transactional
     void update_ticket_should_succeed() {
         CreateTicket createTicket = TestData.getTestTicket(client);
         Long ticketId = ticketService.update(createTicket, ticket.getId());
