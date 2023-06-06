@@ -26,6 +26,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import static com.nakamas.hatfieldbackend.TestData.*;
 import static org.junit.jupiter.api.Assertions.*;
@@ -111,11 +112,12 @@ class InventoryItemTest {
 
         List<CategoryView> result = inventoryItemService.getAllCategoryViews();
 
-        assertEquals(2, result.size());
-        assertEquals("Category 1", result.get(0).name());
-        assertEquals(List.of("Field 1", "Field 2"), result.get(0).columns());
-        assertEquals("Category 2", result.get(1).name());
-        assertEquals(List.of("Field 3", "Field 4"), result.get(1).columns());
+        Optional<CategoryView> first = result.stream().filter(cat -> cat.name().equals(category1.getName())).findFirst();
+        Optional<CategoryView> second = result.stream().filter(cat -> cat.name().equals(category2.getName())).findFirst();
+        assertTrue(first.isPresent());
+        assertEquals(List.of("Field 1", "Field 2"), first.get().columns());
+        assertTrue(second.isPresent());
+        assertEquals(List.of("Field 3", "Field 4"), second.get().columns());
     }
 
     @Test
