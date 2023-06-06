@@ -1,5 +1,7 @@
 package com.nakamas.hatfieldbackend.controllers;
 
+import com.nakamas.hatfieldbackend.config.exception.CustomException;
+import com.nakamas.hatfieldbackend.config.exception.ForbiddenActionException;
 import com.nakamas.hatfieldbackend.models.entities.User;
 import com.nakamas.hatfieldbackend.models.entities.shop.InventoryItem;
 import com.nakamas.hatfieldbackend.models.entities.ticket.Invoice;
@@ -10,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -38,11 +41,23 @@ public class DocumentController {
         byte[] bytes = doc.pdfBytes();
         return ResponseEntity.ok().contentType(MediaType.APPLICATION_PDF).body(bytes);
     }
+
     @PostMapping(value = "print/invoice", produces = MediaType.APPLICATION_PDF_VALUE)
     private ResponseEntity<byte[]> printInvoice(@RequestParam Long invoiceId) {
         Invoice invoice = invoiceService.getById(invoiceId);
         PdfAndImageDoc doc = documentService.createInvoice("%s/invoices/%s".formatted(frontendHost, invoice.getId()), invoice);
 //        documentService.executePrint(doc.image());
+        byte[] bytes = doc.pdfBytes();
+        return ResponseEntity.ok().contentType(MediaType.APPLICATION_PDF).body(bytes);
+    }
+
+    @PostMapping(value = "print/client/invoice", produces = MediaType.APPLICATION_PDF_VALUE)
+    private ResponseEntity<byte[]> printClientInvoice(@AuthenticationPrincipal User user, @RequestParam Long invoiceId) {
+        Invoice invoice = invoiceService.getById(invoiceId);
+        if (user == null) throw new CustomException("No user with session");
+        if (invoice.getClient() == null || invoice.getClient().getId() == null || !invoice.getClient().getId().equals(user.getId()))
+            throw new ForbiddenActionException("You cannot print this invoice");
+        PdfAndImageDoc doc = documentService.createInvoice("%s/invoices/%s".formatted(frontendHost, invoice.getId()), invoice);
         byte[] bytes = doc.pdfBytes();
         return ResponseEntity.ok().contentType(MediaType.APPLICATION_PDF).body(bytes);
     }
@@ -55,10 +70,11 @@ public class DocumentController {
         byte[] bytes = doc.pdfBytes();
         return ResponseEntity.ok().contentType(MediaType.APPLICATION_PDF).body(bytes);
     }
+
     @PostMapping(value = "print/tag/user", produces = MediaType.APPLICATION_PDF_VALUE)
     private ResponseEntity<byte[]> printRepairTag(@RequestParam UUID userId) {
         User user = userService.getUser(userId);
-        PdfAndImageDoc doc = documentService.createUserTag(frontendHost,user);
+        PdfAndImageDoc doc = documentService.createUserTag(frontendHost, user);
         documentService.executePrint(doc.image());
         byte[] bytes = doc.pdfBytes();
         return ResponseEntity.ok().contentType(MediaType.APPLICATION_PDF).body(bytes);
