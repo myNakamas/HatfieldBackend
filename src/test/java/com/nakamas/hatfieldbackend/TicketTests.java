@@ -85,6 +85,7 @@ public class TicketTests {
     }
 
     @Test
+    @Transactional
     void create_ticket() {
         CreateTicket createTicket = TestData.getTestTicket(client);
         Ticket ticket = ticketService.createTicket(createTicket, user);
