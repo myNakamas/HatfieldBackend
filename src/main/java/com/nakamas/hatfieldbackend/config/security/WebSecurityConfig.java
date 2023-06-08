@@ -49,7 +49,7 @@ public class WebSecurityConfig {
     private final RequestMatcher[] workerUrlMatchers = new RegexRequestMatcher[]{
             RegexRequestMatcher.regexMatcher(".*/worker/.*"),
             RegexRequestMatcher.regexMatcher(".*/logs/.*"),
-            RegexRequestMatcher.regexMatcher(".*/document/.*"),
+            RegexRequestMatcher.regexMatcher(HttpMethod.POST,".*/document/.*"),
             RegexRequestMatcher.regexMatcher(".*/item/.*"),
             RegexRequestMatcher.regexMatcher(HttpMethod.POST,".*/invoice/.*"),
             RegexRequestMatcher.regexMatcher(HttpMethod.DELETE,".*/invoice/.*"),
