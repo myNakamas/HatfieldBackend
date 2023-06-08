@@ -73,12 +73,14 @@ public class UserController {
     }
 
     @GetMapping("worker/all/clients")
-    public List<UserProfile> getAllClients(UserFilter filter) {
+    public List<UserProfile> getAllClients(@AuthenticationPrincipal User user, UserFilter filter) {
+        filter.setShopId(user.getShop().getId());
         return userService.getAllClients(filter).stream().map(UserProfile::new).toList();
     }
 
     @GetMapping("worker/all/clientsPages")
-    public PageView<UserProfile> getAllClientsPages(UserFilter filter, PageRequestView pageRequestView) {
+    public PageView<UserProfile> getAllClientsPages(@AuthenticationPrincipal User user, UserFilter filter, PageRequestView pageRequestView) {
+        filter.setShopId(user.getShop().getId());
         return new PageView<>(userService.getAllClients(filter, pageRequestView.getPageRequest()).map(UserProfile::new));
     }
 
