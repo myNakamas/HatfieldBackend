@@ -13,10 +13,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
 
@@ -51,7 +48,7 @@ public class DocumentController {
         return ResponseEntity.ok().contentType(MediaType.APPLICATION_PDF).body(bytes);
     }
 
-    @PostMapping(value = "print/client/invoice", produces = MediaType.APPLICATION_PDF_VALUE)
+    @GetMapping(value = "client/print/invoice", produces = MediaType.APPLICATION_PDF_VALUE)
     private ResponseEntity<byte[]> printClientInvoice(@AuthenticationPrincipal User user, @RequestParam Long invoiceId) {
         Invoice invoice = invoiceService.getById(invoiceId);
         if (user == null) throw new CustomException("No user with session");
