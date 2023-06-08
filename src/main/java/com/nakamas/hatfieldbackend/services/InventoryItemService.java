@@ -262,4 +262,18 @@ public class InventoryItemService {
     public List<ItemPropertyView> getAllDeviceLocations() {
         return deviceLocationRepository.findAllLocations();
     }
+
+    public void markOneAsDefective(Long itemId) {
+        InventoryItem item = getItem(itemId);
+        item.setCount(item.getCount()-1);
+        //todo: Add Log
+        inventoryItemRepository.save(item);
+    }
+
+    public void markOneAsDamaged(Long itemId) {
+        InventoryItem item = getItem(itemId);
+        item.setCount(item.getCount()-1);
+        //todo: Add Log
+        inventoryItemRepository.save(item);
+    }
 }

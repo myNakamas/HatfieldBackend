@@ -36,5 +36,5 @@ public enum LogType {
     RESTORED_USER,
     //SHOP
     CREATED_SHOP,
-    UPDATED_SHOP
+    ITEM_MARKED_DEFECTIVE, UPDATED_SHOP
 }
