@@ -36,6 +36,7 @@ import java.nio.file.Path;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
+import java.util.Arrays;
 import java.util.List;
 
 @Slf4j
@@ -284,23 +285,20 @@ public class DocumentService implements ApplicationRunner {
         if (printerIp != null && !printerIp.isBlank() && !brotherLocation.isBlank()) {
             log.info("Printer IP provided, proceeding to print images");
             String printerUrl = "tcp://" + printerIp;
-            String cmd = brotherLocation+"brother_ql -b network -p " +  printerUrl + " -m QL-580N print -l 62 " + image.getAbsolutePath();
-            log.info("Running " + cmd);
+            String[] cmd = {brotherLocation+"brother_ql", "-b", "network", "-p", printerUrl, "-m", "QL-580N", "print", "-l", "62", image.getAbsolutePath()};
+            log.info("Running " + Arrays.toString(cmd));
 
             ProcessBuilder builder = new ProcessBuilder(cmd);
+            builder.inheritIO();
 
             try {
                 Process process = builder.start();
                 int exitCode = process.waitFor();
-                String output = new String(process.getInputStream().readAllBytes());
-                log.info("Tool output: {}", output);
 
                 if (exitCode == 0) {
                     log.info("Label printed successfully.");
                 } else {
                     log.error("Failed to print label. Exit code: " + exitCode);
-                    String error = new String(process.getInputStream().readAllBytes());
-                    log.error("Errors: {}",error);
                 }
             } catch (IOException | InterruptedException e) {
                 log.error("Failed to print label. " + e.getMessage());
