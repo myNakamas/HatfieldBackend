@@ -19,8 +19,7 @@ import java.util.UUID;
 @Setter
 public class CreateInvoice {
     private InvoiceType type;
-    private String deviceModel;
-    private String deviceBrand;
+    private String deviceName;
     private String serialNumber;
     private Integer count;
 
@@ -33,19 +32,19 @@ public class CreateInvoice {
     private PaymentMethod paymentMethod;
     private WarrantyPeriod warrantyPeriod;
 
-    public void setTicketInfo(Ticket ticket){
+    public void setTicketInfo(Ticket ticket) {
         this.ticketId = ticket.getId();
         this.type = InvoiceType.REPAIR;
-        this.deviceModel = ticket.getDeviceModelString();
-        this.deviceBrand = ticket.getDeviceBrandString();
-        this.serialNumber = ticket.getSerialNumberOrImei();
+        if (this.deviceName != null)
+            this.deviceName = ticket.getDeviceBrandString() + " " + ticket.getDeviceModelString();
+        if (this.serialNumber != null) this.serialNumber = ticket.getSerialNumberOrImei();
         if (ticket.getClient() != null) this.clientId = ticket.getClient().getId();
         if (ticket.getTotalPrice() != null) this.totalPrice = ticket.getTotalPrice();
     }
-    public void setItemInfo(InventoryItem item){
+
+    public void setItemInfo(InventoryItem item) {
         this.itemId = item.getId();
-        this.deviceModel = item.getModelString();
-        this.deviceBrand = item.getBrandString();
+        this.deviceName = item.getName();
         if (this.totalPrice == null) this.totalPrice = item.getPurchasePrice();
         this.itemName = item.getName();
     }

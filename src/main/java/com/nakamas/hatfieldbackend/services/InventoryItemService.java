@@ -215,13 +215,15 @@ public class InventoryItemService {
     public void changeNeed(Long id, Boolean need) {
         InventoryItem item = inventoryItemRepository.findById(id).orElseThrow(() -> new CustomException("Item with provided id could not be found"));
         item.getRequiredItem().setNeeded(need);
-        loggerService.itemActions(new Log(LogType.UPDATE_ITEM), item, 0);
+        if(need){loggerService.itemActions(new Log(LogType.ADD_ITEM_TO_SHOPPING_LIST), item, 0);}
+        else{loggerService.itemActions(new Log(LogType.REMOVE_ITEM_FROM_SHOPPING_LIST), item, 0);}
         inventoryItemRepository.save(item);
     }
 
     public void changeNeed(List<Long> ids, Boolean need) {
         List<InventoryItem> allById = inventoryItemRepository.findAllById(ids);
         List<InventoryItem> modified = new ArrayList<>();
+        loggerService.shoppingItemActions(allById, need);
         for (InventoryItem item : allById) {
             item.getRequiredItem().setNeeded(need);
             modified.add(item);
@@ -248,7 +250,7 @@ public class InventoryItemService {
     public void sellItem(Long id, Integer count) {
         InventoryItem item = getItem(id);
         updateItemCount(count, item);
-        loggerService.itemActions(new Log(LogType.CREATED_SELL_INVOICE), item, count);
+        loggerService.itemActions(new Log(LogType.SOLD_ITEM), item, count);
         inventoryItemRepository.save(item);
     }
 
@@ -261,5 +263,19 @@ public class InventoryItemService {
 
     public List<ItemPropertyView> getAllDeviceLocations() {
         return deviceLocationRepository.findAllLocations();
+    }
+
+    public void markOneAsDefective(Long itemId) {
+        InventoryItem item = getItem(itemId);
+        item.setCount(item.getCount()-1);
+        loggerService.itemActions(new Log(LogType.DEFECTIVE_PART), item, 1);
+        inventoryItemRepository.save(item);
+    }
+
+    public void markOneAsDamaged(Long itemId) {
+        InventoryItem item = getItem(itemId);
+        item.setCount(item.getCount()-1);
+        loggerService.itemActions(new Log(LogType.DAMAGED_PART), item, 1);
+        inventoryItemRepository.save(item);
     }
 }

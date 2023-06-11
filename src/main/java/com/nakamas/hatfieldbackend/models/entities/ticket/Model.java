@@ -21,7 +21,7 @@ public class Model extends AbstractPersistable<Long> {
     private String model;
     @OneToMany(mappedBy = "model")
     private List<InventoryItem> items;
-    @OneToMany(mappedBy = "deviceModel")
+    @OneToMany(mappedBy = "deviceName")
     private List<Invoice> invoices;
     private Long brandId;
 

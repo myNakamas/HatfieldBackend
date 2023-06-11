@@ -75,6 +75,14 @@ public class InventoryItemController {
     public void changeNeed(@RequestParam Long id, @RequestParam Boolean need) {
         inventoryItemService.changeNeed(id, need);
     }
+    @PatchMapping("item/mark/defective")
+    public void markAsDefective(@RequestParam Long itemId) {
+        inventoryItemService.markOneAsDefective(itemId);
+    }
+    @PatchMapping("item/mark/damaged")
+    public void markAsDamaged(@RequestParam Long itemId) {
+        inventoryItemService.markOneAsDamaged(itemId);
+    }
 
     @PostMapping("item/sendToShop")
     public void sendToShop(@RequestParam Long itemId, @RequestParam Long shopId, @RequestParam Integer count) {
