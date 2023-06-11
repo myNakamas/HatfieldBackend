@@ -16,7 +16,6 @@ import org.apache.pdfbox.pdmodel.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.PDResources;
 import org.apache.pdfbox.pdmodel.font.PDFont;
 import org.apache.pdfbox.pdmodel.font.PDType0Font;
-import org.apache.pdfbox.pdmodel.font.PDType1Font;
 import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
 import org.apache.pdfbox.pdmodel.interactive.form.PDAcroForm;
 import org.apache.pdfbox.pdmodel.interactive.form.PDField;
@@ -104,27 +103,23 @@ public class DocumentService implements ApplicationRunner {
 
     private void fillUserTagTemplate(String qrContent, User user, PDDocument document) throws IOException {
         PDFont pdfFont = PDType0Font.load(document, fontResource.getInputStream(), false);
-        PDPage page = document.getPage(0);
-        PDPageContentStream contents = new PDPageContentStream(document, page, PDPageContentStream.AppendMode.APPEND, true, true);
-        File code = QRCode.from(qrContent).withSize(240, 240).file();
-        PDImageXObject qrCode = PDImageXObject.createFromFileByContent(code, document);
-        contents.drawImage(qrCode, -20, -10);
-        contents.setFont(pdfFont, 25);
-        contents.beginText();
-        contents.newLineAtOffset(200, 180);
-        contents.setLeading(35);
-        contents.showText("Username: " + user.getUsername());
-        contents.setFont(pdfFont, 20);
-        contents.newLine();
-        contents.showText("Password: " + user.getFirstPassword());
-        contents.newLine();
-        contents.setFont(pdfFont, 12);
-        contents.setLeading(15);
-        contents.showText("* You are strongly advised to change *");
-        contents.newLine();
-        contents.showText("* your first password once you log in! *");
-        contents.endText();
 
+        PDAcroForm acroForm = document.getDocumentCatalog().getAcroForm();
+        setUTF8Font(acroForm, pdfFont);
+
+        PDPage page = document.getPage(0);
+        File code = QRCode.from(qrContent).withSize(235, 235).file();
+        PDImageXObject qrCode = PDImageXObject.createFromFileByContent(code, document);
+        PDPageContentStream contents = new PDPageContentStream(document, page, PDPageContentStream.AppendMode.APPEND, true, true);
+        contents.drawImage(qrCode, 0, -2);
+
+        String detailsString =  "You are strongly advised to change your first password once you log in!";
+
+        acroForm.getField("title").setValue("Username: " + user.getUsername() + " Password: " + user.getFirstPassword());
+        acroForm.getField("details").setValue(detailsString);
+        acroForm.getField("footer").setValue(" ");
+
+        acroForm.flatten();
         contents.close();
     }
 
@@ -176,8 +171,8 @@ public class DocumentService implements ApplicationRunner {
         contents.drawImage(qrCode, 0, -2);
 
         StringBuilder detailsString = new StringBuilder();
-        for (int i = 0; i < details.size(); i++) {
-            detailsString.append(details.get(0)).append("\n");
+        for (String detail : details) {
+            detailsString.append(detail).append("\n");
         }
 
         acroForm.getField("title").setValue(deviceName);
@@ -194,10 +189,10 @@ public class DocumentService implements ApplicationRunner {
         setUTF8Font(acroForm, pdfFont);
 
         PDPage page = document.getPage(0);
-        File code = QRCode.from(qrContent).withSize(250, 250).file();
+        File code = QRCode.from(qrContent).withSize(235, 235).file();
         PDPageContentStream contents = new PDPageContentStream(document, page, PDPageContentStream.AppendMode.APPEND, true, true);
         PDImageXObject qrCode = PDImageXObject.createFromFileByContent(code, document);
-        contents.drawImage(qrCode, -20, -10);
+        contents.drawImage(qrCode, 0, -2);
 
         StringBuilder details = new StringBuilder(ticket.getClient().getFullName() + "\n");
         List<String> phones = ticket.getClient().getPhones();
@@ -216,32 +211,28 @@ public class DocumentService implements ApplicationRunner {
 
     private void fillTicketTemplate(String qrContent, Ticket ticket, PDDocument document) throws IOException {
         PDFont pdfFont = PDType0Font.load(document, fontResource.getInputStream(), false);
+        PDAcroForm acroForm = document.getDocumentCatalog().getAcroForm();
+        setUTF8Font(acroForm, pdfFont);
+
         PDPage page = document.getPage(0);
-        File code = QRCode.from(qrContent).withSize(250, 250).file();
-        boolean isPaid = invoiceRepository.existsByTicketId(ticket.getId());
-        PDImageXObject qrCode = PDImageXObject.createFromFileByContent(code, document);
+        File code = QRCode.from(qrContent).withSize(230, 230).file();
         PDPageContentStream contents = new PDPageContentStream(document, page, PDPageContentStream.AppendMode.APPEND, true, true);
-        contents.drawImage(qrCode, -20, -10, 250, 250);
-        contents.setLeading(30);
-        contents.setFont(pdfFont, 30);
-        contents.setFont(PDType1Font.HELVETICA_BOLD, 30);
+        PDImageXObject qrCode = PDImageXObject.createFromFileByContent(code, document);
+        contents.drawImage(qrCode, 0, -2);
 
-        contents.beginText();
-        contents.newLineAtOffset(220, 200);
-        addLine(contents, "REPAIR TICKET ID:" + ticket.getId());
-        contents.setFont(PDType1Font.HELVETICA_BOLD_OBLIQUE, 30);
-        contents.showText("<= Scan to track your repair");
-        contents.newLine();
-        contents.setFont(pdfFont, 18);
-        contents.setLeading(20);
-        addLine(contents, "Created at: " + ticket.getTimestamp().format(dtf));
-        addLine(contents, "Brand & Model: %s ; %s".formatted(ticket.getDeviceBrandString(), ticket.getDeviceModelString()));
-        addLine(contents, "Condition: " + ticket.getDeviceCondition());
-        addLine(contents, "Request: " + ticket.getCustomerRequest());
-        addLine(contents, String.format("Payment:  %.2f£/%s", ticket.getTotalPrice(), isPaid ? "PAID" : "NOT PAID"));
-        contents.showText(String.format("Ready to collect by: %s", ticket.getDeadline().format(dtf)));
-        contents.endText();
+        boolean isPaid = invoiceRepository.existsByTicketId(ticket.getId());
+        String details = "Created at: " + ticket.getTimestamp().format(dtf) + "\n" +
+                "Brand & Model: " + ticket.getDeviceBrandString() + " ; " + ticket.getDeviceModelString() + "\n" +
+                "Condition: " + ticket.getDeviceCondition() + "\n" +
+                "Request: " + ticket.getCustomerRequest() + "\n" +
+                "Payment:  " + ticket.getTotalPrice() + (isPaid ? "/PAID" : "/NOT PAID") + "\n" +
+                "Ready to collect by: " + ticket.getDeadline().format(dtf) + "\n";
 
+
+        acroForm.getField("ticket_id").setValue("REPAIR TICKET ID:" + ticket.getId());
+        acroForm.getField("details").setValue(details);
+
+        acroForm.flatten();
         contents.close();
     }
 
@@ -271,9 +262,7 @@ public class DocumentService implements ApplicationRunner {
         acroForm.getField("shop_reg").setValue(invoice.getCreatedBy().getShop().getRegNumber());
         acroForm.getField("shop_locations").setValue(invoice.getCreatedBy().getShop().getAddress());
 
-//        todo: add category name
-        acroForm.getField("invoice_device_brand_model_name").
-                setValue(invoice.getDeviceBrand() + " " + invoice.getDeviceModel());
+        acroForm.getField("invoice_device_brand_model_name").setValue(invoice.getDeviceName());
         acroForm.getField("device_num_or_imei").setValue(invoice.getSerialNumber());
         acroForm.getField("device_count").setValue(invoice.getCount().toString());
         acroForm.getField("device_price").setValue(invoice.getTotalPrice().toString());
@@ -324,11 +313,6 @@ public class DocumentService implements ApplicationRunner {
         File file = new File(filePath);
         log.info("Created image to [%s]".formatted(file.getAbsolutePath()));
         return file;
-    }
-
-    private static void addLine(PDPageContentStream contents, String ticket) throws IOException {
-        contents.showText(ticket);
-        contents.newLine();
     }
 
     private InputStream getTemplate(String location) {

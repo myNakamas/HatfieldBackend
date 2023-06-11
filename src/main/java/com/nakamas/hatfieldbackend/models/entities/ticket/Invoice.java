@@ -22,8 +22,7 @@ import java.time.ZonedDateTime;
 public class Invoice extends AbstractPersistable<Long> {
     @Enumerated
     private InvoiceType type;
-    private String deviceModel;
-    private String deviceBrand;
+    private String deviceName;
     private String serialNumber;
     private Long ticketId;
     private ZonedDateTime timestamp;
@@ -44,8 +43,7 @@ public class Invoice extends AbstractPersistable<Long> {
 
     public Invoice(CreateInvoice invoiceView, User creator, User client) {
         if (invoiceView.getType() != null) this.type = invoiceView.getType();
-        if (invoiceView.getDeviceModel() != null) this.deviceModel = invoiceView.getDeviceModel();
-        if (invoiceView.getDeviceBrand() != null) this.deviceBrand = invoiceView.getDeviceBrand();
+        if (invoiceView.getDeviceName() != null) this.deviceName = invoiceView.getDeviceName();
         if (invoiceView.getSerialNumber() != null && invoiceView.getSerialNumber().isBlank()) {
             this.serialNumber = invoiceView.getSerialNumber();
         } else {
