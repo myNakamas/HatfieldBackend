@@ -293,11 +293,15 @@ public class DocumentService implements ApplicationRunner {
             try {
                 Process process = builder.start();
                 int exitCode = process.waitFor();
+                String output = new String(process.getInputStream().readAllBytes());
+                log.info("Tool output: {}", output);
 
                 if (exitCode == 0) {
                     log.info("Label printed successfully.");
                 } else {
                     log.error("Failed to print label. Exit code: " + exitCode);
+                    String error = new String(process.getInputStream().readAllBytes());
+                    log.error("Errors: {}",error);
                 }
             } catch (IOException | InterruptedException e) {
                 log.error("Failed to print label. " + e.getMessage());
