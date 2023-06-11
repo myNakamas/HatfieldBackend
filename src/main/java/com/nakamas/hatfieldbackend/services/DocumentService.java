@@ -46,6 +46,8 @@ public class DocumentService implements ApplicationRunner {
     private final InvoiceRepository invoiceRepository;
     @Value(value = "${printer-ip:#{null}}")
     private String printerIp = "";
+    @Value(value = "${brother_loc:#{null}}")
+    private String brotherLocation = "";
 
     private final String outputPath = Path.of(System.getProperty("user.dir"), "output").toString();
     private final DateTimeFormatter dtf = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM);
@@ -280,10 +282,10 @@ public class DocumentService implements ApplicationRunner {
     }
 
     public void executePrint(File image) {
-        if (printerIp != null && !printerIp.isBlank()) {
+        if (printerIp != null && !printerIp.isBlank() && !brotherLocation.isBlank()) {
             log.info("Printer IP provided, proceeding to print images");
             String printerUrl = "tcp://" + printerIp;
-            String[] cmd = {"brother_ql", "-b", "network", "-p", printerUrl, "-m", "QL-580N", "print", "-l", "62", image.getAbsolutePath()};
+            String[] cmd = {brotherLocation+"brother_ql", "-b", "network", "-p", printerUrl, "-m", "QL-580N", "print", "-l", "62", image.getAbsolutePath()};
             log.info("Running " + Arrays.toString(cmd));
 
             ProcessBuilder builder = new ProcessBuilder(cmd);
