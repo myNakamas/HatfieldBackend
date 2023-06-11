@@ -63,11 +63,10 @@ public class DocumentService implements ApplicationRunner {
     public PdfAndImageDoc createPriceTag(String qrContent, InventoryItem item) {
         InputStream input = getTemplate("/smallTag.pdf");
         try (PDDocument document = PDDocument.load(input)) {
-            String deviceName = "%s %s".formatted(item.getName(), item.getBrandString());
-            String model = item.getModelString();
+            String deviceName = "%s".formatted(item.getName());
             List<String> details = item.getOtherProperties().entrySet().stream().map(entry -> entry.getKey() + ": " + entry.getValue()).toList();
-            Float price = item.getSellPrice().floatValue();
-            fillPriceTagTemplate(qrContent, deviceName, model, details, price, document);
+            Float price = item.getSellPrice() != null ? item.getSellPrice().floatValue() : 0.00f;
+            fillPriceTagTemplate(qrContent, deviceName, details, price, document);
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             document.save(baos);
             return new PdfAndImageDoc(getImage(document, "priceTag"), baos.toByteArray());
@@ -88,9 +87,10 @@ public class DocumentService implements ApplicationRunner {
             throw new RuntimeException(e);
         }
     }
-    public PdfAndImageDoc createUserTag(String urlPrefix,User user) {
+
+    public PdfAndImageDoc createUserTag(String urlPrefix, User user) {
         InputStream input = getTemplate("/smallTag.pdf");
-        String qrContent = "%s/login?username=%s&password=%s".formatted(urlPrefix, user.getUsername(),user.getFirstPassword());
+        String qrContent = "%s/login?username=%s&password=%s".formatted(urlPrefix, user.getUsername(), user.getFirstPassword());
 
         try (PDDocument document = PDDocument.load(input)) {
             fillUserTagTemplate(qrContent, user, document);
@@ -113,10 +113,10 @@ public class DocumentService implements ApplicationRunner {
         contents.beginText();
         contents.newLineAtOffset(200, 180);
         contents.setLeading(35);
-        contents.showText("Username: "+user.getUsername());
+        contents.showText("Username: " + user.getUsername());
         contents.setFont(pdfFont, 20);
         contents.newLine();
-        contents.showText("Password: "+user.getFirstPassword());
+        contents.showText("Password: " + user.getFirstPassword());
         contents.newLine();
         contents.setFont(pdfFont, 12);
         contents.setLeading(15);
@@ -163,65 +163,54 @@ public class DocumentService implements ApplicationRunner {
         return result;
     }
 
-    private void fillPriceTagTemplate(String qrContent, String deviceName, String model, List<String> details, Float price, PDDocument document) throws IOException {
+    private void fillPriceTagTemplate(String qrContent, String deviceName, List<String> details, Float price, PDDocument document) throws IOException {
         PDFont pdfFont = PDType0Font.load(document, fontResource.getInputStream(), false);
-        int detailsFontSize = details.size() > 0 ? 50 / details.size() - 5 : 25;
-        int detailsLeading = details.size() > 0 ? 50 / details.size() : 30;
-        PDPage page = document.getPage(0);
-        PDPageContentStream contents = new PDPageContentStream(document, page, PDPageContentStream.AppendMode.APPEND, true, true);
-        File code = QRCode.from(qrContent).withSize(250, 250).file();
-        PDImageXObject qrCode = PDImageXObject.createFromFileByContent(code, document);
-        contents.drawImage(qrCode, -20, -10);
-        contents.setFont(pdfFont, 30);
-        contents.beginText();
-        contents.newLineAtOffset(200, 180);
-        contents.setLeading(35);
-        contents.showText(deviceName);
-        contents.setFont(pdfFont, 30);
-        contents.newLine();
-        addLine(contents, model);
-        contents.setFont(pdfFont, detailsFontSize);
-        contents.setLeading(detailsLeading);
-        for (String detail : details) {
-            addLine(contents, detail);
-        }
-        contents.newLineAtOffset(0, -15);
-        contents.setFont(pdfFont, 45);
-        contents.showText("Price: £" + String.format("%.2f", price));
-        contents.endText();
 
+        PDAcroForm acroForm = document.getDocumentCatalog().getAcroForm();
+        setUTF8Font(acroForm, pdfFont);
+
+        PDPage page = document.getPage(0);
+        File code = QRCode.from(qrContent).withSize(235, 235).file();
+        PDImageXObject qrCode = PDImageXObject.createFromFileByContent(code, document);
+        PDPageContentStream contents = new PDPageContentStream(document, page, PDPageContentStream.AppendMode.APPEND, true, true);
+        contents.drawImage(qrCode, 0, -2);
+
+        StringBuilder detailsString = new StringBuilder();
+        for (int i = 0; i < details.size(); i++) {
+            detailsString.append(details.get(0)).append("\n");
+        }
+
+        acroForm.getField("title").setValue(deviceName);
+        acroForm.getField("details").setValue(detailsString.toString());
+        acroForm.getField("footer").setValue("Price: £" + price.toString());
+
+        acroForm.flatten();
         contents.close();
     }
 
     private void fillRepairTagTemplate(String qrContent, Ticket ticket, PDDocument document) throws IOException {
         PDFont pdfFont = PDType0Font.load(document, fontResource.getInputStream(), false);
-        int rows = ticket.getClient().getPhones().size() > 0 ? 5 : 6;
-        int detailsFontSize = 160 / rows - 5;
-        int detailsLeading = 160 / rows;
+        PDAcroForm acroForm = document.getDocumentCatalog().getAcroForm();
+        setUTF8Font(acroForm, pdfFont);
+
         PDPage page = document.getPage(0);
         File code = QRCode.from(qrContent).withSize(250, 250).file();
         PDPageContentStream contents = new PDPageContentStream(document, page, PDPageContentStream.AppendMode.APPEND, true, true);
         PDImageXObject qrCode = PDImageXObject.createFromFileByContent(code, document);
         contents.drawImage(qrCode, -20, -10);
-        contents.setFont(pdfFont, 30);
-        contents.setLeading(30);
 
-        contents.beginText();
-        contents.newLineAtOffset(200, 180);
-        addLine(contents, "Ticket ID:" + ticket.getId());
-
-        contents.setFont(pdfFont, detailsFontSize);
-        contents.setLeading(detailsLeading);
-
-        addLine(contents, ticket.getClient().getFullName());
-        if (ticket.getClient().getPhones().size() > 0) {
-            addLine(contents, ticket.getClient().getPhones().get(0));
+        StringBuilder details = new StringBuilder(ticket.getClient().getFullName() + "\n");
+        List<String> phones = ticket.getClient().getPhones();
+        for (int i = 0; i < phones.size(); i++) {
+            String phone = phones.get(i);
+            details.append("Phone #").append(i).append(" ").append(phone).append("\n");
         }
 
-        addLine(contents, ticket.getAccessories());
-        addLine(contents, String.format("%.2f£", ticket.getTotalPrice()));
+        acroForm.getField("title").setValue("Ticket ID:" + ticket.getId());
+        acroForm.getField("details").setValue(details.toString());
+        acroForm.getField("footer").setValue("Price: £" + ticket.getTotalPrice());
 
-        contents.endText();
+        acroForm.flatten();
         contents.close();
     }
 
@@ -291,8 +280,8 @@ public class DocumentService implements ApplicationRunner {
         acroForm.getField("invoice_note").setValue("Notes : " + invoice.getNotes());
 
         acroForm.getField("invoice_payment_method").setValue(invoice.getPaymentMethod().toString());
-        acroForm.getField("invoice_80").setValue(String.format("%.2f",(invoice.getTotalPrice().doubleValue() / 100) * 80));
-        acroForm.getField("invoice_20").setValue(String.format("%.2f",(invoice.getTotalPrice().doubleValue() / 100) * 20));
+        acroForm.getField("invoice_80").setValue(String.format("%.2f", (invoice.getTotalPrice().doubleValue() / 100) * 80));
+        acroForm.getField("invoice_20").setValue(String.format("%.2f", (invoice.getTotalPrice().doubleValue() / 100) * 20));
         acroForm.getField("invoice_price").setValue(invoice.getTotalPrice().toString());
         acroForm.getField("invoice_warranty").setValue(invoice.getWarrantyPeriod().toString());
 
