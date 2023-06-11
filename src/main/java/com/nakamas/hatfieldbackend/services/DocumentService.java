@@ -37,6 +37,7 @@ import java.nio.file.Path;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
+import java.util.Arrays;
 import java.util.List;
 
 @Slf4j
@@ -293,9 +294,9 @@ public class DocumentService implements ApplicationRunner {
         if (printerIp != null && !printerIp.isBlank()) {
             log.info("Printer IP provided, proceeding to print images");
             String printerUrl = "tcp://" + printerIp;
-            System.setProperty("BROTHER_QL_PRINTER", printerUrl);
-            System.setProperty("BROTHER_QL_MODEL", "QL-580N");
-            String[] cmd = {"brother_ql", "print", "-l", "62", image.getAbsolutePath()};
+            String[] cmd = {"brother_ql", "-b", "network", "-p", printerUrl, "-m", "QL-580N", "print", "-l", "62", image.getAbsolutePath()};
+            log.info("Running " + Arrays.toString(cmd));
+
             ProcessBuilder builder = new ProcessBuilder(cmd);
 
             try {
