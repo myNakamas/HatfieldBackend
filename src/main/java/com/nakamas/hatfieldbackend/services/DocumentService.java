@@ -289,6 +289,8 @@ public class DocumentService implements ApplicationRunner {
             log.info("Running " + Arrays.toString(cmd));
 
             ProcessBuilder builder = new ProcessBuilder(cmd);
+            builder.environment().put("BROTHER_QL_PRINTER",printerUrl);
+            builder.environment().put("BROTHER_QL_MODEL","QL-580N");
             builder.inheritIO();
 
             try {
