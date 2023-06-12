@@ -288,7 +288,7 @@ public class DocumentService implements ApplicationRunner {
     @Async
     public void executePrint(File image) {
         ShopSettings settings = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getShop().getSettings();
-        if (settings.isPrint()) {
+        if (settings.isPrintEnabled()) {
             if (settings.getPrinterIp() == null || settings.getPrinterIp().isBlank() || brotherLocation.isBlank() || pythonLocation.isBlank() || settings.getPrinterModel() == null || settings.getPrinterModel().isBlank()) {
                 throw new CustomException("Missing Printer IP, Model or library location. Cannot print images.");
             } else {
@@ -385,13 +385,13 @@ public class DocumentService implements ApplicationRunner {
 //            File image2 = createPriceTag("QR", "Some text", "Galaxy230", List.of("One detail", "SecondDetail"), 240f);
 //            File image3 = createTicket("QR", ticket);
 //            File image4 = createInvoice("QR", invoice);
-//            log.info("Printer IP provided, proceeding to print images");
+//            log.info("Printer IP provided, proceeding to printEnabled images");
 //            executePrint(image);
 //            executePrint(image2);
 //            executePrint(image3);
 //            executePrint(image4);
 //        } else {
-//            log.warn("Missing Printer IP. Cannot print images");
+//            log.warn("Missing Printer IP. Cannot printEnabled images");
 //        }
     }
 }

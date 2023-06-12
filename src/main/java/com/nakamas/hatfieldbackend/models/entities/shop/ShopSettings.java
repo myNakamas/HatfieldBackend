@@ -18,7 +18,7 @@ public class ShopSettings {
     private String secondaryColor;
     private String gmail;
     private String gmailPassword;
-    private boolean print;
+    private boolean printEnabled;
     private String printerIp;
     private String printerModel;
     private String smsApiKey;
@@ -32,7 +32,7 @@ public class ShopSettings {
         this.secondaryColor = view.secondaryColor();
         this.gmail = view.gmail();
         this.gmailPassword = view.gmailPassword();
-        this.print = view.print();
+        this.printEnabled = view.printEnabled();
         this.printerIp = view.printerIp();
         this.printerModel = view.printerModel();
         this.smsApiKey = view.smsApiKey();
@@ -43,7 +43,7 @@ public class ShopSettings {
         if (view.secondaryColor() != null) this.secondaryColor = view.secondaryColor();
         if (view.gmail() != null) this.gmail = view.gmail();
         if (view.gmailPassword() != null) this.gmailPassword = view.gmailPassword();
-        this.print = view.print();
+        this.printEnabled = view.printEnabled();
         if (view.printerIp() != null) this.printerIp = view.printerIp();
         if (view.printerModel() != null) this.printerModel = view.printerModel();
         if (view.smsApiKey() != null) this.smsApiKey = view.smsApiKey();

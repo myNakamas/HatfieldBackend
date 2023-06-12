@@ -7,12 +7,12 @@ public record ShopSettingsView(
         String secondaryColor,
         String gmail,
         String gmailPassword,
-        boolean print,
+        boolean printEnabled,
         String printerIp,
         String printerModel,
         String smsApiKey) {
 
     public ShopSettingsView(ShopSettings settings){
-        this(settings.getPrimaryColor(), settings.getSecondaryColor(), settings.getGmail(), settings.getGmailPassword(), settings.isPrint(), settings.getPrinterIp(), settings.getPrinterModel(), settings.getSmsApiKey());
+        this(settings.getPrimaryColor(), settings.getSecondaryColor(), settings.getGmail(), settings.getGmailPassword(), settings.isPrintEnabled(), settings.getPrinterIp(), settings.getPrinterModel(), settings.getSmsApiKey());
     }
 }
