@@ -26,6 +26,7 @@ import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import javax.imageio.ImageIO;
@@ -116,7 +117,7 @@ public class DocumentService implements ApplicationRunner {
         PDPageContentStream contents = new PDPageContentStream(document, page, PDPageContentStream.AppendMode.APPEND, true, true);
         contents.drawImage(qrCode, 0, -2);
 
-        String detailsString =  "You are strongly advised to change your first password once you log in!";
+        String detailsString = "You are strongly advised to change your first password once you log in!";
 
         acroForm.getField("title").setValue("Username: " + user.getUsername() + " Password: " + user.getFirstPassword());
         acroForm.getField("details").setValue(detailsString);
@@ -225,11 +226,11 @@ public class DocumentService implements ApplicationRunner {
 
         boolean isPaid = invoiceRepository.existsByTicketId(ticket.getId());
         String details = "Created at: " + ticket.getTimestamp().format(dtf) + "\n" +
-                "Brand & Model: " + ticket.getDeviceBrandString() + " ; " + ticket.getDeviceModelString() + "\n" +
-                "Condition: " + ticket.getDeviceCondition() + "\n" +
-                "Request: " + ticket.getCustomerRequest() + "\n" +
-                "Payment:  " + ticket.getTotalPrice() + (isPaid ? "/PAID" : "/NOT PAID") + "\n" +
-                "Ready to collect by: " + ticket.getDeadline().format(dtf) + "\n";
+                         "Brand & Model: " + ticket.getDeviceBrandString() + " ; " + ticket.getDeviceModelString() + "\n" +
+                         "Condition: " + ticket.getDeviceCondition() + "\n" +
+                         "Request: " + ticket.getCustomerRequest() + "\n" +
+                         "Payment:  " + ticket.getTotalPrice() + (isPaid ? "/PAID" : "/NOT PAID") + "\n" +
+                         "Ready to collect by: " + ticket.getDeadline().format(dtf) + "\n";
 
 
         acroForm.getField("ticket_id").setValue("REPAIR TICKET ID:" + ticket.getId());
@@ -281,18 +282,19 @@ public class DocumentService implements ApplicationRunner {
         contents.close();
     }
 
+    @Async
     public void executePrint(File image) {
         if (printerIp != null && !printerIp.isBlank() && !brotherLocation.isBlank()) {
             log.info("Printer IP provided, proceeding to print images");
             String printerUrl = "tcp://" + printerIp;
-            String[] cmd = {brotherLocation+"brother_ql", "-b", "network", "-p", printerUrl, "-m", "QL-580N", "print", "-l", "62", image.getAbsolutePath()};
+            String[] cmd = {brotherLocation + "brother_ql", "-b", "network", "-p", printerUrl, "-m", "QL-580N", "print", "-l", "62", image.getAbsolutePath()};
             log.info("Running " + Arrays.toString(cmd));
 
             ProcessBuilder builder = new ProcessBuilder(cmd);
-            builder.environment().put("BROTHER_QL_PRINTER",printerUrl);
-            builder.environment().put("BROTHER_QL_MODEL","QL-580N");
+            builder.environment().put("BROTHER_QL_PRINTER", printerUrl);
+            builder.environment().put("BROTHER_QL_MODEL", "QL-580N");
+            builder.environment().put("PYTHONPATH", brotherLocation);
             builder.inheritIO();
-
             try {
                 Process process = builder.start();
                 int exitCode = process.waitFor();
