@@ -1,7 +1,9 @@
 package com.nakamas.hatfieldbackend.services;
 
+import com.nakamas.hatfieldbackend.config.exception.CustomException;
 import com.nakamas.hatfieldbackend.models.entities.User;
 import com.nakamas.hatfieldbackend.models.entities.shop.InventoryItem;
+import com.nakamas.hatfieldbackend.models.entities.shop.ShopSettings;
 import com.nakamas.hatfieldbackend.models.entities.ticket.Invoice;
 import com.nakamas.hatfieldbackend.models.entities.ticket.Ticket;
 import com.nakamas.hatfieldbackend.models.views.outgoing.PdfAndImageDoc;
@@ -27,6 +29,7 @@ import org.springframework.boot.ApplicationRunner;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import javax.imageio.ImageIO;
@@ -39,17 +42,16 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 
 @Slf4j
 @Service
 public class DocumentService implements ApplicationRunner {
     private final ResourceLoader resourceLoader;
     private final InvoiceRepository invoiceRepository;
-    @Value(value = "${printer-ip:#{null}}")
-    private String printerIp = "";
     @Value(value = "${brother_loc:#{null}}")
     private String brotherLocation = "";
+    @Value(value = "${python_loc:#{null}}")
+    private String pythonLocation = "";
 
     private final String outputPath = Path.of(System.getProperty("user.dir"), "output").toString();
     private final DateTimeFormatter dtf = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM);
@@ -227,11 +229,11 @@ public class DocumentService implements ApplicationRunner {
 
         boolean isPaid = invoiceRepository.existsByTicketId(ticket.getId());
         String details = "Created at: " + ticket.getTimestamp().format(dtf) + "\n" +
-                         "Brand & Model: " + ticket.getDeviceBrandString() + " ; " + ticket.getDeviceModelString() + "\n" +
-                         "Condition: " + ticket.getDeviceCondition() + "\n" +
-                         "Request: " + ticket.getCustomerRequest() + "\n" +
-                         "Payment:  " + ticket.getTotalPrice() + (isPaid ? "/PAID" : "/NOT PAID") + "\n" +
-                         "Ready to collect by: " + ticket.getDeadline().format(dtf) + "\n";
+                "Brand & Model: " + ticket.getDeviceBrandString() + " ; " + ticket.getDeviceModelString() + "\n" +
+                "Condition: " + ticket.getDeviceCondition() + "\n" +
+                "Request: " + ticket.getCustomerRequest() + "\n" +
+                "Payment:  " + ticket.getTotalPrice() + (isPaid ? "/PAID" : "/NOT PAID") + "\n" +
+                "Ready to collect by: " + ticket.getDeadline().format(dtf) + "\n";
 
 
         acroForm.getField("ticket_id").setValue("REPAIR TICKET ID:" + ticket.getId());
@@ -285,42 +287,37 @@ public class DocumentService implements ApplicationRunner {
 
     @Async
     public void executePrint(File image) {
-        if (printerIp != null && !printerIp.isBlank() && !brotherLocation.isBlank()) {
-            log.info("Printer IP provided, proceeding to print images");
-            String printerUrl = "tcp://" + printerIp;
-            String[] cmd = {brotherLocation + "brother_ql", "-b", "network", "-p", printerUrl, "-m", "QL-580N", "print", "-l", "62", image.getAbsolutePath()};
-            log.info("Running " + Arrays.toString(cmd));
-            System.out.println("ENV VARS FOR SYSTEM\n");
-            Map<String, String> env = System.getenv();
-            for (Map.Entry<String, String> stringStringEntry : env.entrySet()) {
-                System.out.println(stringStringEntry.getKey() + " = " + stringStringEntry.getValue() + "\n");
-            }
-            ProcessBuilder builder = new ProcessBuilder(cmd);
-            builder.environment().put("BROTHER_QL_PRINTER", printerUrl);
-            builder.environment().put("BROTHER_QL_MODEL", "QL-580N");
-            builder.environment().put("PYTHONPATH", "/home/user/.local/lib/python3.8/site-packages");
-            builder.inheritIO();
-            System.out.println("ENV VARS FOR BUILDER\n");
-            for (Map.Entry<String, String> stringStringEntry : builder.environment().entrySet()) {
-                System.out.println(stringStringEntry.getKey() + " = " + stringStringEntry.getValue() + "\n");
-            }
-            try {
-                Process process = builder.start();
-                int exitCode = process.waitFor();
+        ShopSettings settings = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getShop().getSettings();
+        if (settings.isPrint()) {
+            if (settings.getPrinterIp() == null || settings.getPrinterIp().isBlank() || brotherLocation.isBlank() || pythonLocation.isBlank() || settings.getPrinterModel() == null || settings.getPrinterModel().isBlank()) {
+                throw new CustomException("Missing Printer IP, Model or library location. Cannot print images.");
+            } else {
+                log.info("Printer IP provided, proceeding to print images");
+                String printerUrl = "tcp://" + settings.getPrinterIp();
+                String[] cmd = {brotherLocation + "brother_ql", "-b", "network", "-p", printerUrl, "-m", settings.getPrinterModel(), "print", "-l", "62", image.getAbsolutePath()};
+                log.info("Running " + Arrays.toString(cmd));
+                ProcessBuilder builder = new ProcessBuilder(cmd);
+                builder.environment().put("BROTHER_QL_PRINTER", printerUrl);
+                builder.environment().put("BROTHER_QL_MODEL", settings.getPrinterModel());
+                builder.environment().put("PYTHONPATH", pythonLocation);
+                builder.inheritIO();
+                try {
+                    Process process = builder.start();
+                    int exitCode = process.waitFor();
 
-                if (exitCode == 0) {
-                    log.info("Label printed successfully.");
-                } else {
-                    log.error("Failed to print label. Exit code: " + exitCode);
+                    if (exitCode == 0) {
+                        log.info("Label printed successfully.");
+                    } else {
+                        log.error("Failed to print label. Exit code: " + exitCode);
+                    }
+                } catch (IOException | InterruptedException e) {
+                    log.error("Failed to print label. " + e.getMessage());
+                    e.printStackTrace();
                 }
-            } catch (IOException | InterruptedException e) {
-                log.error("Failed to print label. " + e.getMessage());
-                e.printStackTrace();
             }
-        } else {
-            log.warn("Missing Printer IP. Cannot print images");
+        }else{
+            log.warn("Shop settings do not allow printing. Cannot print images.");
         }
-
     }
 
     private File createFile(String name) throws IOException {
@@ -377,8 +374,8 @@ public class DocumentService implements ApplicationRunner {
 //        invoice.setDeviceModel(new Model("Galaxy 20 5G"));
 //        invoice.setDeviceBrand(new Brand("SamsungS"));
 //        invoice.setTimestamp(ZonedDateTime.now());
-//        invoice.setNotes("blabla");
-//        invoice.setSerialNumber("948376598745MASDF324");
+//        invoice.setNotes("bla");
+//        invoice.setSerialNumber("948376598745MA324");
 //        invoice.setTotalPrice(BigDecimal.TEN);
 //        invoice.setCreatedBy(userRepository.findUserByUsername("admin").orElse(null));
 //        invoice.setPaymentMethod(PaymentMethod.CASH);
