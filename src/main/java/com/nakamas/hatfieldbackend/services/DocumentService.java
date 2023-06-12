@@ -39,6 +39,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @Service
@@ -289,12 +290,20 @@ public class DocumentService implements ApplicationRunner {
             String printerUrl = "tcp://" + printerIp;
             String[] cmd = {brotherLocation + "brother_ql", "-b", "network", "-p", printerUrl, "-m", "QL-580N", "print", "-l", "62", image.getAbsolutePath()};
             log.info("Running " + Arrays.toString(cmd));
-
+            System.out.println("ENV VARS FOR SYSTEM\n");
+            Map<String, String> env = System.getenv();
+            for (Map.Entry<String, String> stringStringEntry : env.entrySet()) {
+                System.out.println(stringStringEntry.getKey() + " = " + stringStringEntry.getValue() + "\n");
+            }
             ProcessBuilder builder = new ProcessBuilder(cmd);
             builder.environment().put("BROTHER_QL_PRINTER", printerUrl);
             builder.environment().put("BROTHER_QL_MODEL", "QL-580N");
             builder.environment().put("PYTHONPATH", brotherLocation);
             builder.inheritIO();
+            System.out.println("ENV VARS FOR BUILDER\n");
+            for (Map.Entry<String, String> stringStringEntry : builder.environment().entrySet()) {
+                System.out.println(stringStringEntry.getKey() + " = " + stringStringEntry.getValue() + "\n");
+            }
             try {
                 Process process = builder.start();
                 int exitCode = process.waitFor();
