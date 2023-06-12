@@ -26,6 +26,7 @@ import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import javax.imageio.ImageIO;
@@ -38,6 +39,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @Service
@@ -46,6 +48,8 @@ public class DocumentService implements ApplicationRunner {
     private final InvoiceRepository invoiceRepository;
     @Value(value = "${printer-ip:#{null}}")
     private String printerIp = "";
+    @Value(value = "${brother_loc:#{null}}")
+    private String brotherLocation = "";
 
     private final String outputPath = Path.of(System.getProperty("user.dir"), "output").toString();
     private final DateTimeFormatter dtf = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM);
@@ -114,7 +118,7 @@ public class DocumentService implements ApplicationRunner {
         PDPageContentStream contents = new PDPageContentStream(document, page, PDPageContentStream.AppendMode.APPEND, true, true);
         contents.drawImage(qrCode, 0, -2);
 
-        String detailsString =  "You are strongly advised to change your first password once you log in!";
+        String detailsString = "You are strongly advised to change your first password once you log in!";
 
         acroForm.getField("title").setValue("Username: " + user.getUsername() + " Password: " + user.getFirstPassword());
         acroForm.getField("details").setValue(detailsString);
@@ -223,11 +227,11 @@ public class DocumentService implements ApplicationRunner {
 
         boolean isPaid = invoiceRepository.existsByTicketId(ticket.getId());
         String details = "Created at: " + ticket.getTimestamp().format(dtf) + "\n" +
-                "Brand & Model: " + ticket.getDeviceBrandString() + " ; " + ticket.getDeviceModelString() + "\n" +
-                "Condition: " + ticket.getDeviceCondition() + "\n" +
-                "Request: " + ticket.getCustomerRequest() + "\n" +
-                "Payment:  " + ticket.getTotalPrice() + (isPaid ? "/PAID" : "/NOT PAID") + "\n" +
-                "Ready to collect by: " + ticket.getDeadline().format(dtf) + "\n";
+                         "Brand & Model: " + ticket.getDeviceBrandString() + " ; " + ticket.getDeviceModelString() + "\n" +
+                         "Condition: " + ticket.getDeviceCondition() + "\n" +
+                         "Request: " + ticket.getCustomerRequest() + "\n" +
+                         "Payment:  " + ticket.getTotalPrice() + (isPaid ? "/PAID" : "/NOT PAID") + "\n" +
+                         "Ready to collect by: " + ticket.getDeadline().format(dtf) + "\n";
 
 
         acroForm.getField("ticket_id").setValue("REPAIR TICKET ID:" + ticket.getId());
@@ -279,15 +283,27 @@ public class DocumentService implements ApplicationRunner {
         contents.close();
     }
 
+    @Async
     public void executePrint(File image) {
-        if (printerIp != null && !printerIp.isBlank()) {
+        if (printerIp != null && !printerIp.isBlank() && !brotherLocation.isBlank()) {
             log.info("Printer IP provided, proceeding to print images");
             String printerUrl = "tcp://" + printerIp;
-            String[] cmd = {"brother_ql", "-b", "network", "-p", printerUrl, "-m", "QL-580N", "print", "-l", "62", image.getAbsolutePath()};
+            String[] cmd = {brotherLocation + "brother_ql", "-b", "network", "-p", printerUrl, "-m", "QL-580N", "print", "-l", "62", image.getAbsolutePath()};
             log.info("Running " + Arrays.toString(cmd));
-
+            System.out.println("ENV VARS FOR SYSTEM\n");
+            Map<String, String> env = System.getenv();
+            for (Map.Entry<String, String> stringStringEntry : env.entrySet()) {
+                System.out.println(stringStringEntry.getKey() + " = " + stringStringEntry.getValue() + "\n");
+            }
             ProcessBuilder builder = new ProcessBuilder(cmd);
-
+            builder.environment().put("BROTHER_QL_PRINTER", printerUrl);
+            builder.environment().put("BROTHER_QL_MODEL", "QL-580N");
+            builder.environment().put("PYTHONPATH", "/home/user/.local/lib/python3.8/site-packages");
+            builder.inheritIO();
+            System.out.println("ENV VARS FOR BUILDER\n");
+            for (Map.Entry<String, String> stringStringEntry : builder.environment().entrySet()) {
+                System.out.println(stringStringEntry.getKey() + " = " + stringStringEntry.getValue() + "\n");
+            }
             try {
                 Process process = builder.start();
                 int exitCode = process.waitFor();
