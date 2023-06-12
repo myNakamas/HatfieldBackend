@@ -1,6 +1,7 @@
 package com.nakamas.hatfieldbackend.models.entities.shop;
 
 import com.nakamas.hatfieldbackend.models.views.outgoing.shop.ShopSettingsView;
+import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import jakarta.persistence.Lob;
 import lombok.AllArgsConstructor;
@@ -18,6 +19,7 @@ public class ShopSettings {
     private String secondaryColor;
     private String gmail;
     private String gmailPassword;
+    @Column(columnDefinition = "boolean default false")
     private boolean printEnabled;
     private String printerIp;
     private String printerModel;
