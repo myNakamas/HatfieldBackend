@@ -229,11 +229,11 @@ public class DocumentService implements ApplicationRunner {
 
         boolean isPaid = invoiceRepository.existsByTicketId(ticket.getId());
         String details = "Created at: " + ticket.getTimestamp().format(dtf) + "\n" +
-                "Brand & Model: " + ticket.getDeviceBrandString() + " ; " + ticket.getDeviceModelString() + "\n" +
-                "Condition: " + ticket.getDeviceCondition() + "\n" +
-                "Request: " + ticket.getCustomerRequest() + "\n" +
-                "Payment:  " + ticket.getTotalPrice() + (isPaid ? "/PAID" : "/NOT PAID") + "\n" +
-                "Ready to collect by: " + ticket.getDeadline().format(dtf) + "\n";
+                         "Brand & Model: " + ticket.getDeviceBrandString() + " ; " + ticket.getDeviceModelString() + "\n" +
+                         "Condition: " + ticket.getDeviceCondition() + "\n" +
+                         "Request: " + ticket.getCustomerRequest() + "\n" +
+                         "Payment:  " + ticket.getTotalPrice() + (isPaid ? "/PAID" : "/NOT PAID") + "\n" +
+                         "Ready to collect by: " + ticket.getDeadline().format(dtf) + "\n";
 
 
         acroForm.getField("ticket_id").setValue("REPAIR TICKET ID:" + ticket.getId());
@@ -288,35 +288,33 @@ public class DocumentService implements ApplicationRunner {
     @Async
     public void executePrint(File image) {
         ShopSettings settings = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getShop().getSettings();
-        if (settings.isPrintEnabled()) {
-            if (settings.getPrinterIp() == null || settings.getPrinterIp().isBlank() || brotherLocation.isBlank() || pythonLocation.isBlank() || settings.getPrinterModel() == null || settings.getPrinterModel().isBlank()) {
-                throw new CustomException("Missing Printer IP, Model or library location. Cannot print images.");
+        if (!settings.isPrintEnabled()) {
+            log.info("Shop settings do not allow printing. Cannot print images.");
+            return;
+        }
+        if (settings.getPrinterIp() == null || settings.getPrinterIp().isBlank() || brotherLocation.isBlank() || pythonLocation.isBlank() || settings.getPrinterModel() == null || settings.getPrinterModel().isBlank()) {
+            throw new CustomException("Missing Printer IP, Model or library location. Cannot print images.");
+        }
+        log.info("Printer IP provided, proceeding to print images");
+        String printerUrl = "tcp://" + settings.getPrinterIp();
+        String[] cmd = {brotherLocation + "brother_ql", "-b", "network", "-p", printerUrl, "-m", settings.getPrinterModel(), "print", "-l", "62", image.getAbsolutePath()};
+        log.info("Running " + Arrays.toString(cmd));
+        ProcessBuilder builder = new ProcessBuilder(cmd);
+        builder.environment().put("BROTHER_QL_PRINTER", printerUrl);
+        builder.environment().put("BROTHER_QL_MODEL", settings.getPrinterModel());
+        builder.environment().put("PYTHONPATH", pythonLocation);
+        builder.inheritIO();
+        try {
+            Process process = builder.start();
+            int exitCode = process.waitFor();
+            if (exitCode == 0) {
+                log.info("Label printed successfully.");
             } else {
-                log.info("Printer IP provided, proceeding to print images");
-                String printerUrl = "tcp://" + settings.getPrinterIp();
-                String[] cmd = {brotherLocation + "brother_ql", "-b", "network", "-p", printerUrl, "-m", settings.getPrinterModel(), "print", "-l", "62", image.getAbsolutePath()};
-                log.info("Running " + Arrays.toString(cmd));
-                ProcessBuilder builder = new ProcessBuilder(cmd);
-                builder.environment().put("BROTHER_QL_PRINTER", printerUrl);
-                builder.environment().put("BROTHER_QL_MODEL", settings.getPrinterModel());
-                builder.environment().put("PYTHONPATH", pythonLocation);
-                builder.inheritIO();
-                try {
-                    Process process = builder.start();
-                    int exitCode = process.waitFor();
-
-                    if (exitCode == 0) {
-                        log.info("Label printed successfully.");
-                    } else {
-                        log.error("Failed to print label. Exit code: " + exitCode);
-                    }
-                } catch (IOException | InterruptedException e) {
-                    log.error("Failed to print label. " + e.getMessage());
-                    e.printStackTrace();
-                }
+                log.error("Failed to print label. Exit code: " + exitCode);
             }
-        }else{
-            log.warn("Shop settings do not allow printing. Cannot print images.");
+        } catch (IOException | InterruptedException e) {
+            log.error("Failed to print label. " + e.getMessage());
+            e.printStackTrace();
         }
     }
 
