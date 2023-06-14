@@ -28,7 +28,6 @@ import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
@@ -285,7 +284,6 @@ public class DocumentService implements ApplicationRunner {
         contents.close();
     }
 
-    @Async
     public void executePrint(File image) {
         ShopSettings settings = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getShop().getSettings();
         if (settings.isPrintEnabled()) {
