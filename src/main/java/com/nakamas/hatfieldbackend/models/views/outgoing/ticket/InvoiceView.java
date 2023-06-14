@@ -6,7 +6,7 @@ import com.nakamas.hatfieldbackend.models.views.outgoing.user.UserProfile;
 import java.math.BigDecimal;
 import java.time.ZonedDateTime;
 
-public record InvoiceView(Long id, String type, String deviceModel, String deviceName,
+public record InvoiceView(Long id, String type,  String deviceName, String serialNumber,
                           ZonedDateTime timestamp,
                           String notes, BigDecimal totalPrice, UserProfile createdBy, UserProfile client,
                           String paymentMethod,
