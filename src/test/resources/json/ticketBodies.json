@@ -1,0 +1,34 @@
+[
+  {
+    "deviceModel": "string",
+    "deviceBrand": "string",
+    "deviceLocation": "string",
+    "customerRequest": "string",
+    "problemExplanation": "string",
+    "deviceCondition": "string",
+    "devicePassword": "string",
+    "serialNumberOrImei": "string",
+    "accessories": "string",
+    "deadline": "2023-05-20T05:51:42.505Z",
+    "notes": "string",
+    "status": "PENDING",
+    "totalPrice": 25,
+    "deposit": 5
+  },
+  {
+    "deviceModel": "string2",
+    "deviceBrand": "string2",
+    "deviceLocation": "string2",
+    "customerRequest": "string2",
+    "problemExplanation": "string2",
+    "deviceCondition": "string2",
+    "devicePassword": "string2",
+    "serialNumberOrImei": "string2",
+    "accessories": "string2",
+    "deadline": "2023-05-21T05:51:42.505Z",
+    "notes": "string2",
+    "status": "PENDING",
+    "totalPrice": 40,
+    "deposit": 10
+  }
+]
