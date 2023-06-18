@@ -81,4 +81,10 @@ public class InventoryItem extends AbstractPersistable<Long> {
     public String getBrandString() {
         return brand != null ? brand.getBrand() : "";
     }
+
+    public int getMissingCount() {
+        if (!this.requiredItem.getNeeded()) return 0;
+        int neededCount = this.requiredItem.getRequiredAmount() - this.getCount();
+        return Math.max(0, neededCount);
+    }
 }
