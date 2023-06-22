@@ -1,5 +1,6 @@
 package com.nakamas.hatfieldbackend.models.entities.shop;
 
+import com.nakamas.hatfieldbackend.config.exception.CustomException;
 import com.nakamas.hatfieldbackend.models.entities.ticket.Brand;
 import com.nakamas.hatfieldbackend.models.entities.ticket.Model;
 import com.nakamas.hatfieldbackend.models.views.incoming.CreateInventoryItem;
@@ -47,8 +48,8 @@ public class InventoryItem extends AbstractPersistable<Long> {
         this.model = model;
         this.brand = brand;
         this.shop = shop;
-        this.purchasePrice = item.purchasePrice()!= null ? item.purchasePrice() : BigDecimal.ZERO;
-        this.sellPrice = item.sellPrice() != null ? item.sellPrice() : BigDecimal.ZERO ;
+        this.purchasePrice = item.purchasePrice() != null ? item.purchasePrice() : BigDecimal.ZERO;
+        this.sellPrice = item.sellPrice() != null ? item.sellPrice() : BigDecimal.ZERO;
         this.count = item.count();
         this.requiredItem = new RequiredItem(count);
         if (category != null)
@@ -67,8 +68,10 @@ public class InventoryItem extends AbstractPersistable<Long> {
         if (model != null) this.model = model;
         if (brand != null) this.brand = brand;
         if (shop != null) this.shop = shop;
-        if (item.purchasePrice() != null) this.purchasePrice = item.purchasePrice();else this.purchasePrice = BigDecimal.ZERO;
-        if (item.sellPrice() != null) this.sellPrice = item.sellPrice();else this.sellPrice = BigDecimal.ZERO;
+        if (item.purchasePrice() != null) this.purchasePrice = item.purchasePrice();
+        else this.purchasePrice = BigDecimal.ZERO;
+        if (item.sellPrice() != null) this.sellPrice = item.sellPrice();
+        else this.sellPrice = BigDecimal.ZERO;
         if (item.count() != null) this.count = item.count();
         if (category != null) this.categoryId = category.getId();
         if (item.properties() != null) this.otherProperties = item.properties();
@@ -84,7 +87,17 @@ public class InventoryItem extends AbstractPersistable<Long> {
 
     public int getMissingCount() {
         if (!this.requiredItem.getNeeded()) return 0;
-        int neededCount = this.requiredItem.getRequiredAmount() - this.getCount();
+        int neededCount = this.requiredItem.getRequiredAmount() - this.getCount() - this.requiredItem.getDefectiveCount();
         return Math.max(0, neededCount);
+    }
+
+    public void addCount(int count) {
+        this.count += count;
+    }
+
+    public void removeCount(int count) {
+        if (this.count - count < 0)
+            throw new CustomException("Not enough items to complete action. Current number of items in shop: " + this.count);
+        this.count -= count;
     }
 }

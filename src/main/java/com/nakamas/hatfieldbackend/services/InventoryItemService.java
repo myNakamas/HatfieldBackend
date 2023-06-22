@@ -209,7 +209,9 @@ public class InventoryItemService {
         List<InventoryItem> needed = inventoryItemRepository.findAll(filter);
         BigDecimal totalPrice = BigDecimal.ZERO;
         for (InventoryItem inventoryItem : needed) {
-            totalPrice = totalPrice.add(inventoryItem.getPurchasePrice().multiply(new BigDecimal(inventoryItem.getMissingCount())));
+            BigDecimal purchasePrice = inventoryItem.getPurchasePrice();
+            if (purchasePrice != null)
+                totalPrice = totalPrice.add(purchasePrice.multiply(new BigDecimal(inventoryItem.getMissingCount())));
         }
         return new ShoppingListView(needed.stream().map(InventoryItemView::new).toList(), totalPrice);
     }
@@ -217,8 +219,11 @@ public class InventoryItemService {
     public void changeNeed(Long id, Boolean need) {
         InventoryItem item = inventoryItemRepository.findById(id).orElseThrow(() -> new CustomException("Item with provided id could not be found"));
         item.getRequiredItem().setNeeded(need);
-        if(need){loggerService.itemActions(new Log(LogType.ADD_ITEM_TO_SHOPPING_LIST), item, 0);}
-        else{loggerService.itemActions(new Log(LogType.REMOVE_ITEM_FROM_SHOPPING_LIST), item, 0);}
+        if (need) {
+            loggerService.itemActions(new Log(LogType.ADD_ITEM_TO_SHOPPING_LIST), item, 0);
+        } else {
+            loggerService.itemActions(new Log(LogType.REMOVE_ITEM_FROM_SHOPPING_LIST), item, 0);
+        }
         inventoryItemRepository.save(item);
     }
 
@@ -267,17 +272,26 @@ public class InventoryItemService {
         return deviceLocationRepository.findAllLocations();
     }
 
-    public void markOneAsDefective(Long itemId) {
+    public void markOneAsDefective(Long itemId, int count) {
         InventoryItem item = getItem(itemId);
-        item.setCount(item.getCount()-1);
-        loggerService.itemActions(new Log(LogType.DEFECTIVE_PART), item, 1);
+        item.removeCount(count);
+        loggerService.itemActions(new Log(LogType.DEFECTIVE_PART), item, count);
+        item.getRequiredItem().addDefectiveCount(count);
         inventoryItemRepository.save(item);
     }
 
-    public void markOneAsDamaged(Long itemId) {
+    public void replaceDefectiveItem(Long itemId, int count) {
         InventoryItem item = getItem(itemId);
-        item.setCount(item.getCount()-1);
-        loggerService.itemActions(new Log(LogType.DAMAGED_PART), item, 1);
+        item.getRequiredItem().removeDefectiveCount(count);
+        item.addCount(count);
+        loggerService.itemActions(new Log(LogType.RETURNED_DEFECTIVE_PART), item, count);
+        inventoryItemRepository.save(item);
+    }
+
+    public void markOneAsDamaged(Long itemId, int count) {
+        InventoryItem item = getItem(itemId);
+        item.removeCount(count);
+        loggerService.itemActions(new Log(LogType.DAMAGED_PART), item, count);
         inventoryItemRepository.save(item);
     }
 }

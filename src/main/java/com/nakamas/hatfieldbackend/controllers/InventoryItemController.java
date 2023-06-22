@@ -68,17 +68,26 @@ public class InventoryItemController {
     public void changeNeed(@RequestBody List<Long> ids, @RequestParam Boolean need) {
         inventoryItemService.changeNeed(ids, need);
     }
+
     @PatchMapping("item/changeNeed")
     public void changeNeed(@RequestParam Long id, @RequestParam Boolean need) {
         inventoryItemService.changeNeed(id, need);
     }
+
     @PatchMapping("item/mark/defective")
-    public void markAsDefective(@RequestParam Long itemId) {
-        inventoryItemService.markOneAsDefective(itemId);
+    public void markAsDefective(@RequestParam Long itemId,
+                                @RequestParam(required = false, defaultValue = "1") Integer count) {
+        inventoryItemService.markOneAsDefective(itemId, count);
     }
+
+    @PatchMapping("item/mark/defective/replace")
+    public void replaceDefectiveItem(@RequestParam Long itemId, @RequestParam(required = false, defaultValue = "1") Integer count) {
+        inventoryItemService.replaceDefectiveItem(itemId, count);
+    }
+
     @PatchMapping("item/mark/damaged")
-    public void markAsDamaged(@RequestParam Long itemId) {
-        inventoryItemService.markOneAsDamaged(itemId);
+    public void markAsDamaged(@RequestParam Long itemId, @RequestParam(required = false, defaultValue = "1") Integer count) {
+        inventoryItemService.markOneAsDamaged(itemId, count);
     }
 
     @PostMapping("item/sendToShop")
@@ -100,6 +109,7 @@ public class InventoryItemController {
     public List<BrandView> getAllBrands() {
         return inventoryItemService.getAllBrands();
     }
+
     @GetMapping("location/all")
     public List<ItemPropertyView> getAllDeviceLocations() {
         return inventoryItemService.getAllDeviceLocations();

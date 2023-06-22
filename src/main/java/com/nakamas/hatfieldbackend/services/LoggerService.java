@@ -33,7 +33,7 @@ public class LoggerService {
 
     private String saveUser(Log logMessage) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if(authentication == null) return "";
+        if (authentication == null) return "";
         User loggedUser = (User) authentication.getPrincipal();
         logMessage.setUserId(loggedUser.getId());
         logMessage.setShopId(loggedUser.getShop().getId());
@@ -50,9 +50,10 @@ public class LoggerService {
     }
 
     private UserProfile getUserProfile(UUID id) {
-        if(id==null)return null;
+        if (id == null) return null;
         return userRepository.findById(id).map(UserProfile::new).orElse(null);
     }
+
     public void categoryActions(Log logMessage, String categoryName) {
         String loggedUserName = saveUser(logMessage);
         logMessage.setAction(switch (logMessage.getLogType()) {
@@ -63,17 +64,19 @@ public class LoggerService {
         });
         createLog(logMessage);
     }
-    public void useItemForRepair(Log logMessage, InventoryItem item, Long ticketId, Integer count){
+
+    public void useItemForRepair(Log logMessage, InventoryItem item, Long ticketId, Integer count) {
         String loggedUserName = saveUser(logMessage);
         logMessage.setTicketId(ticketId);
         logMessage.setItemId(item.getId());
-        if (logMessage.getLogType() == LogType.USED_PART){
+        if (logMessage.getLogType() == LogType.USED_PART) {
             logMessage.setAction("User '%s' used '%s' '%s' for Ticket#'%s'.".formatted(loggedUserName, count, item.getName(), ticketId));
-        }else{
+        } else {
             logMessage.setAction("User '%s' did an unknown action!".formatted(loggedUserName));
         }
         createLog(logMessage);
     }
+
     public void itemActions(Log logMessage, InventoryItem item, Integer count) {
         String loggedUserName = saveUser(logMessage);
         logMessage.setItemId(item.getId());
@@ -86,23 +89,25 @@ public class LoggerService {
                     "User '%s' removed item '%s' from the shopping list.".formatted(loggedUserName, item.getName());
             case UPDATE_ITEM_COUNT ->
                     "User '%s' updated item '%s' count from '%s' to '%s'.".formatted(loggedUserName, item.getName(), item.getCount(), count);
-            case UPDATE_ITEM ->
-                    "User '%s' updated item '%s'.".formatted(loggedUserName, item.getName());
-            case SOLD_ITEM ->
-                    "User '%s' sold '%s' of '%s'.".formatted(loggedUserName,count, item.getName());
-            case DAMAGED_PART ->
-                    "User '%s' set '%s' '%s' as DAMAGED.".formatted(loggedUserName, count, item.getName());
+            case UPDATE_ITEM -> "User '%s' updated item '%s'.".formatted(loggedUserName, item.getName());
+            case SOLD_ITEM -> "User '%s' sold '%s' of '%s'.".formatted(loggedUserName, count, item.getName());
+            case DAMAGED_PART -> "User '%s' set '%s' '%s' as DAMAGED.".formatted(loggedUserName, count, item.getName());
             case DEFECTIVE_PART ->
                     "User '%s' set '%s' '%s' as DEFECTIVE.".formatted(loggedUserName, count, item.getName());
+            case RETURNED_DEFECTIVE_PART ->
+                    "User '%s' exchanged %s defective items of type '%s' to new ones.".formatted(loggedUserName, count, item.getName());
             default -> "User '%s' did an unknown action!".formatted(loggedUserName);
         });
         createLog(logMessage);
     }
 
-    public void shoppingItemActions(List<InventoryItem> items,  Boolean type) {
+    public void shoppingItemActions(List<InventoryItem> items, Boolean type) {
         Log logMessage;
-        if(type){ logMessage = new Log(LogType.ADD_NEW_ITEM_TO_INVENTORY);}
-        else{logMessage = new Log(LogType.REMOVE_ITEM_FROM_SHOPPING_LIST);}
+        if (type) {
+            logMessage = new Log(LogType.ADD_NEW_ITEM_TO_INVENTORY);
+        } else {
+            logMessage = new Log(LogType.REMOVE_ITEM_FROM_SHOPPING_LIST);
+        }
         String loggedUserName = saveUser(logMessage);
         for (InventoryItem item : items) {
             logMessage.setAction(switch (logMessage.getLogType()) {
@@ -115,54 +120,44 @@ public class LoggerService {
             createLog(logMessage);
         }
     }
+
     public void ticketActions(Log logMessage, Ticket ticket) {
         String loggedUserName = saveUser(logMessage);
         logMessage.setTicketId(ticket.getId());
         logMessage.setAction(switch (logMessage.getLogType()) {
-            case CREATED_TICKET ->
-                    "User '%s' created Ticket#'%s'.".formatted(loggedUserName, ticket.getId());
+            case CREATED_TICKET -> "User '%s' created Ticket#'%s'.".formatted(loggedUserName, ticket.getId());
             case MOVED_TICKET ->
                     "User '%s' moved Ticket#'%s' to '%s'.".formatted(loggedUserName, ticket.getId(), ticket.getDeviceLocationString());
-            case UPDATED_TICKET ->
-                    "User '%s' updated Ticket#'%s'.".formatted(loggedUserName, ticket.getId());
-            case STARTED_TICKET ->
-                    "User '%s' started Ticket#'%s'.".formatted(loggedUserName, ticket.getId());
-            case FINISHED_TICKET ->
-                    "User '%s' finished Ticket#'%s'.".formatted(loggedUserName, ticket.getId());
+            case UPDATED_TICKET -> "User '%s' updated Ticket#'%s'.".formatted(loggedUserName, ticket.getId());
+            case STARTED_TICKET -> "User '%s' started Ticket#'%s'.".formatted(loggedUserName, ticket.getId());
+            case FINISHED_TICKET -> "User '%s' finished Ticket#'%s'.".formatted(loggedUserName, ticket.getId());
             case COLLECTED_TICKET ->
-                    "The client collected Ticket#'%s' from User '%s'.".formatted( ticket.getId(), loggedUserName);
+                    "The client collected Ticket#'%s' from User '%s'.".formatted(ticket.getId(), loggedUserName);
             default -> "User '%s' did an unknown action!".formatted(loggedUserName);
         });
         createLog(logMessage);
     }
+
     public void shopActions(Log logMessage, Shop shop) {
         String loggedUserName = saveUser(logMessage);
         logMessage.setAction(switch (logMessage.getLogType()) {
-            case CREATED_SHOP
-                     -> "User '%s' created Shop '%s'.".formatted(loggedUserName, shop.getShopName());
-            case UPDATED_SHOP ->
-                    "User '%s' updated Shop '%s'.".formatted(loggedUserName, shop.getShopName());
+            case CREATED_SHOP -> "User '%s' created Shop '%s'.".formatted(loggedUserName, shop.getShopName());
+            case UPDATED_SHOP -> "User '%s' updated Shop '%s'.".formatted(loggedUserName, shop.getShopName());
             default -> "User '%s' did an unknown action!".formatted(loggedUserName);
         });
         createLog(logMessage);
     }
+
     public void userActions(Log logMessage, String user) {
         String loggedUserName = saveUser(logMessage);
         logMessage.setAction(switch (logMessage.getLogType()) {
-            case CREATED_WORKER ->
-                    "User '%s' created worker '%s'.".formatted(loggedUserName, user);
-            case CREATED_CLIENT ->
-                    "User '%s' created client '%s'.".formatted(loggedUserName, user);
-            case UPDATED_USER ->
-                    "User '%s' updated user '%s'.".formatted(loggedUserName, user);
-            case BANNED_USER ->
-                    "User '%s' banned user '%s'.".formatted(loggedUserName, user);
-            case UNBANNED_USER ->
-                    "User '%s' unbanned user '%s'.".formatted(loggedUserName, user);
-            case DELETED_USER ->
-                    "User '%s' deleted user '%s'.".formatted(loggedUserName, user);
-            case RESTORED_USER ->
-                    "User '%s' restored user '%s'.".formatted(loggedUserName, user);
+            case CREATED_WORKER -> "User '%s' created worker '%s'.".formatted(loggedUserName, user);
+            case CREATED_CLIENT -> "User '%s' created client '%s'.".formatted(loggedUserName, user);
+            case UPDATED_USER -> "User '%s' updated user '%s'.".formatted(loggedUserName, user);
+            case BANNED_USER -> "User '%s' banned user '%s'.".formatted(loggedUserName, user);
+            case UNBANNED_USER -> "User '%s' unbanned user '%s'.".formatted(loggedUserName, user);
+            case DELETED_USER -> "User '%s' deleted user '%s'.".formatted(loggedUserName, user);
+            case RESTORED_USER -> "User '%s' restored user '%s'.".formatted(loggedUserName, user);
             default -> "User '%s' did an unknown action!".formatted(loggedUserName);
         });
         createLog(logMessage);
@@ -172,34 +167,34 @@ public class LoggerService {
         Log logMessage = new Log();
         String loggedUserName = saveUser(logMessage);
         logMessage.setInvoiceId(invoiceId);
-            switch (invoiceType) {
-                case SELL -> {
-                    logMessage = new Log(LogType.CREATED_SELL_INVOICE);
-                    logMessage.setAction("User '%s' created sale Invoice#'%s'.".formatted(loggedUserName, invoiceId));
-                }
-                case REPAIR -> {
-                    logMessage = new Log(LogType.CREATED_REPAIR_INVOICE);
-                    logMessage.setAction("User '%s' created repair Invoice#'%s'.".formatted(loggedUserName, invoiceId));
-                }
-                case BUY -> {
-                    logMessage = new Log(LogType.CREATED_BUY_INVOICE);
-                    logMessage.setAction("User '%s' created buy Invoice#'%s'.".formatted(loggedUserName, invoiceId));
-                }
-                case ACCESSORIES -> {
-                    logMessage = new Log(LogType.CREATED_ACCESSORIES_INVOICE);
-                    logMessage.setAction("User '%s' created accessory Invoice#'%s'.".formatted(loggedUserName, invoiceId));
-                }
-                default -> {
-                    logMessage = new Log(LogType.CREATED_ACCESSORIES_INVOICE);
-                    logMessage.setAction("User '%s' did an unknown action!".formatted(loggedUserName));
-                }
+        switch (invoiceType) {
+            case SELL -> {
+                logMessage = new Log(LogType.CREATED_SELL_INVOICE);
+                logMessage.setAction("User '%s' created sale Invoice#'%s'.".formatted(loggedUserName, invoiceId));
             }
-            saveUser(logMessage);
-            logMessage.setInvoiceId(invoiceId);
-            createLog(logMessage);
+            case REPAIR -> {
+                logMessage = new Log(LogType.CREATED_REPAIR_INVOICE);
+                logMessage.setAction("User '%s' created repair Invoice#'%s'.".formatted(loggedUserName, invoiceId));
+            }
+            case BUY -> {
+                logMessage = new Log(LogType.CREATED_BUY_INVOICE);
+                logMessage.setAction("User '%s' created buy Invoice#'%s'.".formatted(loggedUserName, invoiceId));
+            }
+            case ACCESSORIES -> {
+                logMessage = new Log(LogType.CREATED_ACCESSORIES_INVOICE);
+                logMessage.setAction("User '%s' created accessory Invoice#'%s'.".formatted(loggedUserName, invoiceId));
+            }
+            default -> {
+                logMessage = new Log(LogType.CREATED_ACCESSORIES_INVOICE);
+                logMessage.setAction("User '%s' did an unknown action!".formatted(loggedUserName));
+            }
         }
+        saveUser(logMessage);
+        logMessage.setInvoiceId(invoiceId);
+        createLog(logMessage);
+    }
 
-    public void invalidateInvoiceActions(Long invoiceId){
+    public void invalidateInvoiceActions(Long invoiceId) {
         Log logMessage = new Log(LogType.INVALIDATED_INVOICE);
         String loggedUserName = saveUser(logMessage);
         logMessage.setInvoiceId(invoiceId);
