@@ -5,3 +5,4 @@ import java.util.List;
 
 public record InvoiceReport(int totalCount, BigDecimal totalAmount, List<InvoiceDailyReport> calendar) {
 }
+

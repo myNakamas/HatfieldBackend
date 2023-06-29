@@ -13,7 +13,12 @@ import java.util.UUID;
 
 @Repository
 public interface UserRepository extends JpaRepository<User, UUID>, JpaSpecificationExecutor<User> {
-    Optional<User> findUserByUsername(String username);
+    @Query("""
+             select u
+             from User u
+             where u.username like ?1 or u.email like ?1 or ?1 member of u.phones
+            """)
+    Optional<User> findUser(String username);
 
     @Query("""
              select u

@@ -1,0 +1,14 @@
+[
+  {
+    "type": "REPAIR",
+    "deviceName": "Samsung Galaxy 7",
+    "serialNumber": "53EWGK-242",
+    "customerRequest": "string",
+    "count": 1,
+    "notes": "Some notes",
+    "paymentMethod": "CASH",
+    "warrantyPeriod": "NONE",
+    "totalPrice": 25,
+    "deposit": 5
+  }
+]

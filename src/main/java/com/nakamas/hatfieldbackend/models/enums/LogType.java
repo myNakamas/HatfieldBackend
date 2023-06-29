@@ -1,7 +1,7 @@
 package com.nakamas.hatfieldbackend.models.enums;
 
 public enum LogType {
-    //TICKED
+    //TICKET
     CREATED_TICKET,
     MOVED_TICKET,
     UPDATED_TICKET,
@@ -22,6 +22,7 @@ public enum LogType {
     UPDATE_ITEM,
     DAMAGED_PART,
     DEFECTIVE_PART,
+    RETURNED_DEFECTIVE_PART,
     //INVOICE,
     CREATED_SELL_INVOICE,
     CREATED_REPAIR_INVOICE,

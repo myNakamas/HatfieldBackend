@@ -90,6 +90,10 @@ public class UserController {
         User fromDb = userService.getUser(user.getId());
         return new UserProfile(fromDb);
     }
+    @DeleteMapping("profile")
+    public void deleteProfile(@AuthenticationPrincipal User user){
+        userService.updateUserBan(user.getId(),true);
+    }
 
     @PutMapping("profile/edit")
     public UserProfile editLoggedUser(@AuthenticationPrincipal User user, @RequestBody CreateUser update) {
