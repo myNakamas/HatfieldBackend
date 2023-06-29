@@ -14,10 +14,7 @@ import com.nakamas.hatfieldbackend.models.views.incoming.CreateInventoryItem;
 import com.nakamas.hatfieldbackend.models.views.incoming.PageRequestView;
 import com.nakamas.hatfieldbackend.models.views.incoming.filters.InventoryItemFilter;
 import com.nakamas.hatfieldbackend.models.views.outgoing.PageView;
-import com.nakamas.hatfieldbackend.models.views.outgoing.inventory.BrandView;
-import com.nakamas.hatfieldbackend.models.views.outgoing.inventory.InventoryItemView;
-import com.nakamas.hatfieldbackend.models.views.outgoing.inventory.ItemPropertyView;
-import com.nakamas.hatfieldbackend.models.views.outgoing.inventory.ShortItemView;
+import com.nakamas.hatfieldbackend.models.views.outgoing.inventory.*;
 import com.nakamas.hatfieldbackend.models.views.outgoing.shop.CategoryView;
 import com.nakamas.hatfieldbackend.repositories.*;
 import jakarta.transaction.Transactional;
@@ -25,6 +22,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -205,18 +203,27 @@ public class InventoryItemService {
         return new CategoryView(categoryRepository.save(category));
     }
 
-    public List<InventoryItemView> getShoppingList(InventoryItemFilter filter) {
+    public ShoppingListView getShoppingList(InventoryItemFilter filter) {
         filter.setIsNeeded(true);
         filter.setInShoppingList(true);
         List<InventoryItem> needed = inventoryItemRepository.findAll(filter);
-        return needed.stream().map(InventoryItemView::new).toList();
+        BigDecimal totalPrice = BigDecimal.ZERO;
+        for (InventoryItem inventoryItem : needed) {
+            BigDecimal purchasePrice = inventoryItem.getPurchasePrice();
+            if (purchasePrice != null)
+                totalPrice = totalPrice.add(purchasePrice.multiply(new BigDecimal(inventoryItem.getMissingCount())));
+        }
+        return new ShoppingListView(needed.stream().map(InventoryItemView::new).toList(), totalPrice);
     }
 
     public void changeNeed(Long id, Boolean need) {
         InventoryItem item = inventoryItemRepository.findById(id).orElseThrow(() -> new CustomException("Item with provided id could not be found"));
         item.getRequiredItem().setNeeded(need);
-        if(need){loggerService.itemActions(new Log(LogType.ADD_ITEM_TO_SHOPPING_LIST), item, 0);}
-        else{loggerService.itemActions(new Log(LogType.REMOVE_ITEM_FROM_SHOPPING_LIST), item, 0);}
+        if (need) {
+            loggerService.itemActions(new Log(LogType.ADD_ITEM_TO_SHOPPING_LIST), item, 0);
+        } else {
+            loggerService.itemActions(new Log(LogType.REMOVE_ITEM_FROM_SHOPPING_LIST), item, 0);
+        }
         inventoryItemRepository.save(item);
     }
 
@@ -265,17 +272,26 @@ public class InventoryItemService {
         return deviceLocationRepository.findAllLocations();
     }
 
-    public void markOneAsDefective(Long itemId) {
+    public void markOneAsDefective(Long itemId, int count) {
         InventoryItem item = getItem(itemId);
-        item.setCount(item.getCount()-1);
-        loggerService.itemActions(new Log(LogType.DEFECTIVE_PART), item, 1);
+        item.removeCount(count);
+        loggerService.itemActions(new Log(LogType.DEFECTIVE_PART), item, count);
+        item.getRequiredItem().addDefectiveCount(count);
         inventoryItemRepository.save(item);
     }
 
-    public void markOneAsDamaged(Long itemId) {
+    public void replaceDefectiveItem(Long itemId, int count) {
         InventoryItem item = getItem(itemId);
-        item.setCount(item.getCount()-1);
-        loggerService.itemActions(new Log(LogType.DAMAGED_PART), item, 1);
+        item.getRequiredItem().removeDefectiveCount(count);
+        item.addCount(count);
+        loggerService.itemActions(new Log(LogType.RETURNED_DEFECTIVE_PART), item, count);
+        inventoryItemRepository.save(item);
+    }
+
+    public void markOneAsDamaged(Long itemId, int count) {
+        InventoryItem item = getItem(itemId);
+        item.removeCount(count);
+        loggerService.itemActions(new Log(LogType.DAMAGED_PART), item, count);
         inventoryItemRepository.save(item);
     }
 }

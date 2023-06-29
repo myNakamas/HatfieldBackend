@@ -48,7 +48,7 @@ public class UserService implements UserDetailsService, UserDetailsPasswordServi
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        return userRepository.findUserByUsername(username).orElseThrow(() -> new UsernameNotFoundException("User does not exist"));
+        return userRepository.findUser(username).orElseThrow(() -> new UsernameNotFoundException("User does not exist"));
     }
 
     @Override
@@ -193,7 +193,7 @@ public class UserService implements UserDetailsService, UserDetailsPasswordServi
 
     public String generateUsername() {
         String answer = UUID.randomUUID().toString().substring(24, 36).toUpperCase(Locale.ROOT);
-        if (userRepository.findUserByUsername(answer).isPresent())
+        if (userRepository.findUser(answer).isPresent())
             answer = generateUsername();
         return answer;
     }

@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.data.jpa.domain.AbstractPersistable;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Getter
@@ -22,7 +23,7 @@ public class Shop extends AbstractPersistable<Long> {
 
     private String shopName;
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "shop")
-    private List<InventoryItem> inventory;
+    private List<InventoryItem> inventory = new ArrayList<>();
     private String address;
     private String phone;
     private String email;
@@ -31,16 +32,28 @@ public class Shop extends AbstractPersistable<Long> {
 
     @Embedded
     private ShopSettings settings;
+    @Embedded
+    private ShopPageTemplates templates;
 
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "shop")
-    private List<User> users;
+    private List<User> users = new ArrayList<>();
 
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "shop")
-    private List<Ticket> tickets;
+    private List<Ticket> tickets = new ArrayList<>();
 
 //    @OneToMany(cascade = CascadeType.ALL,orphanRemoval = true)
 //    @JoinColumn(name="shop_id")
 //    private List<Sales> sales;
+
+
+    public Shop(String shopName, String address, String phone, String email, ShopSettings settings) {
+        this.shopName = shopName;
+        this.address = address;
+        this.phone = phone;
+        this.email = email;
+        this.settings = settings;
+        this.templates = new ShopPageTemplates();
+    }
 
     public Shop(CreateShop create) {
         this.shopName = create.shopName();
@@ -50,6 +63,7 @@ public class Shop extends AbstractPersistable<Long> {
         this.vatNumber = create.vatNumber();
         this.regNumber = create.regNumber();
         this.settings = new ShopSettings(create.shopSettingsView());
+        this.templates = new ShopPageTemplates(create.templates());
     }
 
     public void update(CreateShop updateView) {
@@ -60,5 +74,6 @@ public class Shop extends AbstractPersistable<Long> {
         if (updateView.vatNumber() != null) this.vatNumber = updateView.vatNumber();
         if (updateView.regNumber() != null) this.regNumber = updateView.regNumber();
         if (updateView.shopSettingsView() != null) this.settings.update(updateView.shopSettingsView());
+        if (updateView.templates() != null) this.templates.update(updateView.templates());
     }
 }

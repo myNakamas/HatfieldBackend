@@ -29,7 +29,9 @@ public class ShopController {
 
     @GetMapping("/myShop")
     public ShopView getShopById(@AuthenticationPrincipal User user) {
-        return new ShopView(user.getShop());
+        ShopView shopView = new ShopView(user.getShop());
+        shopView.templates().fillTemplates(user.getShop());
+        return shopView;
     }
 
     @GetMapping("admin/all")

@@ -3,12 +3,14 @@ package com.nakamas.hatfieldbackend.services;
 import com.nakamas.hatfieldbackend.models.entities.User;
 import com.nakamas.hatfieldbackend.models.entities.shop.InventoryItem;
 import com.nakamas.hatfieldbackend.models.entities.ticket.Invoice;
+import com.nakamas.hatfieldbackend.models.enums.InvoiceType;
 import com.nakamas.hatfieldbackend.models.views.incoming.CreateInvoice;
 import com.nakamas.hatfieldbackend.models.views.incoming.PageRequestView;
 import com.nakamas.hatfieldbackend.models.views.incoming.filters.InvoiceFilter;
 import com.nakamas.hatfieldbackend.models.views.outgoing.PdfAndImageDoc;
 import com.nakamas.hatfieldbackend.models.views.outgoing.reports.InvoiceDailyReport;
 import com.nakamas.hatfieldbackend.models.views.outgoing.reports.InvoiceReport;
+import com.nakamas.hatfieldbackend.models.views.outgoing.reports.SellReport;
 import com.nakamas.hatfieldbackend.repositories.InvoiceRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -67,7 +69,7 @@ public class InvoicingService {
         return doc.pdfBytes();
     }
 
-    public InvoiceReport getMonthlyReport(InvoiceFilter invoiceFilter) {
+    public InvoiceReport getInvoiceMonthlyReport(InvoiceFilter invoiceFilter) {
         List<Invoice> all = invoiceRepository.findAll(invoiceFilter);
         Map<LocalDate, InvoiceDailyReport> dailyReportsByDate = new HashMap<>();
         BigDecimal totalAmount = BigDecimal.ZERO;
@@ -90,7 +92,23 @@ public class InvoicingService {
         return new InvoiceReport(all.size(), totalAmount, dailyReports);
     }
 
-    public void invalidateInvoice(Long invoiceId){
+    public SellReport getSellReport(InvoiceFilter invoiceFilter) {
+        invoiceFilter.setType(InvoiceType.SELL);
+        List<Invoice> all = invoiceRepository.findAll(invoiceFilter);
+        Map<String, Integer> sellingReport = new HashMap<>();
+        BigDecimal amount = BigDecimal.ZERO;
+        for (Invoice invoice : all) {
+            String itemName = invoice.getDeviceName();
+
+            sellingReport.putIfAbsent(itemName, 0);
+            sellingReport.compute(itemName, (s, count) -> count == null ? 1 : count + 1);
+            amount = amount.add(invoice.getTotalPrice());
+        }
+
+        return new SellReport(amount, sellingReport);
+    }
+
+    public void invalidateInvoice(Long invoiceId) {
         Invoice byId = getById(invoiceId);
         byId.setValid(false);
         loggerService.invalidateInvoiceActions(invoiceId);

@@ -28,7 +28,7 @@ public final class TestData {
     }
 
     public static Shop getTestShop() {
-        return new Shop("Hatfield", List.of(), "London, Street 023", "fakePhoneNum", "gakeEmail@email.com", "64243213001", "1245245", getTestShopSettings(), List.of(), List.of());
+        return new Shop("Hatfield", "London, Street 023", "fakePhoneNum", "gakeEmail@email.com", getTestShopSettings());
     }
 
     public static CreateUser getTestUser(Shop shop) {

@@ -8,6 +8,7 @@ import com.nakamas.hatfieldbackend.models.views.incoming.CreateInvoice;
 import com.nakamas.hatfieldbackend.models.views.incoming.PageRequestView;
 import com.nakamas.hatfieldbackend.models.views.incoming.filters.InvoiceFilter;
 import com.nakamas.hatfieldbackend.models.views.outgoing.reports.InvoiceReport;
+import com.nakamas.hatfieldbackend.models.views.outgoing.reports.SellReport;
 import com.nakamas.hatfieldbackend.models.views.outgoing.ticket.InvoiceView;
 import com.nakamas.hatfieldbackend.services.InvoicingService;
 import lombok.RequiredArgsConstructor;
@@ -55,7 +56,12 @@ public class InvoiceController {
 
     @GetMapping("report")
     public InvoiceReport getMonthlyReport(InvoiceFilter invoiceFilter) {
-        return invoiceService.getMonthlyReport(invoiceFilter);
+        return invoiceService.getInvoiceMonthlyReport(invoiceFilter);
+    }
+
+    @GetMapping("report/sell")
+    public SellReport getSellReport(InvoiceFilter invoiceFilter) {
+        return invoiceService.getSellReport(invoiceFilter);
     }
 
     @DeleteMapping("invalidate")
