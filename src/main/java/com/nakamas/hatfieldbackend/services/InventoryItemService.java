@@ -280,6 +280,12 @@ public class InventoryItemService {
         inventoryItemRepository.save(item);
     }
 
+    public void removeDefectiveItem(Long itemId, int count) {
+        InventoryItem item = getItem(itemId);
+        item.getRequiredItem().removeDefectiveCount(count);
+        inventoryItemRepository.save(item);
+    }
+
     public void replaceDefectiveItem(Long itemId, int count) {
         InventoryItem item = getItem(itemId);
         item.getRequiredItem().removeDefectiveCount(count);
@@ -292,6 +298,13 @@ public class InventoryItemService {
         InventoryItem item = getItem(itemId);
         item.removeCount(count);
         loggerService.itemActions(new Log(LogType.DAMAGED_PART), item, count);
+        inventoryItemRepository.save(item);
+    }
+
+    public void addQuantity(Long itemId, Integer count) {
+        InventoryItem item = getItem(itemId);
+        item.addCount(count);
+        loggerService.itemActions(new Log(LogType.UPDATE_ITEM_COUNT), item, count);
         inventoryItemRepository.save(item);
     }
 }

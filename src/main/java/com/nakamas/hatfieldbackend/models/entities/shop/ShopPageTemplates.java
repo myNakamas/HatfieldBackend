@@ -22,7 +22,9 @@ public class ShopPageTemplates {
     }
 
     public ShopPageTemplates(ShopPageTemplatesView view) {
-        this.aboutPage = view.getAboutPage();
+        if (view != null && view.getAboutPage() != null && view.getAboutPage().isBlank()) {
+            this.aboutPage = view.getAboutPage();
+        } else this.aboutPage = "# About us";
     }
 
     public void update(ShopPageTemplatesView view) {
