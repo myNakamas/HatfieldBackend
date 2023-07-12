@@ -49,6 +49,10 @@ public class Ticket extends AbstractPersistable<Long> {
     private User client;
     @ManyToOne
     private Shop shop;
+    @OneToMany()
+    @OrderBy("id desc")
+    @JoinColumn(name = "ticket_id")
+    private List<Invoice> invoices;
 
     @Enumerated
     private TicketStatus status;

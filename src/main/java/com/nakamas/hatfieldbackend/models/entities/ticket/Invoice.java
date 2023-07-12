@@ -24,6 +24,7 @@ public class Invoice extends AbstractPersistable<Long> {
     private InvoiceType type;
     private String deviceName;
     private String serialNumber;
+    @Column(name = "ticket_id")
     private Long ticketId;
     private ZonedDateTime timestamp;
     private Integer count;
