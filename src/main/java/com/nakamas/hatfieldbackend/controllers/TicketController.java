@@ -66,6 +66,10 @@ public class TicketController {
         ticketFilter.setClientId(user.getId());
         return ticketService.findAllActive(ticketFilter);
     }
+    @PutMapping("client/freeze")
+    public void freezeTicket(@AuthenticationPrincipal User user, @RequestParam Long id){
+        ticketService.freezeRepair(user, id);
+    }
 
 //    todo: Post Start repair (move to lab, status started + message in chat + Open chat)
     @PutMapping("worker/start")

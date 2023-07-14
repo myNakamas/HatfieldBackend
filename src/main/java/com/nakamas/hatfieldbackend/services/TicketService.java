@@ -105,6 +105,7 @@ public class TicketService {
 
     private void createMessageForTicket(String text, User user, Ticket ticket) {
         UUID clientId = ticket.getClient() != null ? ticket.getClient().getId() : null;
+        if (clientId == user.getId()){clientId = ticket.getCreatedBy().getId();}
         messageService.createMessage(new CreateChatMessage(text,
                 ZonedDateTime.now(), user.getId(), clientId, ticket.getId(), false, true, null));
     }
@@ -115,6 +116,16 @@ public class TicketService {
         ticket.setStatus(TicketStatus.FINISHED);
         createMessageForTicket("Repairment actions have finished! Please come and pick " +
                                "up your device at a comfortable time.", user, ticket);
+        //send sms if options allow
+        //to send email if options allow
+        loggerService.ticketActions(new Log(LogType.FINISHED_TICKET), ticket);
+        ticketRepository.save(ticket);
+    }
+
+    public void freezeRepair(User user, Long id) {
+        Ticket ticket = ticketRepository.getReferenceById(id);
+        ticket.setStatus(TicketStatus.ON_HOLD);
+        createMessageForTicket("Repairment actions are on hold!", user, ticket);
         //send sms if options allow
         //to send email if options allow
         loggerService.ticketActions(new Log(LogType.FINISHED_TICKET), ticket);
