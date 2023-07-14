@@ -131,6 +131,15 @@ public class TicketService {
         loggerService.ticketActions(new Log(LogType.FINISHED_TICKET), ticket);
         ticketRepository.save(ticket);
     }
+    public void cancelRepair(User user, Long id) {
+        Ticket ticket = ticketRepository.getReferenceById(id);
+        ticket.setStatus(TicketStatus.CANCELLED_BY_CLIENT);
+        createMessageForTicket("Repairment actions are canceled!", user, ticket);
+        //send sms if options allow
+        //to send email if options allow
+        loggerService.ticketActions(new Log(LogType.UPDATED_TICKET), ticket);
+        ticketRepository.save(ticket);
+    }
 
     public byte[] collectedDevice(User user, Long id, CreateInvoice invoice) {
         Ticket ticket = getTicket(id);

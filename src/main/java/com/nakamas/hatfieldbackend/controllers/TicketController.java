@@ -44,7 +44,7 @@ public class TicketController {
     }
 
     /**
-     * @param user The logged in user
+     * @param user The logged-in user
      * @param ticketFilter The ticket filter
      * @param pageRequestView View containing the requested page and pageSize
      * @return all tickets that the logged user is assigned as client
@@ -69,6 +69,10 @@ public class TicketController {
     @PutMapping("client/freeze")
     public void freezeTicket(@AuthenticationPrincipal User user, @RequestParam Long id){
         ticketService.freezeRepair(user, id);
+    }
+    @PutMapping("client/cancel")
+    public void cancelTicket(@AuthenticationPrincipal User user, @RequestParam Long id){
+        ticketService.cancelRepair(user, id);
     }
 
 //    todo: Post Start repair (move to lab, status started + message in chat + Open chat)
