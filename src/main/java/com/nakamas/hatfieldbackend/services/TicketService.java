@@ -144,8 +144,8 @@ public class TicketService {
     public byte[] collectedDevice(User user, Long id, CreateInvoice invoice) {
         Ticket ticket = getTicket(id);
         ticket.setStatus(TicketStatus.COLLECTED);
-        invoice.setTicketInfo(ticket);
         invoice.setType(InvoiceType.REPAIR);
+        invoice.setTicketInfo(ticket);
         Invoice result = invoiceService.create(invoice, user);
         createMessageForTicket("The device has been collected. Information can be found" +
                                " in your 'invoices' tab. If that action hasn't been done by you please contact the store.", user, ticket);

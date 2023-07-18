@@ -34,12 +34,8 @@ public class CreateInvoice {
 
     public void setTicketInfo(Ticket ticket) {
         this.ticketId = ticket.getId();
-        this.type = InvoiceType.REPAIR;
-        if (this.deviceName != null)
-            this.deviceName = ticket.getDeviceBrandString() + " " + ticket.getDeviceModelString();
-        if (this.serialNumber != null) this.serialNumber = ticket.getSerialNumberOrImei();
-        if (ticket.getClient() != null) this.clientId = ticket.getClient().getId();
-        if (ticket.getTotalPrice() != null) this.totalPrice = ticket.getTotalPrice();
+        if (this.deviceName == null) this.deviceName = "-";
+        if (this.serialNumber == null) this.serialNumber = "-";
     }
 
     public void setItemInfo(InventoryItem item) {
