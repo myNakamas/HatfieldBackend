@@ -50,7 +50,7 @@ public class InvoiceFilter implements Specification<Invoice> {
         if (type != null)
             predicates.add(builder.equal(invoice.get("type"), type));
         if (searchBy != null && !searchBy.isBlank()) {
-            Expression<String> concat = builder.lower(builder.concat(invoice.get("serialNumber"), invoice.get("notes")));
+            Expression<String> concat = builder.lower(builder.concat(builder.concat(invoice.get("serialNumber"), invoice.get("notes")), invoice.get("id")));
             predicates.add(builder.like(concat, "%" + searchBy.toLowerCase() + "%"));
         }
 
