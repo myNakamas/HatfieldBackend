@@ -56,8 +56,7 @@ public class TicketController {
         return ticketService.findAll(ticketFilter, pageRequestView);
     }
     @GetMapping("active")
-    public List<TicketView> getAllActiveTickets(@AuthenticationPrincipal User user, TicketFilter ticketFilter) {
-        if (!user.getRole().equals(UserRole.ADMIN)) ticketFilter.setShopId(user.getShop().getId());
+    public List<TicketView> getAllActiveTickets(TicketFilter ticketFilter) {
         return ticketService.findAllActive(ticketFilter);
     }
     @GetMapping("client/active")
@@ -82,8 +81,8 @@ public class TicketController {
     }
 //    todo: Complete repair(move to? Status Completed, send notification)
     @PutMapping("worker/complete")
-    public void completeTicket(@AuthenticationPrincipal User user, @RequestParam Long id, @RequestParam String location){
-        ticketService.completeRepair(user, id, location);
+    public void completeTicket(@AuthenticationPrincipal User user, @RequestParam Long id){
+        ticketService.completeRepair(user, id);
     }
 //    todo: Mark as collected + chat message + generate invoice
     @PutMapping("worker/collected")

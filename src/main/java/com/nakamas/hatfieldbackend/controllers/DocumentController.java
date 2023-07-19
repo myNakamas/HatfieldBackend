@@ -29,7 +29,7 @@ public class DocumentController {
     private final InvoicingService invoiceService;
     private final UserService userService;
 
-    //todo: Assign the qrcodes to redirect to the frontend page that shows data of the item.
+    //todo: Assign the QR codes to redirect to the frontend page that shows data of the item.
     @PostMapping(value = "print/ticket", produces = MediaType.APPLICATION_PDF_VALUE)
     private ResponseEntity<byte[]> printTicket(@RequestParam Long ticketId) {
         Ticket ticket = ticketService.getTicket(ticketId);
@@ -50,7 +50,6 @@ public class DocumentController {
     private ResponseEntity<byte[]> printInvoice(@RequestParam Long invoiceId) {
         Invoice invoice = invoiceService.getById(invoiceId);
         PdfAndImageDoc doc = documentService.createInvoice("%s/invoices/%s".formatted(frontendHost, invoice.getId()), invoice);
-//        documentService.executePrint(doc.image());
         byte[] bytes = doc.pdfBytes();
         return ResponseEntity.ok().contentType(MediaType.APPLICATION_PDF).body(bytes);
     }
@@ -91,11 +90,27 @@ public class DocumentController {
         return ResponseEntity.ok().contentType(MediaType.APPLICATION_PDF).body(bytes);
     }
 
+    @GetMapping(value = "print/tag/user", produces = MediaType.APPLICATION_PDF_VALUE)
+    private ResponseEntity<byte[]> previewRepairTag(@RequestParam UUID userId) {
+        User user = userService.getUser(userId);
+        PdfAndImageDoc doc = documentService.createUserTag(frontendHost, user);
+        byte[] bytes = doc.pdfBytes();
+        return ResponseEntity.ok().contentType(MediaType.APPLICATION_PDF).body(bytes);
+    }
+
     @PostMapping(value = "print/tag/price", produces = MediaType.APPLICATION_PDF_VALUE)
     private ResponseEntity<byte[]> printPriceTag(@RequestParam Long itemId) {
         InventoryItem item = inventoryItemService.getItem(itemId);
         PdfAndImageDoc doc = documentService.createPriceTag("%s/inventory?itemId=%s".formatted(frontendHost, item.getId()), item);
         documentService.executePrint(doc.image());
+        byte[] bytes = doc.pdfBytes();
+        return ResponseEntity.ok().contentType(MediaType.APPLICATION_PDF).body(bytes);
+    }
+
+    @GetMapping(value = "print/tag/price", produces = MediaType.APPLICATION_PDF_VALUE)
+    private ResponseEntity<byte[]> previewPriceTag(@RequestParam Long itemId) {
+        InventoryItem item = inventoryItemService.getItem(itemId);
+        PdfAndImageDoc doc = documentService.createPriceTag("%s/inventory?itemId=%s".formatted(frontendHost, item.getId()), item);
         byte[] bytes = doc.pdfBytes();
         return ResponseEntity.ok().contentType(MediaType.APPLICATION_PDF).body(bytes);
     }

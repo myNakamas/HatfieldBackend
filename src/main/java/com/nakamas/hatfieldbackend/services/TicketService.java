@@ -110,9 +110,8 @@ public class TicketService {
                 ZonedDateTime.now(), user.getId(), clientId, ticket.getId(), false, true, null));
     }
 
-    public void completeRepair(User user, Long id, String location) {
+    public void completeRepair(User user, Long id) {
         Ticket ticket = ticketRepository.getReferenceById(id);
-        ticket.setDeviceLocation(getOrCreateLocation(location));
         ticket.setStatus(TicketStatus.FINISHED);
         createMessageForTicket("Repairment actions have finished! Please come and pick " +
                                "up your device at a comfortable time.", user, ticket);
