@@ -11,6 +11,7 @@ import com.nakamas.hatfieldbackend.repositories.InvoiceRepository;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import net.glxn.qrgen.javase.QRCode;
+import org.apache.commons.io.FileUtils;
 import org.apache.pdfbox.cos.COSName;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
@@ -28,6 +29,7 @@ import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
@@ -63,6 +65,11 @@ public class DocumentService implements ApplicationRunner {
         this.resourceLoader = resourceLoader;
         this.invoiceRepository = invoiceRepository;
         this.fontResource = resourceLoader.getResource("classpath:templates/fonts/arial.ttf");
+    }
+
+    @Scheduled(cron = "0 0 0 * * *", zone = "Europe/London")
+    public void removeUnneededPictures() throws IOException {
+        FileUtils.cleanDirectory(new File(outputPath));
     }
 
     public PdfAndImageDoc createPriceTag(String qrContent, InventoryItem item) {
