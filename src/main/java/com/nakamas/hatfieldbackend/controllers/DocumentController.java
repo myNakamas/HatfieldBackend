@@ -38,6 +38,13 @@ public class DocumentController {
         byte[] bytes = doc.pdfBytes();
         return ResponseEntity.ok().contentType(MediaType.APPLICATION_PDF).body(bytes);
     }
+    @GetMapping(value = "print/ticket", produces = MediaType.APPLICATION_PDF_VALUE)
+    private ResponseEntity<byte[]> previewPrintTicket(@RequestParam Long ticketId) {
+        Ticket ticket = ticketService.getTicket(ticketId);
+        PdfAndImageDoc doc = documentService.createTicket("%s/tickets?ticketId=%s".formatted(frontendHost, ticket.getId()), ticket);
+        byte[] bytes = doc.pdfBytes();
+        return ResponseEntity.ok().contentType(MediaType.APPLICATION_PDF).body(bytes);
+    }
 
     @PostMapping(value = "print/invoice", produces = MediaType.APPLICATION_PDF_VALUE)
     private ResponseEntity<byte[]> printInvoice(@RequestParam Long invoiceId) {
@@ -64,6 +71,13 @@ public class DocumentController {
         Ticket ticket = ticketService.getTicket(ticketId);
         PdfAndImageDoc doc = documentService.createRepairTag("%s/tickets?ticketId=%s".formatted(frontendHost, ticket.getId()), ticket);
         documentService.executePrint(doc.image());
+        byte[] bytes = doc.pdfBytes();
+        return ResponseEntity.ok().contentType(MediaType.APPLICATION_PDF).body(bytes);
+    }
+    @GetMapping(value = "print/tag/repair", produces = MediaType.APPLICATION_PDF_VALUE)
+    private ResponseEntity<byte[]> previewPrintRepairTag(@RequestParam Long ticketId) {
+        Ticket ticket = ticketService.getTicket(ticketId);
+        PdfAndImageDoc doc = documentService.createRepairTag("%s/tickets?ticketId=%s".formatted(frontendHost, ticket.getId()), ticket);
         byte[] bytes = doc.pdfBytes();
         return ResponseEntity.ok().contentType(MediaType.APPLICATION_PDF).body(bytes);
     }

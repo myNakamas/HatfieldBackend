@@ -54,8 +54,8 @@ public class InventoryItemController {
     }
 
     @GetMapping("item/all")
-    public PageView<InventoryItemView> getShopInventory(@AuthenticationPrincipal User loggedUser, InventoryItemFilter filter, PageRequestView pageRequestView) {
-        return inventoryItemService.getShopInventory(loggedUser.getShop().getId(), filter, pageRequestView);
+    public PageView<InventoryItemView> getShopInventory(InventoryItemFilter filter, PageRequestView pageRequestView) {
+        return inventoryItemService.getShopInventory(filter, pageRequestView);
     }
 
     @GetMapping("item/short")

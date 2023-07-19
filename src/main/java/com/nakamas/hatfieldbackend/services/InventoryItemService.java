@@ -120,8 +120,7 @@ public class InventoryItemService {
         item.setCount(item.getCount() - count);
     }
 
-    public PageView<InventoryItemView> getShopInventory(Long shopId, InventoryItemFilter filter, PageRequestView pageRequestView) {
-        filter.setShopId(shopId);
+    public PageView<InventoryItemView> getShopInventory(InventoryItemFilter filter, PageRequestView pageRequestView) {
         Page<InventoryItem> items = inventoryItemRepository.findAll(filter, pageRequestView.getPageRequest());
         Page<InventoryItemView> page = items.map(item -> new InventoryItemView(item, getCategory(item.getCategoryId())));
         return new PageView<>(page);
