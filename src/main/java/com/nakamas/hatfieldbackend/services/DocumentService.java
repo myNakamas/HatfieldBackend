@@ -47,6 +47,9 @@ import java.util.List;
 @Slf4j
 @Service
 public class DocumentService implements ApplicationRunner {
+    @Value(value = "${fe-host:http://localhost:5173}")
+    private String frontendHost;
+
     private final ResourceLoader resourceLoader;
     private final InvoiceRepository invoiceRepository;
     @Value(value = "${brother_loc:#{null}}")
@@ -136,6 +139,11 @@ public class DocumentService implements ApplicationRunner {
         contents.close();
     }
 
+    public PdfAndImageDoc createTicket(Ticket ticket) {
+        String qr = "%s/tickets?ticketId=%s&username=%s&password=%s".formatted(frontendHost, ticket.getId(), ticket.getClient().getUsername(), ticket.getClient().getFirstPassword());
+        return this.createTicket(qr, ticket);
+    }
+
     public PdfAndImageDoc createTicket(String qrContent, Ticket ticket) {
         InputStream input = getTemplate("/ticketTag.pdf");
 
@@ -150,14 +158,14 @@ public class DocumentService implements ApplicationRunner {
     }
 
     @Transactional
-    public PdfAndImageDoc createInvoice(String qrContent, Invoice invoice) {
+    public byte[] createInvoice(String qrContent, Invoice invoice) {
         InputStream input = getTemplate("/invoice.pdf");
 
         try (PDDocument document = PDDocument.load(input)) {
             fillInvoiceTemplate(qrContent, invoice, document);
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             document.save(baos);
-            return new PdfAndImageDoc(getImage(document, "invoice"), baos.toByteArray());
+            return baos.toByteArray();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

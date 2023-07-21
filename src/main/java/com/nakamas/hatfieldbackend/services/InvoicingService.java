@@ -7,7 +7,6 @@ import com.nakamas.hatfieldbackend.models.enums.InvoiceType;
 import com.nakamas.hatfieldbackend.models.views.incoming.CreateInvoice;
 import com.nakamas.hatfieldbackend.models.views.incoming.PageRequestView;
 import com.nakamas.hatfieldbackend.models.views.incoming.filters.InvoiceFilter;
-import com.nakamas.hatfieldbackend.models.views.outgoing.PdfAndImageDoc;
 import com.nakamas.hatfieldbackend.models.views.outgoing.reports.InvoiceDailyReport;
 import com.nakamas.hatfieldbackend.models.views.outgoing.reports.InvoiceReport;
 import com.nakamas.hatfieldbackend.models.views.outgoing.reports.SellReport;
@@ -64,9 +63,7 @@ public class InvoicingService {
     }
 
     public byte[] getAsBlob(Invoice invoice) {
-        PdfAndImageDoc doc = documentService.createInvoice("%s/invoices/%s".formatted(frontendHost, invoice.getId()), invoice);
-        documentService.executePrint(doc.image());
-        return doc.pdfBytes();
+        return documentService.createInvoice("%s/invoices?invoiceId=%s".formatted(frontendHost, invoice.getId()), invoice);
     }
 
     public InvoiceReport getInvoiceMonthlyReport(InvoiceFilter invoiceFilter) {

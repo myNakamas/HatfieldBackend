@@ -33,7 +33,7 @@ public class DocumentController {
     @PostMapping(value = "print/ticket", produces = MediaType.APPLICATION_PDF_VALUE)
     private ResponseEntity<byte[]> printTicket(@RequestParam Long ticketId) {
         Ticket ticket = ticketService.getTicket(ticketId);
-        PdfAndImageDoc doc = documentService.createTicket("%s/tickets?ticketId=%s".formatted(frontendHost, ticket.getId()), ticket);
+        PdfAndImageDoc doc = documentService.createTicket(ticket);
         documentService.executePrint(doc.image());
         byte[] bytes = doc.pdfBytes();
         return ResponseEntity.ok().contentType(MediaType.APPLICATION_PDF).body(bytes);
@@ -41,7 +41,7 @@ public class DocumentController {
     @GetMapping(value = "print/ticket", produces = MediaType.APPLICATION_PDF_VALUE)
     private ResponseEntity<byte[]> previewPrintTicket(@RequestParam Long ticketId) {
         Ticket ticket = ticketService.getTicket(ticketId);
-        PdfAndImageDoc doc = documentService.createTicket("%s/tickets?ticketId=%s".formatted(frontendHost, ticket.getId()), ticket);
+        PdfAndImageDoc doc = documentService.createTicket(ticket);
         byte[] bytes = doc.pdfBytes();
         return ResponseEntity.ok().contentType(MediaType.APPLICATION_PDF).body(bytes);
     }
@@ -49,8 +49,7 @@ public class DocumentController {
     @PostMapping(value = "print/invoice", produces = MediaType.APPLICATION_PDF_VALUE)
     private ResponseEntity<byte[]> printInvoice(@RequestParam Long invoiceId) {
         Invoice invoice = invoiceService.getById(invoiceId);
-        PdfAndImageDoc doc = documentService.createInvoice("%s/invoices?searchBy=%s".formatted(frontendHost, invoice.getId()), invoice);
-        byte[] bytes = doc.pdfBytes();
+        byte[] bytes = documentService.createInvoice("%s/invoices?invoiceId=%s".formatted(frontendHost, invoice.getId()), invoice);
         return ResponseEntity.ok().contentType(MediaType.APPLICATION_PDF).body(bytes);
     }
 
@@ -60,8 +59,7 @@ public class DocumentController {
         if (user == null) throw new CustomException("No user with session");
         if (invoice.getClient() == null || invoice.getClient().getId() == null || !invoice.getClient().getId().equals(user.getId()))
             throw new ForbiddenActionException("You cannot print this invoice");
-        PdfAndImageDoc doc = documentService.createInvoice("%s/invoices?searchBy=%s".formatted(frontendHost, invoice.getId()), invoice);
-        byte[] bytes = doc.pdfBytes();
+        byte[] bytes = documentService.createInvoice("%s/invoices?invoiceId=%s".formatted(frontendHost, invoice.getId()), invoice);
         return ResponseEntity.ok().contentType(MediaType.APPLICATION_PDF).body(bytes);
     }
 
