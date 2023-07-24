@@ -4,6 +4,7 @@ import com.nakamas.hatfieldbackend.config.exception.CustomException;
 import com.nakamas.hatfieldbackend.models.entities.Log;
 import com.nakamas.hatfieldbackend.models.entities.User;
 import com.nakamas.hatfieldbackend.models.entities.shop.DeviceLocation;
+import com.nakamas.hatfieldbackend.models.entities.shop.ShopSettings;
 import com.nakamas.hatfieldbackend.models.entities.shop.UsedPart;
 import com.nakamas.hatfieldbackend.models.entities.ticket.Invoice;
 import com.nakamas.hatfieldbackend.models.entities.ticket.Ticket;
@@ -38,6 +39,7 @@ public class TicketService {
     private final InvoicingService invoiceService;
     private final MessageService messageService;
 
+    private final EmailService emailService;
 
     //region Main
     public Ticket createTicket(CreateTicket create, User loggedUser) {
@@ -68,7 +70,9 @@ public class TicketService {
             loggerService.ticketActions(new Log(LogType.MOVED_TICKET), ticket);
         }
         DeviceLocation location = getOrCreateLocation(create.deviceLocation());
-        if(location != null){ticket.setDeviceLocation(location);}
+        if (location != null) {
+            ticket.setDeviceLocation(location);
+        }
     }
 
     public DeviceLocation getOrCreateLocation(String location) {
@@ -98,14 +102,17 @@ public class TicketService {
         ticket.setStatus(TicketStatus.STARTED);
         createMessageForTicket("Hello! The repair of your device has been initiated.", user, ticket);
         //send sms if options allow
-        //to send email if options allow
+        sendEmail(ticket.getClient(), "Update on Your Device Repair",
+                "Dear client, \n\nYour device repair has begun. Updates coming soon. Please do check your chat in our system. \n\n Best regards, \n" + user.getShop().getShopName());
         loggerService.ticketActions(new Log(LogType.STARTED_TICKET), ticket);
         ticketRepository.save(ticket);
     }
 
     private void createMessageForTicket(String text, User user, Ticket ticket) {
         UUID clientId = ticket.getClient() != null ? ticket.getClient().getId() : null;
-        if (clientId == user.getId()){clientId = ticket.getCreatedBy().getId();}
+        if (clientId == user.getId()) {
+            clientId = ticket.getCreatedBy().getId();
+        }
         messageService.createMessage(new CreateChatMessage(text,
                 ZonedDateTime.now(), user.getId(), clientId, ticket.getId(), false, true, null));
     }
@@ -114,9 +121,10 @@ public class TicketService {
         Ticket ticket = ticketRepository.getReferenceById(id);
         ticket.setStatus(TicketStatus.FINISHED);
         createMessageForTicket("Repairment actions have finished! Please come and pick " +
-                               "up your device at a comfortable time.", user, ticket);
+                "up your device at a comfortable time.", user, ticket);
         //send sms if options allow
-        //to send email if options allow
+        sendEmail(ticket.getClient(), "Update on Your Device Repair",
+                "Dear client, \n\nYour device repair has been completed. Please come pick up your device. \n\n Best regards, \n" + user.getShop().getShopName());
         loggerService.ticketActions(new Log(LogType.FINISHED_TICKET), ticket);
         ticketRepository.save(ticket);
     }
@@ -126,16 +134,18 @@ public class TicketService {
         ticket.setStatus(TicketStatus.ON_HOLD);
         createMessageForTicket("Repairment actions are on hold!", user, ticket);
         //send sms if options allow
-        //to send email if options allow
+        sendEmail(ticket.getClient(), "Update on Your Device Repair",
+                "Dear client, \n\nYour device repair has been frozen. Please contact us to resolve the issue. \n\n Best regards, \n" + user.getShop().getShopName());
         loggerService.ticketActions(new Log(LogType.FINISHED_TICKET), ticket);
         ticketRepository.save(ticket);
     }
+
     public void cancelRepair(User user, Long id) {
         Ticket ticket = ticketRepository.getReferenceById(id);
         ticket.setStatus(TicketStatus.CANCELLED_BY_CLIENT);
         createMessageForTicket("Repairment actions are canceled!", user, ticket);
         //send sms if options allow
-        //to send email if options allow
+        //email not needed - from client to client? xD
         loggerService.ticketActions(new Log(LogType.UPDATED_TICKET), ticket);
         ticketRepository.save(ticket);
     }
@@ -147,7 +157,10 @@ public class TicketService {
         invoice.setTicketInfo(ticket);
         Invoice result = invoiceService.create(invoice, user);
         createMessageForTicket("The device has been collected. Information can be found" +
-                               " in your 'invoices' tab. If that action hasn't been done by you please contact the store.", user, ticket);
+                " in your 'invoices' tab. If that action hasn't been done by you please contact the store.", user, ticket);
+        //sms
+        sendEmail(ticket.getClient(), "Update on Your Device",
+                "Dear client, \n\nYour device has been collected. Enjoy! \n\n Best regards, \n" + user.getShop().getShopName());
         ticketRepository.save(ticket);
         loggerService.ticketActions(new Log(LogType.COLLECTED_TICKET), ticket);
         return invoiceService.getAsBlob(result);
@@ -164,4 +177,15 @@ public class TicketService {
         return ticketRepository.findById(id).orElseThrow(() -> new CustomException("Cannot find Ticket with selected ID"));
     }
     //endregion
+
+    private void sendSMS() {
+
+    }
+
+    private void sendEmail(User client, String title, String mailMessage) {
+        if (client != null && client.getEmailPermission() && client.getEmail() != null) {
+            ShopSettings shopSettings = client.getShop().getSettings();
+            emailService.sendMail(shopSettings.getGmail(), shopSettings.getGmailPassword(), client.getEmail(), title, mailMessage);
+        }
+    }
 }
