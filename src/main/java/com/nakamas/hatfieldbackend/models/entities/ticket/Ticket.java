@@ -52,7 +52,7 @@ public class Ticket extends AbstractPersistable<Long> {
     @OneToMany()
     @OrderBy("id desc")
     @JoinColumn(name = "ticket_id")
-    private List<Invoice> invoices;
+    private List<Invoice> invoices = new ArrayList<>();
 
     @Enumerated
     private TicketStatus status;
