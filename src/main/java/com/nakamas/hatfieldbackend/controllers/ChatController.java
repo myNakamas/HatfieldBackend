@@ -16,18 +16,19 @@ import java.util.List;
 @RequestMapping("api/chat")
 public class ChatController {
     private final MessageService messageService;
+
     @GetMapping("all")
-    public List<ChatMessageView> getAllMessagesForTicket(@RequestParam Long ticketId){
+    public List<ChatMessageView> getAllMessagesForTicket(@RequestParam Long ticketId) {
         return messageService.getChatMessagesByTicketId(ticketId);
     }
 
     @GetMapping("client/all")
-    public List<ChatMessageView> getAllMessagesForClient(@AuthenticationPrincipal User user){
-        return messageService.getChatMessagesForClient(user.getId());
+    public List<ChatMessageView> getAllMessagesForClient(@AuthenticationPrincipal User user, @RequestParam Long ticketId) {
+        return messageService.getChatMessagesForClientByTicket(user.getId(), ticketId);
     }
 
-    @PostMapping(value = "/image",consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
-    public void sendImageAsMessage(@AuthenticationPrincipal User user, @RequestParam Long ticketId,@RequestParam Boolean publicMessage, @RequestBody MultipartFile image){
-        messageService.createImageMessage(image,ticketId,publicMessage,user);
+    @PostMapping(value = "/image", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
+    public void sendImageAsMessage(@AuthenticationPrincipal User user, @RequestParam Long ticketId, @RequestParam Boolean publicMessage, @RequestBody MultipartFile image) {
+        messageService.createImageMessage(image, ticketId, publicMessage, user);
     }
 }

@@ -16,6 +16,7 @@ public enum TicketStatus {
     FINISHED,
     UNFIXABLE,
 
+    CANCELLED_BY_CLIENT,
     SHIPPED_TO_CUSTOMER,
     COLLECTED;
 

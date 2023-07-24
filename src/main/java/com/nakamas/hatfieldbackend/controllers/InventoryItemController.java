@@ -43,6 +43,10 @@ public class InventoryItemController {
     public void updateQuantity(@RequestBody InventoryItemView inventoryItem) {
         inventoryItemService.updateQuantity(inventoryItem.id(), inventoryItem.count());
     }
+    @PatchMapping("item/add")
+    public void addQuantity(@RequestParam Long itemId, @RequestParam(required = false, defaultValue = "1") Integer count){
+        inventoryItemService.addQuantity(itemId,count);
+    }
 
     @PostMapping("item/remove")
     public void remove(@RequestBody Long id) {
@@ -50,8 +54,8 @@ public class InventoryItemController {
     }
 
     @GetMapping("item/all")
-    public PageView<InventoryItemView> getShopInventory(@AuthenticationPrincipal User loggedUser, InventoryItemFilter filter, PageRequestView pageRequestView) {
-        return inventoryItemService.getShopInventory(loggedUser.getShop().getId(), filter, pageRequestView);
+    public PageView<InventoryItemView> getShopInventory(InventoryItemFilter filter, PageRequestView pageRequestView) {
+        return inventoryItemService.getShopInventory(filter, pageRequestView);
     }
 
     @GetMapping("item/short")
@@ -83,6 +87,10 @@ public class InventoryItemController {
     @PatchMapping("item/mark/defective/replace")
     public void replaceDefectiveItem(@RequestParam Long itemId, @RequestParam(required = false, defaultValue = "1") Integer count) {
         inventoryItemService.replaceDefectiveItem(itemId, count);
+    }
+    @DeleteMapping("item/mark/defective")
+    public void removeDefectiveItem(@RequestParam Long itemId, @RequestParam(required = false, defaultValue = "1") Integer count) {
+        inventoryItemService.removeDefectiveItem(itemId, count);
     }
 
     @PatchMapping("item/mark/damaged")

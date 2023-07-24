@@ -44,7 +44,7 @@ public class TicketController {
     }
 
     /**
-     * @param user The logged in user
+     * @param user The logged-in user
      * @param ticketFilter The ticket filter
      * @param pageRequestView View containing the requested page and pageSize
      * @return all tickets that the logged user is assigned as client
@@ -56,8 +56,7 @@ public class TicketController {
         return ticketService.findAll(ticketFilter, pageRequestView);
     }
     @GetMapping("active")
-    public List<TicketView> getAllActiveTickets(@AuthenticationPrincipal User user, TicketFilter ticketFilter) {
-        if (!user.getRole().equals(UserRole.ADMIN)) ticketFilter.setShopId(user.getShop().getId());
+    public List<TicketView> getAllActiveTickets(TicketFilter ticketFilter) {
         return ticketService.findAllActive(ticketFilter);
     }
     @GetMapping("client/active")
@@ -65,6 +64,14 @@ public class TicketController {
         ticketFilter.setShopId(user.getShop().getId());
         ticketFilter.setClientId(user.getId());
         return ticketService.findAllActive(ticketFilter);
+    }
+    @PutMapping("client/freeze")
+    public void freezeTicket(@AuthenticationPrincipal User user, @RequestParam Long id){
+        ticketService.freezeRepair(user, id);
+    }
+    @PutMapping("client/cancel")
+    public void cancelTicket(@AuthenticationPrincipal User user, @RequestParam Long id){
+        ticketService.cancelRepair(user, id);
     }
 
 //    todo: Post Start repair (move to lab, status started + message in chat + Open chat)
@@ -74,8 +81,8 @@ public class TicketController {
     }
 //    todo: Complete repair(move to? Status Completed, send notification)
     @PutMapping("worker/complete")
-    public void completeTicket(@AuthenticationPrincipal User user, @RequestParam Long id, @RequestParam String location){
-        ticketService.completeRepair(user, id, location);
+    public void completeTicket(@AuthenticationPrincipal User user, @RequestParam Long id){
+        ticketService.completeRepair(user, id);
     }
 //    todo: Mark as collected + chat message + generate invoice
     @PutMapping("worker/collected")

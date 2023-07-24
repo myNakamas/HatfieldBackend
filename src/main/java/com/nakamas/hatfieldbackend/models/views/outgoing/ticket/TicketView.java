@@ -27,7 +27,8 @@ public record TicketView(
         BigDecimal deposit,
         UserProfile createdBy,
         UserProfile client,
-        List<UsedPartView> usedParts
+        List<UsedPartView> usedParts,
+        InvoiceView invoice
 ) {
     public TicketView(Ticket ticket) {
         this(ticket.getId(),
@@ -48,6 +49,7 @@ public record TicketView(
                 ticket.getDeposit(),
                 new UserProfile(ticket.getCreatedBy()),
                 (ticket.getClient() != null) ? new UserProfile(ticket.getClient()) : null,
-                ticket.getUsedParts().stream().map(UsedPartView::new).toList());
+                ticket.getUsedParts().stream().map(UsedPartView::new).toList(),
+                ticket.getInvoices().size() > 0? new InvoiceView(ticket.getInvoices().get(0)): null);
     }
 }

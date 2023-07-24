@@ -18,8 +18,8 @@ public interface MessageRepository extends JpaRepository<ChatMessage, Long> {
     @Query("from ChatMessage c where c.ticketId = ?1")
     List<ChatMessage> findAllByTicket(Long ticketId);
 
-    @Query("from ChatMessage c where c.receiver.id = ?1 or c.sender.id = ?1")
-    List<ChatMessage> findAllForClient(UUID clientId);
+    @Query("from ChatMessage c where (c.receiver.id = ?1 or c.sender.id = ?1) and c.ticketId=?2")
+    List<ChatMessage> findAllForClient(UUID clientId, Long ticketId);
 
     @Query("from ChatMessage c where (c.receiver.id = ?1 and c.sender.id = ?2)")
     List<ChatMessage> findAllSentToUser(UUID to, UUID from);

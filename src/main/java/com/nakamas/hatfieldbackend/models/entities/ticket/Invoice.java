@@ -24,6 +24,7 @@ public class Invoice extends AbstractPersistable<Long> {
     private InvoiceType type;
     private String deviceName;
     private String serialNumber;
+    @Column(name = "ticket_id")
     private Long ticketId;
     private ZonedDateTime timestamp;
     private Integer count;
@@ -44,7 +45,7 @@ public class Invoice extends AbstractPersistable<Long> {
     public Invoice(CreateInvoice invoiceView, User creator, User client) {
         if (invoiceView.getType() != null) this.type = invoiceView.getType();
         if (invoiceView.getDeviceName() != null) this.deviceName = invoiceView.getDeviceName();
-        if (invoiceView.getSerialNumber() != null && invoiceView.getSerialNumber().isBlank()) {
+        if (invoiceView.getSerialNumber() != null && !invoiceView.getSerialNumber().isBlank()) {
             this.serialNumber = invoiceView.getSerialNumber();
         } else {
             this.serialNumber = "-";

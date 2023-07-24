@@ -22,6 +22,7 @@ import java.util.UUID;
 public class LogFilter implements Specification<Log> {
     private Long shopId;
     private UUID userId;
+    private Long ticketId;
     private LocalDate from;
     private LocalDate to;
     private LogType type;
@@ -33,6 +34,8 @@ public class LogFilter implements Specification<Log> {
             predicates.add(builder.equal(log.get("shopId"), shopId));
         if (userId != null)
             predicates.add(builder.equal(log.get("userId"), userId));
+        if (ticketId != null)
+            predicates.add(builder.equal(log.get("ticketId"), ticketId));
         if (type != null)
             predicates.add(builder.equal(log.get("logType"), type));
         if (to != null)

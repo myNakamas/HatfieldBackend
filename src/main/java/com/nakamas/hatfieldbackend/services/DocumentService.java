@@ -11,6 +11,7 @@ import com.nakamas.hatfieldbackend.repositories.InvoiceRepository;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import net.glxn.qrgen.javase.QRCode;
+import org.apache.commons.io.FileUtils;
 import org.apache.pdfbox.cos.COSName;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
@@ -28,6 +29,7 @@ import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
@@ -45,6 +47,9 @@ import java.util.List;
 @Slf4j
 @Service
 public class DocumentService implements ApplicationRunner {
+    @Value(value = "${fe-host:http://localhost:5173}")
+    private String frontendHost;
+
     private final ResourceLoader resourceLoader;
     private final InvoiceRepository invoiceRepository;
     @Value(value = "${brother_loc:#{null}}")
@@ -63,6 +68,11 @@ public class DocumentService implements ApplicationRunner {
         this.resourceLoader = resourceLoader;
         this.invoiceRepository = invoiceRepository;
         this.fontResource = resourceLoader.getResource("classpath:templates/fonts/arial.ttf");
+    }
+
+    @Scheduled(cron = "0 0 0 * * *", zone = "Europe/London")
+    public void removeUnneededPictures() throws IOException {
+        FileUtils.cleanDirectory(new File(outputPath));
     }
 
     public PdfAndImageDoc createPriceTag(String qrContent, InventoryItem item) {
@@ -129,6 +139,11 @@ public class DocumentService implements ApplicationRunner {
         contents.close();
     }
 
+    public PdfAndImageDoc createTicket(Ticket ticket) {
+        String qr = "%s/tickets?ticketId=%s&username=%s&password=%s".formatted(frontendHost, ticket.getId(), ticket.getClient().getUsername(), ticket.getClient().getFirstPassword());
+        return this.createTicket(qr, ticket);
+    }
+
     public PdfAndImageDoc createTicket(String qrContent, Ticket ticket) {
         InputStream input = getTemplate("/ticketTag.pdf");
 
@@ -143,14 +158,14 @@ public class DocumentService implements ApplicationRunner {
     }
 
     @Transactional
-    public PdfAndImageDoc createInvoice(String qrContent, Invoice invoice) {
+    public byte[] createInvoice(String qrContent, Invoice invoice) {
         InputStream input = getTemplate("/invoice.pdf");
 
         try (PDDocument document = PDDocument.load(input)) {
             fillInvoiceTemplate(qrContent, invoice, document);
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             document.save(baos);
-            return new PdfAndImageDoc(getImage(document, "invoice"), baos.toByteArray());
+            return baos.toByteArray();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

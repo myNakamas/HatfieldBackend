@@ -43,10 +43,16 @@ dependencies {
 	implementation 'com.google.code.findbugs:jsr305:3.0.2'
 	annotationProcessor 'org.projectlombok:lombok'
 
+// Email
+	implementation 'org.springframework.boot:spring-boot-starter-mail'
+
 //	Tests
 	testRuntimeOnly 'com.h2database:h2'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'org.springframework.security:spring-security-test'
+
+
+
 }
 
 tasks.named('test') {

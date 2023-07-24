@@ -120,8 +120,7 @@ public class InventoryItemService {
         item.setCount(item.getCount() - count);
     }
 
-    public PageView<InventoryItemView> getShopInventory(Long shopId, InventoryItemFilter filter, PageRequestView pageRequestView) {
-        filter.setShopId(shopId);
+    public PageView<InventoryItemView> getShopInventory(InventoryItemFilter filter, PageRequestView pageRequestView) {
         Page<InventoryItem> items = inventoryItemRepository.findAll(filter, pageRequestView.getPageRequest());
         Page<InventoryItemView> page = items.map(item -> new InventoryItemView(item, getCategory(item.getCategoryId())));
         return new PageView<>(page);
@@ -280,6 +279,12 @@ public class InventoryItemService {
         inventoryItemRepository.save(item);
     }
 
+    public void removeDefectiveItem(Long itemId, int count) {
+        InventoryItem item = getItem(itemId);
+        item.getRequiredItem().removeDefectiveCount(count);
+        inventoryItemRepository.save(item);
+    }
+
     public void replaceDefectiveItem(Long itemId, int count) {
         InventoryItem item = getItem(itemId);
         item.getRequiredItem().removeDefectiveCount(count);
@@ -292,6 +297,13 @@ public class InventoryItemService {
         InventoryItem item = getItem(itemId);
         item.removeCount(count);
         loggerService.itemActions(new Log(LogType.DAMAGED_PART), item, count);
+        inventoryItemRepository.save(item);
+    }
+
+    public void addQuantity(Long itemId, Integer count) {
+        InventoryItem item = getItem(itemId);
+        item.addCount(count);
+        loggerService.itemActions(new Log(LogType.UPDATE_ITEM_COUNT), item, count);
         inventoryItemRepository.save(item);
     }
 }

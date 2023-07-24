@@ -16,7 +16,6 @@ import java.util.UUID;
 @Entity
 @Builder
 @AllArgsConstructor
-@NoArgsConstructor
 public class Log extends AbstractPersistable<Long> {
     @Column(columnDefinition = "text")
     private String action;
@@ -29,6 +28,9 @@ public class Log extends AbstractPersistable<Long> {
     private Long itemId;
     private Long invoiceId;
 
+    public Log() {
+        this.timestamp = ZonedDateTime.now();
+    }
     public Log(LogType type) {
         this.timestamp = ZonedDateTime.now();
         this.logType = type;

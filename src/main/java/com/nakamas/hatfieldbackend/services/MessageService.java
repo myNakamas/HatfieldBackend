@@ -44,7 +44,8 @@ public class MessageService {
         User sender = userService.getUser(create.sender());
         Ticket ticket = ticketRepository.findById(create.ticketId()).orElseThrow(() -> new CustomException("Could not find ticket with such id"));
         ChatMessage message = new ChatMessage(create, sender);
-        if (create.receiver() != null && create.publicMessage()) message.setReceiver(userService.getUser(create.receiver()));
+        if (create.receiver() != null && create.publicMessage())
+            message.setReceiver(userService.getUser(create.receiver()));
         ChatMessage save = messageRepository.save(message);
         ChatMessageView response = new ChatMessageView(save);
 
@@ -108,8 +109,8 @@ public class MessageService {
      * @return A list containing the outgoing chat message view
      * @see ChatMessageView
      */
-    public List<ChatMessageView> getChatMessagesForClient(UUID userId) {
-        return messageRepository.findAllForClient(userId).stream().map(ChatMessageView::new).toList();
+    public List<ChatMessageView> getChatMessagesForClientByTicket(UUID userId, Long ticketId) {
+        return messageRepository.findAllForClient(userId, ticketId).stream().map(ChatMessageView::new).toList();
     }
 
     public void createImageMessage(MultipartFile file, Long ticketId, Boolean publicMessage, User sender) {
@@ -118,7 +119,7 @@ public class MessageService {
             Photo save = photoRepository.save(photo);
             Ticket ticket = ticketRepository.findById(ticketId).orElseThrow(() -> new CustomException("Could not find ticket with id"));
             UUID receiverId = Objects.equals(ticket.getClient().getId(), sender.getId()) ? ticket.getCreatedBy().getId() : ticket.getClient().getId();
-            CreateChatMessage chatMessage = new CreateChatMessage("image/" + save.getId(), ZonedDateTime.now(), sender.getId(), receiverId, ticket.getId(), true,publicMessage, random.nextLong());
+            CreateChatMessage chatMessage = new CreateChatMessage("image/" + save.getId(), ZonedDateTime.now(), sender.getId(), receiverId, ticket.getId(), true, publicMessage, random.nextLong());
             createMessage(chatMessage);
         } catch (IOException e) {
             throw new CustomException("Please try again later");

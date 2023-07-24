@@ -13,6 +13,7 @@ import com.nakamas.hatfieldbackend.models.views.incoming.filters.TicketFilter;
 import com.nakamas.hatfieldbackend.models.views.outgoing.PageView;
 import com.nakamas.hatfieldbackend.models.views.outgoing.ticket.TicketView;
 import com.nakamas.hatfieldbackend.repositories.*;
+import com.nakamas.hatfieldbackend.services.EmailService;
 import com.nakamas.hatfieldbackend.services.InventoryItemService;
 import com.nakamas.hatfieldbackend.services.TicketService;
 import com.nakamas.hatfieldbackend.services.UserService;
@@ -25,8 +26,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.jdbc.EmbeddedDatabaseConnection;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 
 import java.util.List;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doNothing;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.ANY, connection = EmbeddedDatabaseConnection.H2)
@@ -53,6 +58,8 @@ public class TicketTests {
     private TicketService ticketService;
     @Autowired
     private UsedPartRepository usedPartRepository;
+    @MockBean
+    private EmailService emailService;
 
     private Shop shop;
     private User user;
@@ -71,6 +78,7 @@ public class TicketTests {
         for (int i = 0; i < 3; i++)
             inventoryItemService.createInventoryItem(TestData.getTestInventoryItem(shop, category));
         items = inventoryItemRepository.findAll();
+        doNothing().when(emailService).sendMail(any(), any(), any(), any(), any());
     }
 
     @AfterEach
@@ -117,8 +125,8 @@ public class TicketTests {
         ticketService.createTicket(createTicket, user2);
         TicketFilter ticketFilter = new TicketFilter();
         ticketFilter.setCreatedById(user.getId());
-        PageView<TicketView> filtered = ticketService.findAll(ticketFilter, new PageRequestView(10,1));
-        PageView<TicketView> all = ticketService.findAll(new TicketFilter(), new PageRequestView(10,1));
+        PageView<TicketView> filtered = ticketService.findAll(ticketFilter, new PageRequestView(10, 1));
+        PageView<TicketView> all = ticketService.findAll(new TicketFilter(), new PageRequestView(10, 1));
 
         Assertions.assertEquals(2, filtered.getTotalCount());
         Assertions.assertEquals(3, all.getTotalCount());
@@ -145,7 +153,7 @@ public class TicketTests {
     @Test
     @Transactional
     void complete_ticket_repair_should_succeed() {
-        ticketService.completeRepair(user, ticket.getId(), "at the front");
+        ticketService.completeRepair(user, ticket.getId());
         Assertions.assertEquals(ticketService.getTicket(ticket.getId()).getStatus(), TicketStatus.FINISHED);
     }
 

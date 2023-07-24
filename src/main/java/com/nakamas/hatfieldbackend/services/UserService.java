@@ -97,6 +97,8 @@ public class UserService implements UserDetailsService, UserDetailsPasswordServi
             return createClient(userInfo);
         } else {
             user.setPassword(passwordEncoder.encode(user.getPassword()));
+            user.setEmailPermission(false);
+            user.setSmsPermission(false);
             return validateAndSave(user);
         }
     }
