@@ -4,6 +4,7 @@ import com.nakamas.hatfieldbackend.config.exception.CustomException;
 import com.nakamas.hatfieldbackend.models.entities.Log;
 import com.nakamas.hatfieldbackend.models.entities.Photo;
 import com.nakamas.hatfieldbackend.models.entities.User;
+import com.nakamas.hatfieldbackend.models.entities.shop.ShopSettings;
 import com.nakamas.hatfieldbackend.models.enums.LogType;
 import com.nakamas.hatfieldbackend.models.enums.UserRole;
 import com.nakamas.hatfieldbackend.models.views.incoming.CreateUser;
@@ -28,10 +29,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.List;
-import java.util.Locale;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 
 @Slf4j
 @Service
@@ -42,6 +40,7 @@ public class UserService implements UserDetailsService, UserDetailsPasswordServi
     private final PhotoRepository photoRepository;
     private final ShopRepository shopRepository;
     private final LoggerService loggerService;
+    private final EmailService emailService;
     public User getUser(UUID id) {
         return userRepository.findById(id).orElseThrow(() -> new CustomException("User does not exist"));
     }
@@ -202,5 +201,20 @@ public class UserService implements UserDetailsService, UserDetailsPasswordServi
 
     public String generatePass() {
         return UUID.randomUUID().toString().substring(0, 7);
+    }
+
+    //Your temporary password has been sent to your email and trough sms. If You haven't saved any of
+    //such information in your profile please visit the shop your profile was made at and request additional help
+    public void forgotPassword(String userInfo){
+        String newPass = generatePass();
+        User user = userRepository.findUser(userInfo).orElseThrow(() -> new CustomException("There is no user with such username, email or phone!"));
+        user.setPassword(newPass);
+        userRepository.save(user);
+        //send sms
+        if (user.getEmail() != null) {
+            ShopSettings shopSettings = user.getShop().getSettings();
+            emailService.sendMail(shopSettings.getGmail(), shopSettings.getGmailPassword(), user.getEmail(), "Requested password change",
+                    "Hello! \nThis is your new password - " + newPass + "\nIf you didnt request this please ignore this message.");
+        }
     }
 }
