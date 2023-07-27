@@ -1,9 +1,13 @@
 package com.nakamas.hatfieldbackend.services;
 
+import com.nakamas.hatfieldbackend.models.entities.User;
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
 @Slf4j
@@ -27,27 +31,30 @@ public class EmailService {
         message.setTo(mailAddress);
         message.setSubject(title);
         message.setText(mailMessage);
+    }
 
+    public void sendMail(User user, String msgBody, String title) {
+        MimeMessage mimeMessage = javaMailSender.createMimeMessage();
+        try {
+            MimeMessageHelper mimeMessageHelper = new MimeMessageHelper(mimeMessage, true);
+            mimeMessageHelper.setFrom(user.getShop().getSettings().getGmail());
+            mimeMessageHelper.setText(msgBody, true);
+            mimeMessageHelper.setSubject(title);
+            mimeMessageHelper.setTo(user.getEmail());
+            send(user.getShop().getSettings().getGmail(),user.getShop().getSettings().getGmailPassword(), mimeMessage);
+            log.info("Email '" + title + "' was sent to: " + user.getEmail());
+        } catch (MessagingException e) {
+            e.printStackTrace();
+            throw new RuntimeException("Could not send email.");
+        }
+    }
+
+    private void send(String shopMail, String shopPass, MimeMessage message) {
+        JavaMailSenderImpl jMailSender = (JavaMailSenderImpl)javaMailSender;
+
+        jMailSender.setUsername(shopMail);
+        jMailSender.setPassword(shopPass);
         jMailSender.send(message);
     }
-//    public void sendEmail(String msgBody, String subject, List<String> recipients) {
-//        MimeMessage mimeMessage = javaMailSender.createMimeMessage();
-//        try {
-//            MimeMessageHelper mimeMessageHelper = new MimeMessageHelper(mimeMessage, true);
-//            mimeMessageHelper.setFrom(sender);
-//            mimeMessageHelper.setText(msgBody, true);
-//            FileSystemResource file = new FileSystemResource(new File("C:/Users/Marti/IdeaProjects/DBHumanRes/src/main/resources/images/CompanyLogo.png"));
-//            mimeMessageHelper.addInline("company_logo", file);
-//            mimeMessageHelper.setSubject(subject);
-//            for (String recipient : recipients) {
-//                mimeMessageHelper.addTo(recipient);
-//            }
-//            javaMailSender.send(mimeMessage);
-//            log.info("Email '" + subject + "' was sent to: " + recipients);
-//        } catch (MessagingException e) {
-//            e.printStackTrace();
-//            throw new RuntimeException("Could not send email.");
-//        }
-//    }
 
 }

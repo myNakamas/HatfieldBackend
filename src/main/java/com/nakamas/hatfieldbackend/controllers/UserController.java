@@ -1,6 +1,7 @@
 package com.nakamas.hatfieldbackend.controllers;
 
 import com.nakamas.hatfieldbackend.models.entities.User;
+import com.nakamas.hatfieldbackend.models.enums.UserRole;
 import com.nakamas.hatfieldbackend.models.views.incoming.ChangePasswordView;
 import com.nakamas.hatfieldbackend.models.views.incoming.CreateUser;
 import com.nakamas.hatfieldbackend.models.views.incoming.PageRequestView;
@@ -80,7 +81,7 @@ public class UserController {
 
     @GetMapping("worker/all/clientsPages")
     public PageView<UserProfile> getAllClientsPages(@AuthenticationPrincipal User user, UserFilter filter, PageRequestView pageRequestView) {
-        filter.setShopId(user.getShop().getId());
+        if(!user.getRole().equals(UserRole.ADMIN)) filter.setShopId(user.getShop().getId());
         return new PageView<>(userService.getAllClients(filter, pageRequestView.getPageRequest()).map(UserProfile::new));
     }
 
@@ -108,6 +109,10 @@ public class UserController {
     @PutMapping("profile/edit/password")
     public void editPassword(@AuthenticationPrincipal User user, @RequestBody ChangePasswordView changePassword) {
         userService.changePassword(user, changePassword.oldPassword(), changePassword.newPassword());
+    }
+    @PutMapping("profile/reset/password")
+    public void clientUpdatePassword(@AuthenticationPrincipal User user, @RequestBody ChangePasswordView password) {
+        userService.clientUpdatePassword(user,password.newPassword());
     }
 
     @GetMapping(path = "profile/image", produces = {MediaType.IMAGE_JPEG_VALUE})

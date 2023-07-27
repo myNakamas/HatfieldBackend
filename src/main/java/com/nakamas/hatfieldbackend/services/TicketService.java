@@ -21,6 +21,7 @@ import com.nakamas.hatfieldbackend.models.views.outgoing.ticket.TicketView;
 import com.nakamas.hatfieldbackend.repositories.DeviceLocationRepository;
 import com.nakamas.hatfieldbackend.repositories.TicketRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
@@ -28,6 +29,7 @@ import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.UUID;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class TicketService {
@@ -38,7 +40,6 @@ public class TicketService {
     private final LoggerService loggerService;
     private final InvoicingService invoiceService;
     private final MessageService messageService;
-
     private final EmailService emailService;
 
     //region Main
@@ -121,7 +122,7 @@ public class TicketService {
         Ticket ticket = ticketRepository.getReferenceById(id);
         ticket.setStatus(TicketStatus.FINISHED);
         createMessageForTicket("Repairment actions have finished! Please come and pick " +
-                "up your device at a comfortable time.", user, ticket);
+                               "up your device at a comfortable time.", user, ticket);
         //send sms if options allow
         sendEmail(ticket.getClient(), "Update on Your Device Repair",
                 "Dear client, \n\nYour device repair has been completed. Please come pick up your device. \n\n Best regards, \n" + user.getShop().getShopName());
@@ -157,7 +158,7 @@ public class TicketService {
         invoice.setTicketInfo(ticket);
         Invoice result = invoiceService.create(invoice, user);
         createMessageForTicket("The device has been collected. Information can be found" +
-                " in your 'invoices' tab. If that action hasn't been done by you please contact the store.", user, ticket);
+                               " in your 'invoices' tab. If that action hasn't been done by you please contact the store.", user, ticket);
         //sms
         sendEmail(ticket.getClient(), "Update on Your Device",
                 "Dear client, \n\nYour device has been collected. Enjoy! \n\n Best regards, \n" + user.getShop().getShopName());
@@ -183,8 +184,9 @@ public class TicketService {
     }
 
     private void sendEmail(User client, String title, String mailMessage) {
-        if (client != null && client.getEmailPermission() && client.getEmail() != null) {
-            ShopSettings shopSettings = client.getShop().getSettings();
+        if (client == null) return;
+        ShopSettings shopSettings = client.getShop().getSettings();
+        if (client.getEmailPermission() && client.getEmail() != null && client.getShop().getSettings().isEmailEnabled()) {
             emailService.sendMail(shopSettings.getGmail(), shopSettings.getGmailPassword(), client.getEmail(), title, mailMessage);
         }
     }

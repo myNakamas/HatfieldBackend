@@ -9,13 +9,16 @@ import com.nakamas.hatfieldbackend.models.enums.LogType;
 import com.nakamas.hatfieldbackend.models.enums.UserRole;
 import com.nakamas.hatfieldbackend.models.views.incoming.CreateUser;
 import com.nakamas.hatfieldbackend.models.views.incoming.filters.UserFilter;
+import com.nakamas.hatfieldbackend.models.views.outgoing.ResponseMessage;
 import com.nakamas.hatfieldbackend.repositories.PhotoRepository;
 import com.nakamas.hatfieldbackend.repositories.ShopRepository;
 import com.nakamas.hatfieldbackend.repositories.UserRepository;
+import com.nakamas.hatfieldbackend.util.JwtUtil;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -25,6 +28,8 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import org.thymeleaf.TemplateEngine;
+import org.thymeleaf.context.Context;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -41,6 +46,11 @@ public class UserService implements UserDetailsService, UserDetailsPasswordServi
     private final ShopRepository shopRepository;
     private final LoggerService loggerService;
     private final EmailService emailService;
+    private final TemplateEngine templateEngine;
+    @Value(value = "${fe-host:http://localhost:5173}")
+    private String frontendHost;
+    private final JwtUtil jwtUtil;
+
     public User getUser(UUID id) {
         return userRepository.findById(id).orElseThrow(() -> new CustomException("User does not exist"));
     }
@@ -56,6 +66,10 @@ public class UserService implements UserDetailsService, UserDetailsPasswordServi
         user.setPassword(newPassword);
         validateAndSave(user);
         return user;
+    }
+    public void clientUpdatePassword(User user, String newPassword) {
+        user.setPassword(passwordEncoder.encode(newPassword));
+        validateAndSave(user);
     }
 
     public void changePassword(User user, String oldPassword, String newPassword) {
@@ -118,7 +132,7 @@ public class UserService implements UserDetailsService, UserDetailsPasswordServi
     public User updateUser(CreateUser userInfo) {
         User user = getUser(userInfo.userId());
         user.updateAsAdmin(userInfo, shopRepository.findById(userInfo.shopId()).orElse(user.getShop()));
-        if(!userInfo.password().isBlank()) user.setPassword(passwordEncoder.encode(userInfo.password()));
+        if (!userInfo.password().isBlank()) user.setPassword(passwordEncoder.encode(userInfo.password()));
         return validateAndSave(user);
     }
 
@@ -175,10 +189,10 @@ public class UserService implements UserDetailsService, UserDetailsPasswordServi
     }
 
     private User validateAndSave(User user) {
-        if(user.getShop()==null) throw new CustomException("User must be attached to a shop!");
+        if (user.getShop() == null) throw new CustomException("User must be attached to a shop!");
         List<User> existingUsers = userRepository.uniqueUserExists(user.getUsername(), user.getEmail());
         if (user.isNew() && existingUsers.size() > 0 ||
-                existingUsers.stream().anyMatch(profile -> !Objects.equals(profile.getId(), user.getId())))
+            existingUsers.stream().anyMatch(profile -> !Objects.equals(profile.getId(), user.getId())))
             throw new CustomException("Username or email already taken!");
         if (user.isNew()) {
             if (Objects.equals(user.getRole(), UserRole.CLIENT)) {
@@ -186,7 +200,7 @@ public class UserService implements UserDetailsService, UserDetailsPasswordServi
             } else {
                 loggerService.userActions(new Log(LogType.CREATED_WORKER), user.getFullName());
             }
-        }else{
+        } else {
             loggerService.userActions(new Log(LogType.UPDATED_USER), user.getFullName());
         }
         return userRepository.save(user);
@@ -203,18 +217,26 @@ public class UserService implements UserDetailsService, UserDetailsPasswordServi
         return UUID.randomUUID().toString().substring(0, 7);
     }
 
-    //Your temporary password has been sent to your email and trough sms. If You haven't saved any of
-    //such information in your profile please visit the shop your profile was made at and request additional help
-    public void forgotPassword(String userInfo){
-        String newPass = generatePass();
+    public ResponseMessage forgotPassword(String userInfo) {
         User user = userRepository.findUser(userInfo).orElseThrow(() -> new CustomException("There is no user with such username, email or phone!"));
-        user.setPassword(newPass);
-        userRepository.save(user);
-        //send sms
-        if (user.getEmail() != null) {
-            ShopSettings shopSettings = user.getShop().getSettings();
-            emailService.sendMail(shopSettings.getGmail(), shopSettings.getGmailPassword(), user.getEmail(), "Requested password change",
-                    "Hello! \nThis is your new password - " + newPass + "\nIf you didnt request this please ignore this message.");
+        ShopSettings shopSettings = user.getShop().getSettings();
+        if (user.isEmailEnabled() && shopSettings.isEmailEnabled()) {
+            String messageBody = templateEngine.process("email/forgotPassword", getUserForgotPasswordContext(user));
+            emailService.sendMail(user, messageBody, "Forgot password");
+            return new ResponseMessage("email");
         }
+        if (user.isSMSEnabled() && shopSettings.isSmsEnabled()) {
+            return new ResponseMessage("phone");
+        }
+        throw new CustomException("The user or shop do not allow email and sms transfer. Please contact us on " + user.getShop().getEmail() + " or " + user.getShop().getEmail());
+    }
+
+    private Context getUserForgotPasswordContext(User user) {
+        Context context = new Context();
+        context.setVariables(Map.of("clientName", user.getFullName(),
+                "shopName", user.getShop().getShopName(),
+                "resetLink", "%s/login/update-password?token=%s".formatted(frontendHost, jwtUtil.encode(user))
+        ));
+        return context;
     }
 }

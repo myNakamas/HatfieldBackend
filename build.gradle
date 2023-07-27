@@ -45,7 +45,7 @@ dependencies {
 
 // Email
 	implementation 'org.springframework.boot:spring-boot-starter-mail'
-
+	implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
 //	Tests
 	testRuntimeOnly 'com.h2database:h2'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
