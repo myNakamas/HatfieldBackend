@@ -306,4 +306,10 @@ public class InventoryItemService {
         loggerService.itemActions(new Log(LogType.UPDATE_ITEM_COUNT), item, count);
         inventoryItemRepository.save(item);
     }
+
+    public void renameModel(Long id, String value) {
+        Model model = modelRepository.findById(id).orElseThrow(() -> new CustomException("Model with that id does not exist"));
+        model.setModel(value);
+        modelRepository.save(model);
+    }
 }
