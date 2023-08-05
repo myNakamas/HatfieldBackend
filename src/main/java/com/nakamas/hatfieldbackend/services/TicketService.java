@@ -4,7 +4,6 @@ import com.nakamas.hatfieldbackend.config.exception.CustomException;
 import com.nakamas.hatfieldbackend.models.entities.Log;
 import com.nakamas.hatfieldbackend.models.entities.User;
 import com.nakamas.hatfieldbackend.models.entities.shop.DeviceLocation;
-import com.nakamas.hatfieldbackend.models.entities.shop.ShopSettings;
 import com.nakamas.hatfieldbackend.models.entities.shop.UsedPart;
 import com.nakamas.hatfieldbackend.models.entities.ticket.Invoice;
 import com.nakamas.hatfieldbackend.models.entities.ticket.Ticket;
@@ -24,8 +23,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
+import org.thymeleaf.TemplateEngine;
+import org.thymeleaf.context.Context;
 
 import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.UUID;
 
@@ -41,6 +43,10 @@ public class TicketService {
     private final InvoicingService invoiceService;
     private final MessageService messageService;
     private final EmailService emailService;
+    private final TemplateEngine templateEngine;
+
+    private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm");
+
 
     //region Main
     public Ticket createTicket(CreateTicket create, User loggedUser) {
@@ -103,8 +109,9 @@ public class TicketService {
         ticket.setStatus(TicketStatus.STARTED);
         createMessageForTicket("Hello! The repair of your device has been initiated.", user, ticket);
         //send sms if options allow
-        sendEmail(ticket.getClient(), "Update on Your Device Repair",
-                "Dear client, \n\nYour device repair has begun. Updates coming soon. Please do check your chat in our system. \n\n Best regards, \n" + user.getShop().getShopName());
+        String messageBody = templateEngine.process("email/ticketStarted", getTicketEmailContext(ticket));
+        emailService.sendMail(ticket.getClient(), messageBody, "Your Device Repair has been started!");
+
         loggerService.ticketActions(new Log(LogType.STARTED_TICKET), ticket);
         ticketRepository.save(ticket);
     }
@@ -124,8 +131,8 @@ public class TicketService {
         createMessageForTicket("Repairment actions have finished! Please come and pick " +
                                "up your device at a comfortable time.", user, ticket);
         //send sms if options allow
-        sendEmail(ticket.getClient(), "Update on Your Device Repair",
-                "Dear client, \n\nYour device repair has been completed. Please come pick up your device. \n\n Best regards, \n" + user.getShop().getShopName());
+        String messageBody = templateEngine.process("email/ticketCompleted", getTicketEmailContext(ticket));
+        emailService.sendMail(ticket.getClient(), messageBody, "Your device repair has been completed!");
         loggerService.ticketActions(new Log(LogType.FINISHED_TICKET), ticket);
         ticketRepository.save(ticket);
     }
@@ -135,9 +142,9 @@ public class TicketService {
         ticket.setStatus(TicketStatus.ON_HOLD);
         createMessageForTicket("Repairment actions are on hold!", user, ticket);
         //send sms if options allow
-        sendEmail(ticket.getClient(), "Update on Your Device Repair",
-                "Dear client, \n\nYour device repair has been frozen. Please contact us to resolve the issue. \n\n Best regards, \n" + user.getShop().getShopName());
-        loggerService.ticketActions(new Log(LogType.FINISHED_TICKET), ticket);
+        String messageBody = templateEngine.process("email/ticketFrozen", getTicketEmailContext(ticket));
+        emailService.sendMail(ticket.getClient(), messageBody, "Your device repair has been frozen!");
+      loggerService.ticketActions(new Log(LogType.FINISHED_TICKET), ticket);
         ticketRepository.save(ticket);
     }
 
@@ -160,8 +167,8 @@ public class TicketService {
         createMessageForTicket("The device has been collected. Information can be found" +
                                " in your 'invoices' tab. If that action hasn't been done by you please contact the store.", user, ticket);
         //sms
-        sendEmail(ticket.getClient(), "Update on Your Device",
-                "Dear client, \n\nYour device has been collected. Enjoy! \n\n Best regards, \n" + user.getShop().getShopName());
+        String messageBody = templateEngine.process("email/ticketCollected", getTicketEmailContext(ticket));
+        emailService.sendMail(ticket.getClient(), messageBody, "Thank you for choosing us!");
         ticketRepository.save(ticket);
         loggerService.ticketActions(new Log(LogType.COLLECTED_TICKET), ticket);
         return invoiceService.getAsBlob(result);
@@ -183,11 +190,15 @@ public class TicketService {
 
     }
 
-    private void sendEmail(User client, String title, String mailMessage) {
-        if (client == null) return;
-        ShopSettings shopSettings = client.getShop().getSettings();
-        if (client.getEmailPermission() && client.getEmail() != null && client.getShop().getSettings().isEmailEnabled()) {
-            emailService.sendMail(shopSettings.getGmail(), shopSettings.getGmailPassword(), client.getEmail(), title, mailMessage);
+    private Context getTicketEmailContext(Ticket ticket){
+        Context context = new Context();
+        context.setVariable("ticket", ticket);
+        context.setVariable("client", ticket.getClient());
+        if(ticket.getInvoices().size()>0) {
+            Invoice invoice = ticket.getInvoices().get(0);
+            context.setVariable("invoice", invoice);
         }
+        context.setVariable("deadline", ticket.getDeadline().format(formatter));
+        return context;
     }
 }

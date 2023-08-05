@@ -78,7 +78,7 @@ public class TicketTests {
         for (int i = 0; i < 3; i++)
             inventoryItemService.createInventoryItem(TestData.getTestInventoryItem(shop, category));
         items = inventoryItemRepository.findAll();
-        doNothing().when(emailService).sendMail(any(), any(), any(), any(), any());
+        doNothing().when(emailService).sendMail(any(), any(), any());
     }
 
     @AfterEach

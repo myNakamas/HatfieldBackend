@@ -4,7 +4,6 @@ import com.nakamas.hatfieldbackend.models.entities.User;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -20,19 +19,6 @@ public class EmailService {
         this.javaMailSender = javaMailSender;
     }
 
-    public void sendMail(String shopMail, String shopPass, String mailAddress, String title, String mailMessage){
-
-        JavaMailSenderImpl jMailSender = (JavaMailSenderImpl)javaMailSender;
-
-        SimpleMailMessage message = new SimpleMailMessage();
-        message.setFrom(shopMail);
-        jMailSender.setUsername(shopMail);
-        jMailSender.setPassword(shopPass);
-        message.setTo(mailAddress);
-        message.setSubject(title);
-        message.setText(mailMessage);
-    }
-
     public void sendMail(User user, String msgBody, String title) {
         MimeMessage mimeMessage = javaMailSender.createMimeMessage();
         try {
@@ -44,8 +30,8 @@ public class EmailService {
             send(user.getShop().getSettings().getGmail(),user.getShop().getSettings().getGmailPassword(), mimeMessage);
             log.info("Email '" + title + "' was sent to: " + user.getEmail());
         } catch (MessagingException e) {
+            log.error("Email could not be sent to '%s'. Printing stack trace:".formatted(user.getEmail()));
             e.printStackTrace();
-            throw new RuntimeException("Could not send email.");
         }
     }
 
