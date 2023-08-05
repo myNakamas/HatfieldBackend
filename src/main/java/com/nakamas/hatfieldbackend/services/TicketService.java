@@ -16,6 +16,7 @@ import com.nakamas.hatfieldbackend.models.views.incoming.CreateTicket;
 import com.nakamas.hatfieldbackend.models.views.incoming.PageRequestView;
 import com.nakamas.hatfieldbackend.models.views.incoming.filters.TicketFilter;
 import com.nakamas.hatfieldbackend.models.views.outgoing.PageView;
+import com.nakamas.hatfieldbackend.models.views.outgoing.PdfAndImageDoc;
 import com.nakamas.hatfieldbackend.models.views.outgoing.ticket.TicketView;
 import com.nakamas.hatfieldbackend.repositories.DeviceLocationRepository;
 import com.nakamas.hatfieldbackend.repositories.TicketRepository;
@@ -48,12 +49,18 @@ public class TicketService {
     private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm");
 
 
+    private final DocumentService documentService;
+
     //region Main
     public Ticket createTicket(CreateTicket create, User loggedUser) {
         Ticket ticket = new Ticket(create, loggedUser);
         setOptionalProperties(create, ticket);
         if (create.clientId() != null) ticket.setClient(userService.getUser(create.clientId()));
         Ticket save = ticketRepository.save(ticket);
+        createMessageForTicket("Hello! Your ticket main issue is : " + ticket.getDeviceProblemExplanation() + " " + ticket.getCustomerRequest(), loggedUser, ticket);
+        printTicket(save.getId());
+        printTicketTag(save.getId());
+        if(save.getAccessories().contains("With Charger,")){printTicketTag(save.getId());}
         loggerService.ticketActions(new Log(LogType.CREATED_TICKET), save);
         return save;
     }
@@ -201,4 +208,16 @@ public class TicketService {
         context.setVariable("deadline", ticket.getDeadline().format(formatter));
         return context;
     }
+    private void printTicket(Long ticketId){
+        Ticket ticket = getTicket(ticketId);
+        PdfAndImageDoc doc = documentService.createTicket(ticket);
+        documentService.executePrint(doc.image());
+    }
+    private void printTicketTag(Long ticketId){
+        Ticket ticket = getTicket(ticketId);
+        PdfAndImageDoc doc = documentService.createRepairTag("%s/tickets?ticketId=%s".formatted(documentService.getFrontendHost(), ticket.getId()), ticket);
+        documentService.executePrint(doc.image());
+    }
+
+
 }

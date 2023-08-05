@@ -2,6 +2,7 @@ package com.nakamas.hatfieldbackend.config;
 
 import com.nakamas.hatfieldbackend.models.entities.shop.Shop;
 import com.nakamas.hatfieldbackend.models.entities.shop.ShopSettings;
+import com.nakamas.hatfieldbackend.models.entities.ticket.Brand;
 import com.nakamas.hatfieldbackend.models.enums.UserRole;
 import com.nakamas.hatfieldbackend.models.views.incoming.CreateUser;
 import com.nakamas.hatfieldbackend.repositories.ShopRepository;
@@ -29,11 +30,19 @@ public class InitialConfig implements ApplicationRunner {
         return new ShopSettings("#eec550", "#203e5f", false, "gmail", "password", true, "192.168.0.51", "QL-580N", false,"smsApiKey", null, null);
     }
 
+    private static void brands(){
+        new Brand("Apple"); new Brand("Samsung"); new Brand("HP"); new Brand("Dell"); new Brand("Lenovo");
+        new Brand("Xiaomi"); new Brand("Nokia"); new Brand("HTC"); new Brand("OnePlus"); new Brand("Motorola");
+        new Brand("Sony"); new Brand("DJI"); new Brand("Huawei"); new Brand("Honor"); new Brand("Razer");
+        new Brand("Vivo"); new Brand("Oppo"); new Brand("Redmi");
+    }
+
     public void run(ApplicationArguments args) {
         if (userRepository.count() == 0) {
             Shop initialShop = new Shop("Hatfield", "London, Street 023", "fakePhoneNum", "gakeEmail@email.com", defaultShopSettings());
             Shop save = shopRepository.save(initialShop);
             userService.createUser(defaultUser(save.getId()));
+            brands();
         }
     }
 }

@@ -228,7 +228,7 @@ public class UserService implements UserDetailsService, UserDetailsPasswordServi
         if (user.isSMSEnabled() && shopSettings.isSmsEnabled()) {
             return new ResponseMessage("phone");
         }
-        throw new CustomException("The user or shop do not allow email and sms transfer. Please contact us on " + user.getShop().getEmail() + " or " + user.getShop().getEmail());
+        throw new CustomException("The user or shop do not allow email and sms communication. Please contact us on " + user.getShop().getEmail() + " or " + user.getShop().getPhone() + " or come visit us in person at " + user.getShop().getAddress());
     }
 
     private Context getUserForgotPasswordContext(User user) {
