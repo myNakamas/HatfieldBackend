@@ -43,6 +43,7 @@ public class TicketService {
     private final InvoicingService invoiceService;
     private final MessageService messageService;
     private final EmailService emailService;
+    private final SmsService smsService;
     private final TemplateEngine templateEngine;
 
     private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm");
@@ -102,15 +103,12 @@ public class TicketService {
     //endregion
 
     //region Ticket buttons
-
     public void startRepair(User user, Long id) {
         Ticket ticket = ticketRepository.getReferenceById(id);
         ticket.setDeviceLocation(deviceLocationRepository.findByName("at lab"));
         ticket.setStatus(TicketStatus.STARTED);
         createMessageForTicket("Hello! The repair of your device has been initiated.", user, ticket);
-        //send sms if options allow
-        String messageBody = templateEngine.process("email/ticketStarted", getTicketEmailContext(ticket));
-        emailService.sendMail(ticket.getClient(), messageBody, "Your Device Repair has been started!");
+        sendEmailOrSms(ticket.getClient(), ticket, "email/ticketStarted", "ticketStarted.txt", "Your Device Repair has been started!");
 
         loggerService.ticketActions(new Log(LogType.STARTED_TICKET), ticket);
         ticketRepository.save(ticket);
@@ -130,9 +128,8 @@ public class TicketService {
         ticket.setStatus(TicketStatus.FINISHED);
         createMessageForTicket("Repairment actions have finished! Please come and pick " +
                                "up your device at a comfortable time.", user, ticket);
-        //send sms if options allow
-        String messageBody = templateEngine.process("email/ticketCompleted", getTicketEmailContext(ticket));
-        emailService.sendMail(ticket.getClient(), messageBody, "Your device repair has been completed!");
+        sendEmailOrSms(ticket.getClient(), ticket, "email/ticketCompleted", "ticketCompleted.txt", "Your Device Repair is done!");
+
         loggerService.ticketActions(new Log(LogType.FINISHED_TICKET), ticket);
         ticketRepository.save(ticket);
     }
@@ -142,9 +139,9 @@ public class TicketService {
         ticket.setStatus(TicketStatus.ON_HOLD);
         createMessageForTicket("Repairment actions are on hold!", user, ticket);
         //send sms if options allow
-        String messageBody = templateEngine.process("email/ticketFrozen", getTicketEmailContext(ticket));
+        String messageBody = templateEngine.process("email/ticketFrozen", getTicketContext(ticket));
         emailService.sendMail(ticket.getClient(), messageBody, "Your device repair has been frozen!");
-      loggerService.ticketActions(new Log(LogType.FINISHED_TICKET), ticket);
+        loggerService.ticketActions(new Log(LogType.FINISHED_TICKET), ticket);
         ticketRepository.save(ticket);
     }
 
@@ -167,7 +164,7 @@ public class TicketService {
         createMessageForTicket("The device has been collected. Information can be found" +
                                " in your 'invoices' tab. If that action hasn't been done by you please contact the store.", user, ticket);
         //sms
-        String messageBody = templateEngine.process("email/ticketCollected", getTicketEmailContext(ticket));
+        String messageBody = templateEngine.process("email/ticketCollected", getTicketContext(ticket));
         emailService.sendMail(ticket.getClient(), messageBody, "Thank you for choosing us!");
         ticketRepository.save(ticket);
         loggerService.ticketActions(new Log(LogType.COLLECTED_TICKET), ticket);
@@ -184,17 +181,25 @@ public class TicketService {
     public Ticket getTicket(Long id) {
         return ticketRepository.findById(id).orElseThrow(() -> new CustomException("Cannot find Ticket with selected ID"));
     }
+
     //endregion
 
-    private void sendSMS() {
-
+    private void sendEmailOrSms(User client, Ticket ticket, String emailTemplate, String smsTemplate, String title) {
+        if (emailService.isEmailEnabled(client)) {
+            String messageBody = templateEngine.process(emailTemplate, getTicketContext(ticket));
+            emailService.sendMail(client, messageBody, title);
+        } else {
+            boolean result = smsService.sendSms(client, smsTemplate, getTicketContext(ticket));
+            if (!result)
+                throw new CustomException("The client could not be reached through email or sms. Please check their or the shop's settings.");
+        }
     }
 
-    private Context getTicketEmailContext(Ticket ticket){
+    public Context getTicketContext(Ticket ticket) {
         Context context = new Context();
         context.setVariable("ticket", ticket);
         context.setVariable("client", ticket.getClient());
-        if(ticket.getInvoices().size()>0) {
+        if (ticket.getInvoices().size() > 0) {
             Invoice invoice = ticket.getInvoices().get(0);
             context.setVariable("invoice", invoice);
         }

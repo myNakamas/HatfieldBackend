@@ -24,7 +24,7 @@ public final class TestData {
     private static final Random random = new Random();
 
     public static ShopSettings getTestShopSettings() {
-        return new ShopSettings("#eec550", "#1a2634", "gmail", "password",false,"printerIp","QL-500N", "smsApiKey", null, null);
+        return new ShopSettings("#eec550", "#1a2634", false,"gmail", "password",false,"printerIp","QL-500N", false,"smsApiKey", null, null);
     }
 
     public static Shop getTestShop() {

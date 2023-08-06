@@ -49,4 +49,8 @@ public class JwtUtil {
         // Sign and encode the JWT to a JSON string representation
         return JWT.getEncoder().encode(jwt, signer);
     }
+    public static String prepareBearerToken (String token) {
+        if( token.startsWith("Bearer ")) return token;
+        return "Bearer "+token;
+    }
 }

@@ -43,4 +43,7 @@ public class EmailService {
         jMailSender.send(message);
     }
 
+    public boolean isEmailEnabled(User user) {
+        return user.getEmailPermission() && user.getShop().getSettings().isEmailEnabled();
+    }
 }

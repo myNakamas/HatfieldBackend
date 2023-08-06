@@ -17,6 +17,8 @@ import com.nakamas.hatfieldbackend.services.EmailService;
 import com.nakamas.hatfieldbackend.services.InventoryItemService;
 import com.nakamas.hatfieldbackend.services.TicketService;
 import com.nakamas.hatfieldbackend.services.UserService;
+import com.nakamas.hatfieldbackend.services.communication.sms.api.SmsClient;
+import com.nakamas.hatfieldbackend.services.communication.sms.models.SmsApiResponse;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
@@ -28,10 +30,12 @@ import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabas
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.when;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.ANY, connection = EmbeddedDatabaseConnection.H2)
@@ -60,6 +64,8 @@ public class TicketTests {
     private UsedPartRepository usedPartRepository;
     @MockBean
     private EmailService emailService;
+    @MockBean
+    private SmsClient smsClient;
 
     private Shop shop;
     private User user;
@@ -79,6 +85,7 @@ public class TicketTests {
             inventoryItemService.createInventoryItem(TestData.getTestInventoryItem(shop, category));
         items = inventoryItemRepository.findAll();
         doNothing().when(emailService).sendMail(any(), any(), any());
+        when(smsClient.sendMessage(any(),any())).thenReturn(new SmsApiResponse("1234","accepted", LocalDateTime.now()));
     }
 
     @AfterEach

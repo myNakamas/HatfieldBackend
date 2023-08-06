@@ -1,0 +1,4 @@
+We want to inform you that a repair has been initiated for your device '[[${ticket.deviceModelString}]] [[${ticket.deviceBrandString}]]'.
+Thank you for choosing our repair services!
+
+[[${ticket.shop.shopName}]]
