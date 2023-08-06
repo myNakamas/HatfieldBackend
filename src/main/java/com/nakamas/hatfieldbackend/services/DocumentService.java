@@ -9,6 +9,7 @@ import com.nakamas.hatfieldbackend.models.entities.ticket.Ticket;
 import com.nakamas.hatfieldbackend.models.views.outgoing.PdfAndImageDoc;
 import com.nakamas.hatfieldbackend.repositories.InvoiceRepository;
 import jakarta.transaction.Transactional;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import net.glxn.qrgen.javase.QRCode;
 import org.apache.commons.io.FileUtils;
@@ -46,6 +47,7 @@ import java.util.List;
 
 @Slf4j
 @Service
+@Getter
 public class DocumentService implements ApplicationRunner {
     @Value(value = "${fe-host:http://localhost:5173}")
     private String frontendHost;
