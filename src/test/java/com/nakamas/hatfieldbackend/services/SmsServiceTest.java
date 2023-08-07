@@ -40,6 +40,7 @@ class SmsServiceTest {
     @BeforeEach
     void setUp() {
         Shop testShop = TestData.getTestShop();
+        testShop.getSettings().setSmsEnabled(true);
         Shop shop = shopRepository.save(testShop);
         user = userService.createUser(TestData.getTestUser("usernameTest", "username@test.com", UserRole.ENGINEER, shop));
         ticket = ticketService.createTicket(TestData.getTestTicket(user), user);
@@ -47,7 +48,8 @@ class SmsServiceTest {
     }
     @Test
     void sendSms() {
-        smsService.sendSms(user,"templates/sms/ticketStarted.txt", ticketService.getTicketContext(ticket));
+        user.setSmsPermission(true);
+        smsService.sendSms(user,"ticketCompleted.txt", ticketService.getTicketContext(ticket));
         verify(smsClient,times(1)).sendMessage(any(),any());
     }
 }

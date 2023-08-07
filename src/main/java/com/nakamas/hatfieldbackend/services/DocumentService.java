@@ -31,6 +31,7 @@ import org.springframework.boot.ApplicationRunner;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
@@ -302,7 +303,12 @@ public class DocumentService implements ApplicationRunner {
     }
 
     public void executePrint(File image) {
-        ShopSettings settings = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getShop().getSettings();
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null) {
+            log.error("No authenticated user found, skipping print");
+            return;
+        }
+        ShopSettings settings = ((User) authentication.getPrincipal()).getShop().getSettings();
         if (!settings.isPrintEnabled()) {
             log.info("Shop settings do not allow printing. Cannot print images.");
             return;

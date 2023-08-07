@@ -59,9 +59,11 @@ public class TicketService {
         if (create.clientId() != null) ticket.setClient(userService.getUser(create.clientId()));
         Ticket save = ticketRepository.save(ticket);
         createMessageForTicket("Hello! Your ticket main issue is : " + ticket.getDeviceProblemExplanation() + " " + ticket.getCustomerRequest(), loggedUser, ticket);
-        printTicket(save.getId());
-        printTicketTag(save.getId());
-        if(save.getAccessories().contains("With Charger,")){printTicketTag(save.getId());}
+        printTicket(save);
+        printTicketTag(save);
+        if (save.getAccessories().contains("With Charger,")) {
+            printTicketTag(save);
+        }
         loggerService.ticketActions(new Log(LogType.CREATED_TICKET), save);
         return save;
     }
@@ -115,7 +117,7 @@ public class TicketService {
         ticket.setDeviceLocation(deviceLocationRepository.findByName("at lab"));
         ticket.setStatus(TicketStatus.STARTED);
         createMessageForTicket("Hello! The repair of your device has been initiated.", user, ticket);
-        sendEmailOrSms(ticket.getClient(), ticket, "email/ticketStarted", "ticketStarted.txt", "Your Device Repair has been started!");
+        sendEmailOrSms(ticket.getClient(), ticket, "email/ticketStarted", "", "Your Device Repair has been started!");
 
         loggerService.ticketActions(new Log(LogType.STARTED_TICKET), ticket);
         ticketRepository.save(ticket);
@@ -145,9 +147,7 @@ public class TicketService {
         Ticket ticket = ticketRepository.getReferenceById(id);
         ticket.setStatus(TicketStatus.ON_HOLD);
         createMessageForTicket("Repairment actions are on hold!", user, ticket);
-        //send sms if options allow
-        String messageBody = templateEngine.process("email/ticketFrozen", getTicketContext(ticket));
-        emailService.sendMail(ticket.getClient(), messageBody, "Your device repair has been frozen!");
+        sendEmailOrSms(ticket.getClient(), ticket, "email/ticketFrozen", "", "Your device repair has been frozen!");
         loggerService.ticketActions(new Log(LogType.FINISHED_TICKET), ticket);
         ticketRepository.save(ticket);
     }
@@ -156,8 +156,6 @@ public class TicketService {
         Ticket ticket = ticketRepository.getReferenceById(id);
         ticket.setStatus(TicketStatus.CANCELLED_BY_CLIENT);
         createMessageForTicket("Repairment actions are canceled!", user, ticket);
-        //send sms if options allow
-        //email not needed - from client to client? xD
         loggerService.ticketActions(new Log(LogType.UPDATED_TICKET), ticket);
         ticketRepository.save(ticket);
     }
@@ -170,9 +168,7 @@ public class TicketService {
         Invoice result = invoiceService.create(invoice, user);
         createMessageForTicket("The device has been collected. Information can be found" +
                                " in your 'invoices' tab. If that action hasn't been done by you please contact the store.", user, ticket);
-        //sms
-        String messageBody = templateEngine.process("email/ticketCollected", getTicketContext(ticket));
-        emailService.sendMail(ticket.getClient(), messageBody, "Thank you for choosing us!");
+        sendEmailOrSms(ticket.getClient(), ticket, "email/ticketCollected", "", "Thank you for choosing us!");
         ticketRepository.save(ticket);
         loggerService.ticketActions(new Log(LogType.COLLECTED_TICKET), ticket);
         return invoiceService.getAsBlob(result);
@@ -190,12 +186,11 @@ public class TicketService {
     }
 
     //endregion
-
     private void sendEmailOrSms(User client, Ticket ticket, String emailTemplate, String smsTemplate, String title) {
         if (emailService.isEmailEnabled(client)) {
             String messageBody = templateEngine.process(emailTemplate, getTicketContext(ticket));
             emailService.sendMail(client, messageBody, title);
-        } else {
+        } else if (!smsTemplate.isBlank()) {
             boolean result = smsService.sendSms(client, smsTemplate, getTicketContext(ticket));
             if (!result)
                 throw new CustomException("The client could not be reached through email or sms. Please check their or the shop's settings.");
@@ -213,15 +208,20 @@ public class TicketService {
         context.setVariable("deadline", ticket.getDeadline().format(formatter));
         return context;
     }
-    private void printTicket(Long ticketId){
-        Ticket ticket = getTicket(ticketId);
-        PdfAndImageDoc doc = documentService.createTicket(ticket);
-        documentService.executePrint(doc.image());
+
+    public void printTicket(Ticket ticket) {
+        if (ticket.getShop().getSettings().isPrintEnabled()) {
+            PdfAndImageDoc doc = documentService.createTicket(ticket);
+            documentService.executePrint(doc.image());
+        }
+
     }
-    private void printTicketTag(Long ticketId){
-        Ticket ticket = getTicket(ticketId);
-        PdfAndImageDoc doc = documentService.createRepairTag("%s/tickets?ticketId=%s".formatted(documentService.getFrontendHost(), ticket.getId()), ticket);
-        documentService.executePrint(doc.image());
+
+    public void printTicketTag(Ticket ticket) {
+        if (ticket.getShop().getSettings().isPrintEnabled()) {
+            PdfAndImageDoc doc = documentService.createRepairTag("%s/tickets?ticketId=%s".formatted(documentService.getFrontendHost(), ticket.getId()), ticket);
+            documentService.executePrint(doc.image());
+        }
     }
 
 

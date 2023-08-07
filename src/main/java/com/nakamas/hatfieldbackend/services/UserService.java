@@ -220,7 +220,7 @@ public class UserService implements UserDetailsService, UserDetailsPasswordServi
     public ResponseMessage forgotPassword(String userInfo) {
         User user = userRepository.findUser(userInfo).orElseThrow(() -> new CustomException("There is no user with such username, email or phone!"));
         ShopSettings shopSettings = user.getShop().getSettings();
-        if (user.isEmailEnabled() && shopSettings.isEmailEnabled()) {
+        if (user.isEmailEnabled()) {
             String messageBody = templateEngine.process("email/forgotPassword", getUserForgotPasswordContext(user));
             emailService.sendMail(user, messageBody, "Forgot password");
             return new ResponseMessage("email");
