@@ -67,6 +67,7 @@ public class UserService implements UserDetailsService, UserDetailsPasswordServi
         validateAndSave(user);
         return user;
     }
+
     public void clientUpdatePassword(User user, String newPassword) {
         user.setPassword(passwordEncoder.encode(newPassword));
         validateAndSave(user);
@@ -82,9 +83,9 @@ public class UserService implements UserDetailsService, UserDetailsPasswordServi
     @Transactional
     public void updateUserBan(UUID id, Boolean status) {
         if (status) {
-            loggerService.userActions(new Log(LogType.BANNED_USER), id.toString());
+            loggerService.createLog(new Log(LogType.BANNED_USER), id.toString());
         } else {
-            loggerService.userActions(new Log(LogType.UNBANNED_USER), id.toString());
+            loggerService.createLog(new Log(LogType.UNBANNED_USER), id.toString());
         }
         userRepository.setBanned(id, status);
     }
@@ -96,9 +97,9 @@ public class UserService implements UserDetailsService, UserDetailsPasswordServi
     //user "deleting" his account
     public void updateUserActivity(User user, Boolean status) {
         if (!status) {
-            loggerService.userActions(new Log(LogType.DELETED_USER), user.getFullName());
+            loggerService.createLog(new Log(LogType.DELETED_USER), user.getFullName());
         } else {
-            loggerService.userActions(new Log(LogType.RESTORED_USER), user.getFullName());
+            loggerService.createLog(new Log(LogType.RESTORED_USER), user.getFullName());
         }
         user.setIsActive(status);
         userRepository.save(user);
@@ -131,17 +132,23 @@ public class UserService implements UserDetailsService, UserDetailsPasswordServi
      */
     public User updateUser(CreateUser userInfo) {
         User user = getUser(userInfo.userId());
+        String updateInfo = loggerService.userUpdateCheck(user, userInfo);
         user.updateAsAdmin(userInfo, shopRepository.findById(userInfo.shopId()).orElse(user.getShop()));
         if (!userInfo.password().isBlank()) user.setPassword(passwordEncoder.encode(userInfo.password()));
-        return validateAndSave(user);
+        User endUser = validateAndSave(user);
+        loggerService.createLog(new Log(LogType.UPDATED_USER), user.getFullName(), updateInfo);
+        return endUser;
     }
 
     /**
      * Allows the user to make changes to itself.
      */
     public User updateUser(User user, CreateUser update) {
+        String updateInfo = loggerService.userUpdateCheck(user, update);
         user.update(update);
-        return validateAndSave(user);
+        User endUser = validateAndSave(user);
+        loggerService.createLog(new Log(LogType.UPDATED_USER), user.getFullName(), updateInfo);
+        return endUser;
     }
 
     public List<User> getAll(UserFilter filter) {
@@ -180,7 +187,7 @@ public class UserService implements UserDetailsService, UserDetailsPasswordServi
         try {
             Photo photo = photoRepository.save(new Photo(image.getBytes(), false));
             user.setImage(photo);
-            loggerService.userActions(new Log(LogType.UPDATED_USER), user.getFullName());
+            loggerService.createLog(new Log(LogType.UPDATED_USER), user.getFullName(), "User updated their photo.");
             userRepository.save(user);
         } catch (IOException e) {
             e.printStackTrace();
@@ -192,16 +199,14 @@ public class UserService implements UserDetailsService, UserDetailsPasswordServi
         if (user.getShop() == null) throw new CustomException("User must be attached to a shop!");
         List<User> existingUsers = userRepository.uniqueUserExists(user.getUsername(), user.getEmail());
         if (user.isNew() && existingUsers.size() > 0 ||
-            existingUsers.stream().anyMatch(profile -> !Objects.equals(profile.getId(), user.getId())))
+                existingUsers.stream().anyMatch(profile -> !Objects.equals(profile.getId(), user.getId())))
             throw new CustomException("Username or email already taken!");
         if (user.isNew()) {
             if (Objects.equals(user.getRole(), UserRole.CLIENT)) {
-                loggerService.userActions(new Log(LogType.CREATED_CLIENT), user.getFullName());
+                loggerService.createLog(new Log(LogType.CREATED_CLIENT), user.getFullName());
             } else {
-                loggerService.userActions(new Log(LogType.CREATED_WORKER), user.getFullName());
+                loggerService.createLog(new Log(LogType.CREATED_WORKER), user.getFullName());
             }
-        } else {
-            loggerService.userActions(new Log(LogType.UPDATED_USER), user.getFullName());
         }
         return userRepository.save(user);
     }

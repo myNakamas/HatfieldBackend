@@ -30,6 +30,7 @@ import org.thymeleaf.context.Context;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 @Slf4j
@@ -64,16 +65,17 @@ public class TicketService {
         if (save.getAccessories().contains("With Charger,")) {
             printTicketTag(save);
         }
-        loggerService.ticketActions(new Log(LogType.CREATED_TICKET), save);
+        loggerService.createLog(new Log(save.getId(), LogType.CREATED_TICKET), save.getId());
         return save;
     }
 
     public Long update(CreateTicket ticket, Long id) {
         Ticket ticketEntity = getTicket(id);
+        String updateInfo = loggerService.ticketUpdateCheck(ticketEntity, ticket);
         ticketEntity.update(ticket);
         if (ticket.clientId() != null) ticketEntity.setClient(userService.getUser(ticket.clientId()));
         setOptionalProperties(ticket, ticketEntity);
-        loggerService.ticketActions(new Log(LogType.UPDATED_TICKET), ticketEntity);
+        loggerService.createLog(new Log(ticketEntity.getId(), LogType.UPDATED_TICKET), Objects.requireNonNull(ticketEntity.getId()).toString(), updateInfo);
         return ticketRepository.save(ticketEntity).getId();
     }
     //endregion
@@ -83,9 +85,6 @@ public class TicketService {
         ticket.setDeviceBrand(inventoryService.getOrCreateBrand(create.deviceBrand()));
         if (ticket.getDeviceBrand() != null)
             ticket.setDeviceModel(inventoryService.getOrCreateModel(create.deviceModel(), ticket.getDeviceBrand()));
-        if (!ticket.getDeviceLocationString().isBlank() && !ticket.getDeviceLocationString().equals(create.deviceLocation())) {
-            loggerService.ticketActions(new Log(LogType.MOVED_TICKET), ticket);
-        }
         DeviceLocation location = getOrCreateLocation(create.deviceLocation());
         if (location != null) {
             ticket.setDeviceLocation(location);
@@ -119,7 +118,7 @@ public class TicketService {
         createMessageForTicket("Hello! The repair of your device has been initiated.", user, ticket);
         sendEmailOrSms(ticket.getClient(), ticket, "email/ticketStarted", "", "Your Device Repair has been started!");
 
-        loggerService.ticketActions(new Log(LogType.STARTED_TICKET), ticket);
+        loggerService.createLog(new Log(ticket.getId(), LogType.STARTED_TICKET), ticket.getId());
         ticketRepository.save(ticket);
     }
 
@@ -136,10 +135,10 @@ public class TicketService {
         Ticket ticket = ticketRepository.getReferenceById(id);
         ticket.setStatus(TicketStatus.FINISHED);
         createMessageForTicket("Repairment actions have finished! Please come and pick " +
-                               "up your device at a comfortable time.", user, ticket);
+                "up your device at a comfortable time.", user, ticket);
         sendEmailOrSms(ticket.getClient(), ticket, "email/ticketCompleted", "ticketCompleted.txt", "Your Device Repair is done!");
 
-        loggerService.ticketActions(new Log(LogType.FINISHED_TICKET), ticket);
+        loggerService.createLog(new Log(ticket.getId(), LogType.FINISHED_TICKET), ticket.getId());
         ticketRepository.save(ticket);
     }
 
@@ -148,7 +147,7 @@ public class TicketService {
         ticket.setStatus(TicketStatus.ON_HOLD);
         createMessageForTicket("Repairment actions are on hold!", user, ticket);
         sendEmailOrSms(ticket.getClient(), ticket, "email/ticketFrozen", "", "Your device repair has been frozen!");
-        loggerService.ticketActions(new Log(LogType.FINISHED_TICKET), ticket);
+        loggerService.createLog(new Log(ticket.getId(), LogType.UPDATED_TICKET), Objects.requireNonNull(ticket.getId()).toString(), "Status updated to FROZEN.");
         ticketRepository.save(ticket);
     }
 
@@ -156,7 +155,7 @@ public class TicketService {
         Ticket ticket = ticketRepository.getReferenceById(id);
         ticket.setStatus(TicketStatus.CANCELLED_BY_CLIENT);
         createMessageForTicket("Repairment actions are canceled!", user, ticket);
-        loggerService.ticketActions(new Log(LogType.UPDATED_TICKET), ticket);
+        loggerService.createLog(new Log(ticket.getId(), LogType.UPDATED_TICKET), Objects.requireNonNull(ticket.getId()).toString(), "Status updated to CANCELLED.");
         ticketRepository.save(ticket);
     }
 
@@ -167,10 +166,10 @@ public class TicketService {
         invoice.setTicketInfo(ticket);
         Invoice result = invoiceService.create(invoice, user);
         createMessageForTicket("The device has been collected. Information can be found" +
-                               " in your 'invoices' tab. If that action hasn't been done by you please contact the store.", user, ticket);
+                " in your 'invoices' tab. If that action hasn't been done by you please contact the store.", user, ticket);
         sendEmailOrSms(ticket.getClient(), ticket, "email/ticketCollected", "", "Thank you for choosing us!");
         ticketRepository.save(ticket);
-        loggerService.ticketActions(new Log(LogType.COLLECTED_TICKET), ticket);
+        loggerService.createLog(new Log(ticket.getId(), LogType.COLLECTED_TICKET), ticket.getId());
         return invoiceService.getAsBlob(result);
     }
 

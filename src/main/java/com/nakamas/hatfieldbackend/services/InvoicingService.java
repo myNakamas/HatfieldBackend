@@ -1,9 +1,11 @@
 package com.nakamas.hatfieldbackend.services;
 
+import com.nakamas.hatfieldbackend.models.entities.Log;
 import com.nakamas.hatfieldbackend.models.entities.User;
 import com.nakamas.hatfieldbackend.models.entities.shop.InventoryItem;
 import com.nakamas.hatfieldbackend.models.entities.ticket.Invoice;
 import com.nakamas.hatfieldbackend.models.enums.InvoiceType;
+import com.nakamas.hatfieldbackend.models.enums.LogType;
 import com.nakamas.hatfieldbackend.models.views.incoming.CreateInvoice;
 import com.nakamas.hatfieldbackend.models.views.incoming.PageRequestView;
 import com.nakamas.hatfieldbackend.models.views.incoming.filters.InvoiceFilter;
@@ -32,7 +34,7 @@ public class InvoicingService {
     private final LoggerService loggerService;
 
     public Invoice create(CreateInvoice invoice, User user) {
-        if(invoice.getItemId()!=null ) {
+        if (invoice.getItemId() != null) {
             InventoryItem item = inventoryItemService.getItem(invoice.getItemId());
             invoice.setItemInfo(item);
             inventoryItemService.sellItem(item.getId(), invoice.getCount());
@@ -40,7 +42,7 @@ public class InvoicingService {
         Invoice newInvoice = invoiceRepository.save(new Invoice(invoice,
                 user,
                 invoice.getClientId() == null ? null : userService.getUser(invoice.getClientId())));
-        loggerService.createInvoiceActions(newInvoice.getType(), newInvoice.getId());
+        loggerService.createLog(new Log(LogType.getLogType(invoice.getType()), newInvoice.getId()), newInvoice.getId());
         return newInvoice;
     }
 
@@ -108,7 +110,7 @@ public class InvoicingService {
     public void invalidateInvoice(Long invoiceId) {
         Invoice byId = getById(invoiceId);
         byId.setValid(false);
-        loggerService.invalidateInvoiceActions(invoiceId);
+        loggerService.createLog(new Log(LogType.INVALIDATED_INVOICE, invoiceId), invoiceId);
         invoiceRepository.save(byId);
     }
 }
