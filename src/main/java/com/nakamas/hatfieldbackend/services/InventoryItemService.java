@@ -24,7 +24,10 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.ZonedDateTime;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -59,12 +62,13 @@ public class InventoryItemService {
                 category.orElse(null)
         );
         InventoryItem savedItem = inventoryItemRepository.save(item);
-        loggerService.itemActions(new Log(LogType.ADD_NEW_ITEM_TO_INVENTORY), savedItem, 0);
+        loggerService.createLog(new Log(LogType.ADD_NEW_ITEM_TO_INVENTORY), savedItem, savedItem.getCount());
         return savedItem;
     }
 
     public InventoryItem updateInventoryItem(CreateInventoryItem inventoryItem) {
         InventoryItem item = inventoryItemRepository.findById(inventoryItem.id()).orElseThrow(() -> new CustomException("Item with provided id could not be found"));
+        String updateInfo = loggerService.itemUpdateCheck(item, inventoryItem);
         Brand brand = getOrCreateBrand(inventoryItem.brandId(), inventoryItem.brand());
         Model model = getOrCreateModel(inventoryItem.modelId(), inventoryItem.model(), brand);
         if (brand != null && !brand.getModels().contains(model)) brand.getModels().add(model);
@@ -78,7 +82,7 @@ public class InventoryItemService {
             shop = shopRepository.findById(inventoryItem.shopId());
 
         item.update(inventoryItem, brand, model, shop.orElse(null), category.orElse(null));
-        loggerService.itemActions(new Log(LogType.UPDATE_ITEM), item, 0);
+        loggerService.createLog(new Log(LogType.UPDATE_ITEM), item.getName(), updateInfo);
         return inventoryItemRepository.save(item);
     }
 
@@ -110,7 +114,7 @@ public class InventoryItemService {
         updateItemCount(count, item);
         inventoryItemRepository.save(item);
         UsedPart usedPart = new UsedPart(ticket, item, count, ZonedDateTime.now());
-        loggerService.useItemForRepair(new Log(LogType.USED_PART), item, ticket.getId(), count);
+        loggerService.createLog(new Log(LogType.USED_PART), item, ticket.getId(), count);
         return usedPartRepository.save(usedPart);
     }
 
@@ -144,15 +148,15 @@ public class InventoryItemService {
     @Transactional
     public void updateQuantity(Long id, Integer quantity) {
         InventoryItem item = inventoryItemRepository.findById(id).orElseThrow(() -> new CustomException("Item with provided id could not be found"));
-        loggerService.itemActions(new Log(LogType.UPDATE_ITEM_COUNT), item, quantity);
+        loggerService.createLog(new Log(LogType.UPDATE_ITEM_COUNT), item.getCount().toString(), quantity.toString());
         inventoryItemRepository.updateQuantity(id, quantity);
     }
 
     public void remove(Long id) {
         InventoryItem item = inventoryItemRepository.findById(id).orElseThrow(() -> new CustomException("Item with provided id could not be found"));
+        loggerService.createLog(new Log(LogType.UPDATE_ITEM_COUNT), item.getCount().toString(), "0");
         item.setCount(0);
         item.getRequiredItem().setNeeded(false);
-        loggerService.itemActions(new Log(LogType.UPDATE_ITEM_COUNT), item, 0);
         inventoryItemRepository.save(item);
     }
 
@@ -191,14 +195,15 @@ public class InventoryItemService {
 
     public CategoryView createCategory(CategoryView createView) {
         Category save = categoryRepository.save(new Category(createView));
-        loggerService.categoryActions(new Log(LogType.CREATED_CATEGORY), createView.name());
+        loggerService.createLog(new Log(LogType.CREATED_CATEGORY), createView.name());
         return new CategoryView(save);
     }
 
     public CategoryView updateCategory(CategoryView categoryView, Long id) {
         Category category = categoryRepository.findById(id).orElseThrow(() -> new CustomException("Cant find category by id"));
+        String updateInfo = loggerService.categoryUpdateCheck(category, categoryView);
         category.update(categoryView);
-        loggerService.categoryActions(new Log(LogType.UPDATED_CATEGORY), categoryView.name());
+        loggerService.createLog(new Log(LogType.UPDATED_CATEGORY), categoryView.name(), updateInfo);
         return new CategoryView(categoryRepository.save(category));
     }
 
@@ -219,22 +224,18 @@ public class InventoryItemService {
         InventoryItem item = inventoryItemRepository.findById(id).orElseThrow(() -> new CustomException("Item with provided id could not be found"));
         item.getRequiredItem().setNeeded(need);
         if (need) {
-            loggerService.itemActions(new Log(LogType.ADD_ITEM_TO_SHOPPING_LIST), item, 0);
+            loggerService.createLog(new Log(LogType.ADD_ITEM_TO_SHOPPING_LIST), item.getName());
         } else {
-            loggerService.itemActions(new Log(LogType.REMOVE_ITEM_FROM_SHOPPING_LIST), item, 0);
+            loggerService.createLog(new Log(LogType.REMOVE_ITEM_FROM_SHOPPING_LIST), item.getName());
         }
         inventoryItemRepository.save(item);
     }
 
     public void changeNeed(List<Long> ids, Boolean need) {
         List<InventoryItem> allById = inventoryItemRepository.findAllById(ids);
-        List<InventoryItem> modified = new ArrayList<>();
-        loggerService.shoppingItemActions(allById, need);
         for (InventoryItem item : allById) {
-            item.getRequiredItem().setNeeded(need);
-            modified.add(item);
+            changeNeed(item.getId(), need);
         }
-        inventoryItemRepository.saveAll(modified);
     }
 
     public InventoryItem getItem(Long inventoryItem) {
@@ -244,7 +245,7 @@ public class InventoryItemService {
     public void deleteCategory(Long id) {
         inventoryItemRepository.setItemsToNullCategory(id);
         Category category = categoryRepository.findById(id).orElseThrow(() -> new CustomException("No such category exists"));
-        loggerService.categoryActions(new Log(LogType.DELETED_CATEGORY), category.getName());
+        loggerService.createLog(new Log(LogType.DELETED_CATEGORY), category.getName());
         categoryRepository.deleteById(id);
     }
 
@@ -256,7 +257,7 @@ public class InventoryItemService {
     public void sellItem(Long id, Integer count) {
         InventoryItem item = getItem(id);
         updateItemCount(count, item);
-        loggerService.itemActions(new Log(LogType.SOLD_ITEM), item, count);
+        loggerService.createLog(new Log(LogType.SOLD_ITEM), item, count);
         inventoryItemRepository.save(item);
     }
 
@@ -274,7 +275,7 @@ public class InventoryItemService {
     public void markOneAsDefective(Long itemId, int count) {
         InventoryItem item = getItem(itemId);
         item.removeCount(count);
-        loggerService.itemActions(new Log(LogType.DEFECTIVE_PART), item, count);
+        loggerService.createLog(new Log(LogType.DEFECTIVE_PART), item, count);
         item.getRequiredItem().addDefectiveCount(count);
         inventoryItemRepository.save(item);
     }
@@ -289,21 +290,21 @@ public class InventoryItemService {
         InventoryItem item = getItem(itemId);
         item.getRequiredItem().removeDefectiveCount(count);
         item.addCount(count);
-        loggerService.itemActions(new Log(LogType.RETURNED_DEFECTIVE_PART), item, count);
+        loggerService.createLog(new Log(LogType.RETURNED_DEFECTIVE_PART), item, count);
         inventoryItemRepository.save(item);
     }
 
     public void markOneAsDamaged(Long itemId, int count) {
         InventoryItem item = getItem(itemId);
         item.removeCount(count);
-        loggerService.itemActions(new Log(LogType.DAMAGED_PART), item, count);
+        loggerService.createLog(new Log(LogType.DAMAGED_PART), item, count);
         inventoryItemRepository.save(item);
     }
 
     public void addQuantity(Long itemId, Integer count) {
         InventoryItem item = getItem(itemId);
+        loggerService.createLog(new Log(LogType.UPDATE_ITEM_COUNT), item.getCount().toString(), Integer.toString(item.getCount() + count));
         item.addCount(count);
-        loggerService.itemActions(new Log(LogType.UPDATE_ITEM_COUNT), item, count);
         inventoryItemRepository.save(item);
     }
 
