@@ -24,12 +24,16 @@ public class PublicController {
 
     @PostMapping("forgot-password")
     public ResponseMessage editPassword(@RequestParam String username, HttpServletRequest request) {
-        int MAX_REQUESTS_PER_HOUR = 5;
-        int requestCount = requestMap.computeIfAbsent(request.getRemoteAddr(),(key)-> 0);
+        limitUserRequestsByIp(request);
+        return userService.forgotPassword(username);
+    }
+
+    private void limitUserRequestsByIp(HttpServletRequest request) {
+        int MAX_REQUESTS_PER_HOUR = 2;
+        int requestCount = requestMap.computeIfAbsent(request.getRemoteAddr(), (key) -> 0);
         if (requestCount >= MAX_REQUESTS_PER_HOUR) {
             throw new CustomException("You have exceeded the maximum number of requests per hour.");
         }
-        requestMap.put(request.getRemoteAddr(),requestCount+1);
-        return userService.forgotPassword(username);
+        requestMap.put(request.getRemoteAddr(), requestCount + 1);
     }
 }
