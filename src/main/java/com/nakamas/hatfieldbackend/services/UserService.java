@@ -4,7 +4,6 @@ import com.nakamas.hatfieldbackend.config.exception.CustomException;
 import com.nakamas.hatfieldbackend.models.entities.Log;
 import com.nakamas.hatfieldbackend.models.entities.Photo;
 import com.nakamas.hatfieldbackend.models.entities.User;
-import com.nakamas.hatfieldbackend.models.entities.shop.ShopSettings;
 import com.nakamas.hatfieldbackend.models.enums.LogType;
 import com.nakamas.hatfieldbackend.models.enums.UserRole;
 import com.nakamas.hatfieldbackend.models.views.incoming.CreateUser;
@@ -46,6 +45,7 @@ public class UserService implements UserDetailsService, UserDetailsPasswordServi
     private final ShopRepository shopRepository;
     private final LoggerService loggerService;
     private final EmailService emailService;
+    private final SmsService smsService;
     private final TemplateEngine templateEngine;
     @Value(value = "${fe-host:http://localhost:5173}")
     private String frontendHost;
@@ -224,13 +224,13 @@ public class UserService implements UserDetailsService, UserDetailsPasswordServi
 
     public ResponseMessage forgotPassword(String userInfo) {
         User user = userRepository.findUser(userInfo).orElseThrow(() -> new CustomException("There is no user with such username, email or phone!"));
-        ShopSettings shopSettings = user.getShop().getSettings();
         if (user.isEmailEnabled()) {
             String messageBody = templateEngine.process("email/forgotPassword", getUserForgotPasswordContext(user));
             emailService.sendMail(user, messageBody, "Forgot password");
             return new ResponseMessage("email");
         }
-        if (user.isSMSEnabled() && shopSettings.isSmsEnabled()) {
+        if (smsService.isSmsEnabled(user)) {
+            smsService.sendSms(user,"forgotPassword.txt",getUserForgotPasswordContext(user));
             return new ResponseMessage("phone");
         }
         throw new CustomException("The user or shop do not allow email and sms communication. Please contact us on " + user.getShop().getEmail() + " or " + user.getShop().getPhone() + " or come visit us in person at " + user.getShop().getAddress());

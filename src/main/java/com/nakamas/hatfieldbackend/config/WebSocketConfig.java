@@ -19,6 +19,8 @@ import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBr
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
 
+import java.util.UUID;
+
 @Slf4j
 @Configuration
 @RequiredArgsConstructor
@@ -49,13 +51,13 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                 if (StompCommand.CONNECT.equals(accessor.getCommand())) {
                     String authorizationHeader = accessor.getFirstNativeHeader("Authorization");
                     String token = null;
-                    String username = null;
+                    UUID userId = null;
                     if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
                         token = authorizationHeader.substring(7);
-                        username = jwtUtil.extractUsername(token);
+                        userId = jwtUtil.extractVerifier(token);
                     }
-                    if (username != null) {
-                        User userDetails = (User) userService.loadUserByUsername(username);
+                    if (userId != null) {
+                        User userDetails = userService.getUser(userId);
                         if (jwtUtil.validateToken(token, userDetails)) {
                             accessor.setUser(new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities()));
                         }
