@@ -9,6 +9,7 @@ import com.nakamas.hatfieldbackend.models.enums.UserRole;
 import com.nakamas.hatfieldbackend.models.views.incoming.CreateUser;
 import com.nakamas.hatfieldbackend.models.views.incoming.filters.UserFilter;
 import com.nakamas.hatfieldbackend.models.views.outgoing.ResponseMessage;
+import com.nakamas.hatfieldbackend.models.views.outgoing.user.UserAndPhone;
 import com.nakamas.hatfieldbackend.repositories.PhotoRepository;
 import com.nakamas.hatfieldbackend.repositories.ShopRepository;
 import com.nakamas.hatfieldbackend.repositories.UserRepository;
@@ -35,6 +36,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -197,11 +199,7 @@ public class UserService implements UserDetailsService, UserDetailsPasswordServi
     }
 
     private User validateAndSave(User user) {
-        if (user.getShop() == null) throw new CustomException("User must be attached to a shop!");
-        List<User> existingUsers = userRepository.uniqueUserExists(user.getUsername(), user.getEmail());
-        if (user.isNew() && existingUsers.size() > 0 ||
-                existingUsers.stream().anyMatch(profile -> !Objects.equals(profile.getId(), user.getId())))
-            throw new CustomException("Username or email already taken!");
+        validateUser(user);
         if (user.isNew()) {
             if (Objects.equals(user.getRole(), UserRole.CLIENT)) {
                 loggerService.createLog(new Log(LogType.CREATED_CLIENT), user.getFullName());
@@ -210,6 +208,23 @@ public class UserService implements UserDetailsService, UserDetailsPasswordServi
             }
         }
         return userRepository.save(user);
+    }
+
+    private void validateUser(User user) {
+        if (user.getShop() == null) throw new CustomException("User must be attached to a shop!");
+        List<User> existingUsers = userRepository.uniqueUserExists(user.getUsername(), user.getEmail());
+        if (user.isNew() && existingUsers.size() > 0 ||
+            existingUsers.stream().anyMatch(profile -> !Objects.equals(profile.getId(), user.getId())))
+            throw new CustomException("Username or email already taken!");
+        validateUniquePhones(user);
+    }
+
+    private void validateUniquePhones(User user) {
+        List<UserAndPhone> phonesWithOtherUserId = userRepository.findPhonesWithOtherUserId(user.getPhones());
+        String message = "Phone numbers already exist on a different user:" + phonesWithOtherUserId.stream().map(UserAndPhone::phone).collect(Collectors.joining(","));
+
+        if (!phonesWithOtherUserId.isEmpty() && user.getId() == null || phonesWithOtherUserId.stream().anyMatch(u -> !Objects.equals(u.user().getId(), user.getId())))
+            throw new CustomException(message);
     }
 
     public String generateUsername() {
@@ -233,7 +248,7 @@ public class UserService implements UserDetailsService, UserDetailsPasswordServi
                 return new ResponseMessage("email");
             }
             if (smsService.isSmsEnabled(user)) {
-                smsService.sendSms(user,"forgotPassword.txt",getUserForgotPasswordContext(user));
+                smsService.sendSms(user, "forgotPassword.txt", getUserForgotPasswordContext(user));
                 return new ResponseMessage("phone");
             }
         } catch (MailAuthenticationException e) {
