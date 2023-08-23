@@ -6,6 +6,7 @@ import com.nakamas.hatfieldbackend.services.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -24,16 +25,24 @@ public class PublicController {
 
     @PostMapping("forgot-password")
     public ResponseMessage editPassword(@RequestParam String username, HttpServletRequest request) {
-        limitUserRequestsByIp(request);
-        return userService.forgotPassword(username);
+        int requestCount = limitUserRequestsByIp(request);
+        ResponseMessage responseMessage = userService.forgotPassword(username);
+        requestMap.put(request.getRemoteAddr(), requestCount + 1);
+        return responseMessage;
     }
 
-    private void limitUserRequestsByIp(HttpServletRequest request) {
+    private int limitUserRequestsByIp(HttpServletRequest request) {
         int MAX_REQUESTS_PER_HOUR = 2;
         int requestCount = requestMap.computeIfAbsent(request.getRemoteAddr(), (key) -> 0);
         if (requestCount >= MAX_REQUESTS_PER_HOUR) {
             throw new CustomException("You have exceeded the maximum number of requests per hour.");
         }
-        requestMap.put(request.getRemoteAddr(), requestCount + 1);
+        return requestCount;
+
+    }
+
+    @Scheduled(cron = "0 0 * * * *")
+    private void clearRequestMapEachHour() {
+        requestMap.clear();
     }
 }

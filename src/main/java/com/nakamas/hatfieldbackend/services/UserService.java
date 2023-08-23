@@ -20,6 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.mail.MailAuthenticationException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsPasswordService;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -224,16 +225,22 @@ public class UserService implements UserDetailsService, UserDetailsPasswordServi
 
     public ResponseMessage forgotPassword(String userInfo) {
         User user = userRepository.findUser(userInfo).orElseThrow(() -> new CustomException("There is no user with such username, email or phone!"));
-        if (user.isEmailEnabled()) {
-            String messageBody = templateEngine.process("email/forgotPassword", getUserForgotPasswordContext(user));
-            emailService.sendMail(user, messageBody, "Forgot password");
-            return new ResponseMessage("email");
+        final String NO_REQUEST_SENT_TO_USER_ERROR = "Your account or our shop do not allow email or sms communication. Please contact us on %s or %s or come visit us in person at %s".formatted(user.getShop().getEmail(), user.getShop().getPhone(), user.getShop().getAddress());
+        try {
+            if (user.isEmailEnabled()) {
+                String messageBody = templateEngine.process("email/forgotPassword", getUserForgotPasswordContext(user));
+                emailService.sendMail(user, messageBody, "Forgot password");
+                return new ResponseMessage("email");
+            }
+            if (smsService.isSmsEnabled(user)) {
+                smsService.sendSms(user,"forgotPassword.txt",getUserForgotPasswordContext(user));
+                return new ResponseMessage("phone");
+            }
+        } catch (MailAuthenticationException e) {
+            log.error("Cannot authenticate in Gmail using shop {}'s settings. Gmail's response: {}", user.getShop().getShopName(), e.getMessage());
+            throw new CustomException(NO_REQUEST_SENT_TO_USER_ERROR);
         }
-        if (smsService.isSmsEnabled(user)) {
-            smsService.sendSms(user,"forgotPassword.txt",getUserForgotPasswordContext(user));
-            return new ResponseMessage("phone");
-        }
-        throw new CustomException("The user or shop do not allow email and sms communication. Please contact us on " + user.getShop().getEmail() + " or " + user.getShop().getPhone() + " or come visit us in person at " + user.getShop().getAddress());
+        throw new CustomException(NO_REQUEST_SENT_TO_USER_ERROR);
     }
 
     private Context getUserForgotPasswordContext(User user) {

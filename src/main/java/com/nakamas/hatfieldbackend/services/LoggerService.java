@@ -37,6 +37,8 @@ public class LoggerService {
     private final UserRepository userRepository;
 
     private final DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+    private static final String LOG_SEPARATOR = ". ";
+
 
     private String saveUser(Log logMessage) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -90,12 +92,13 @@ public class LoggerService {
     public String categoryUpdateCheck(Category category, CategoryView view) {
         StringBuilder updateInfo = new StringBuilder(" ");
 
-        if (!Objects.equals(category.getName(), view.name()))
-            updateInfo.append("Name updated from ").append(category.getName()).append(" to ").append(view.name()).append(". ");
+        if (!Objects.equals(category.getName(), view.name())) {
+            updateInfo.append("Name updated from ").append(category.getName()).append(" to ").append(view.name()).append(LOG_SEPARATOR);
+        }
         if (category.getType() != view.itemType())
-            updateInfo.append("Type updated from ").append(category.getType()).append(" to ").append(view.itemType());
+            updateInfo.append("Type updated from ").append(category.getType()).append(" to ").append(view.itemType()).append(LOG_SEPARATOR);
         if (category.getFields() != view.columns())
-            updateInfo.append("Fields updated from ").append(String.join(", ", category.getFields())).append(" to ").append(String.join(", ", view.columns()));
+            updateInfo.append("Fields updated from ").append(String.join(", ", category.getFields())).append(" to ").append(String.join(", ", view.columns())).append(LOG_SEPARATOR);
 
         return updateInfo.toString();
     }
@@ -104,40 +107,40 @@ public class LoggerService {
         StringBuilder updateInfo = new StringBuilder(" ");
         //shop part
         if (!Objects.equals(shop.getShopName(), view.shopName()))
-            updateInfo.append("Name updated from ").append(shop.getShopName()).append(" to ").append(view.shopName()).append(". ");
+            updateInfo.append("Name updated from ").append(shop.getShopName()).append(" to ").append(view.shopName()).append(LOG_SEPARATOR);
         if (!Objects.equals(shop.getAddress(), view.address()))
-            updateInfo.append("Address updated from ").append(shop.getAddress()).append(" to ").append(view.address()).append(". ");
+            updateInfo.append("Address updated from ").append(shop.getAddress()).append(" to ").append(view.address()).append(LOG_SEPARATOR);
         if (!Objects.equals(shop.getPhone(), view.phone()))
-            updateInfo.append("Phone updated from ").append(shop.getPhone()).append(" to ").append(view.phone()).append(". ");
+            updateInfo.append("Phone updated from ").append(shop.getPhone()).append(" to ").append(view.phone()).append(LOG_SEPARATOR);
         if (!Objects.equals(shop.getEmail(), view.email()))
-            updateInfo.append("Email updated from ").append(shop.getEmail()).append(" to ").append(view.email()).append(". ");
+            updateInfo.append("Email updated from ").append(shop.getEmail()).append(" to ").append(view.email()).append(LOG_SEPARATOR);
         if (!Objects.equals(shop.getVatNumber(), view.vatNumber()))
-            updateInfo.append("Vat number updated from ").append(shop.getVatNumber()).append(" to ").append(view.vatNumber()).append(". ");
+            updateInfo.append("Vat number updated from ").append(shop.getVatNumber()).append(" to ").append(view.vatNumber()).append(LOG_SEPARATOR);
         if (!Objects.equals(shop.getRegNumber(), view.regNumber()))
-            updateInfo.append("Reg number updated from ").append(shop.getRegNumber()).append(" to ").append(view.regNumber()).append(". ");
+            updateInfo.append("Reg number updated from ").append(shop.getRegNumber()).append(" to ").append(view.regNumber()).append(LOG_SEPARATOR);
         if (!Objects.equals(shop.getTemplates().getAboutPage(), view.templates().getAboutPage()))
-            updateInfo.append("About page updated from ").append(shop.getTemplates().getAboutPage()).append(" to ").append(view.templates().getAboutPage()).append(". ");
+            updateInfo.append("About page updated from ").append(shop.getTemplates().getAboutPage()).append(" to ").append(view.templates().getAboutPage()).append(LOG_SEPARATOR);
         //shop settings part
         if (!Objects.equals(shop.getSettings().getPrimaryColor(), view.shopSettingsView().primaryColor()))
-            updateInfo.append("Primary color updated from ").append(shop.getSettings().getPrimaryColor()).append(" to ").append(view.shopSettingsView().primaryColor()).append(". ");
+            updateInfo.append("Primary color updated from ").append(shop.getSettings().getPrimaryColor()).append(" to ").append(view.shopSettingsView().primaryColor()).append(LOG_SEPARATOR);
         if (!Objects.equals(shop.getSettings().getSecondaryColor(), view.shopSettingsView().secondaryColor()))
-            updateInfo.append("Secondary color updated from ").append(shop.getSettings().getSecondaryColor()).append(" to ").append(view.shopSettingsView().secondaryColor()).append(". ");
+            updateInfo.append("Secondary color updated from ").append(shop.getSettings().getSecondaryColor()).append(" to ").append(view.shopSettingsView().secondaryColor()).append(LOG_SEPARATOR);
         if (!Objects.equals(shop.getSettings().getGmail(), view.shopSettingsView().gmail()))
-            updateInfo.append("Gmail updated from ").append(shop.getSettings().getGmail()).append(" to ").append(view.shopSettingsView().gmail()).append(". ");
+            updateInfo.append("Gmail updated from ").append(shop.getSettings().getGmail()).append(" to ").append(view.shopSettingsView().gmail()).append(LOG_SEPARATOR);
         if (!Objects.equals(shop.getSettings().getGmailPassword(), view.shopSettingsView().gmailPassword()))
-            updateInfo.append("Gmail password updated from ").append(shop.getSettings().getGmailPassword()).append(" to ").append(view.shopSettingsView().gmailPassword()).append(". ");
+            updateInfo.append("Gmail password updated from ").append(shop.getSettings().getGmailPassword()).append(" to ").append(view.shopSettingsView().gmailPassword()).append(LOG_SEPARATOR);
         if (!Objects.equals(shop.getSettings().getPrinterIp(), view.shopSettingsView().printerIp()))
-            updateInfo.append("Printer IP updated from ").append(shop.getSettings().getPrinterIp()).append(" to ").append(view.shopSettingsView().printerIp()).append(". ");
+            updateInfo.append("Printer IP updated from ").append(shop.getSettings().getPrinterIp()).append(" to ").append(view.shopSettingsView().printerIp()).append(LOG_SEPARATOR);
         if (!Objects.equals(shop.getSettings().getPrinterModel(), view.shopSettingsView().printerModel()))
-            updateInfo.append("Printer model updated from ").append(shop.getSettings().getPrinterModel()).append(" to ").append(view.shopSettingsView().printerModel()).append(". ");
+            updateInfo.append("Printer model updated from ").append(shop.getSettings().getPrinterModel()).append(" to ").append(view.shopSettingsView().printerModel()).append(LOG_SEPARATOR);
         if (!Objects.equals(shop.getSettings().getSmsApiKey(), view.shopSettingsView().smsApiKey()))
-            updateInfo.append("SMS API key updated from ").append(shop.getSettings().getSmsApiKey()).append(" to ").append(view.shopSettingsView().smsApiKey()).append(". ");
+            updateInfo.append("SMS API key updated from ").append(shop.getSettings().getSmsApiKey()).append(" to ").append(view.shopSettingsView().smsApiKey()).append(LOG_SEPARATOR);
         if (shop.getSettings().isEmailEnabled() != view.shopSettingsView().emailNotificationsEnabled())
-            updateInfo.append("Email permissions updated from ").append(shop.getSettings().isEmailEnabled()).append(" to ").append(view.shopSettingsView().emailNotificationsEnabled()).append(". ");
+            updateInfo.append("Email permissions updated from ").append(shop.getSettings().isEmailEnabled()).append(" to ").append(view.shopSettingsView().emailNotificationsEnabled()).append(LOG_SEPARATOR);
         if (shop.getSettings().isPrintEnabled() != view.shopSettingsView().printEnabled())
-            updateInfo.append("Print permissions updated from ").append(shop.getSettings().isPrintEnabled()).append(" to ").append(view.shopSettingsView().printEnabled()).append(". ");
+            updateInfo.append("Print permissions updated from ").append(shop.getSettings().isPrintEnabled()).append(" to ").append(view.shopSettingsView().printEnabled()).append(LOG_SEPARATOR);
         if (shop.getSettings().isSmsEnabled() != view.shopSettingsView().smsNotificationsEnabled())
-            updateInfo.append("SMS permissions updated from ").append(shop.getSettings().isSmsEnabled()).append(" to ").append(view.shopSettingsView().smsNotificationsEnabled()).append(". ");
+            updateInfo.append("SMS permissions updated from ").append(shop.getSettings().isSmsEnabled()).append(" to ").append(view.shopSettingsView().smsNotificationsEnabled()).append(LOG_SEPARATOR);
 
         return updateInfo.toString();
     }
@@ -146,35 +149,35 @@ public class LoggerService {
         StringBuilder updateInfo = new StringBuilder(" ");
 
         if (view.deviceModel() != null && !Objects.equals(ticket.getDeviceModelString(), view.deviceModel()))
-            updateInfo.append("Model updated from ").append(ticket.getDeviceModelString()).append(" to ").append(view.deviceModel()).append(". ");
+            updateInfo.append("Model updated from ").append(ticket.getDeviceModelString()).append(" to ").append(view.deviceModel()).append(LOG_SEPARATOR);
         if (view.deviceBrand() != null && !Objects.equals(ticket.getDeviceBrandString(), view.deviceBrand()))
-            updateInfo.append("Brand updated from ").append(ticket.getDeviceBrandString()).append(" to ").append(view.deviceBrand()).append(". ");
+            updateInfo.append("Brand updated from ").append(ticket.getDeviceBrandString()).append(" to ").append(view.deviceBrand()).append(LOG_SEPARATOR);
         if (view.deviceLocation() != null && !Objects.equals(ticket.getDeviceLocationString(), view.deviceLocation()))
-            updateInfo.append("Location updated from ").append(ticket.getDeviceLocationString()).append(" to ").append(view.deviceLocation()).append(". ");
+            updateInfo.append("Location updated from ").append(ticket.getDeviceLocationString()).append(" to ").append(view.deviceLocation()).append(LOG_SEPARATOR);
         if (!Objects.equals(ticket.getCustomerRequest(), view.customerRequest()))
-            updateInfo.append("Customer request updated from ").append(ticket.getCustomerRequest()).append(" to ").append(view.customerRequest()).append(". ");
+            updateInfo.append("Customer request updated from ").append(ticket.getCustomerRequest()).append(" to ").append(view.customerRequest()).append(LOG_SEPARATOR);
         if (!Objects.equals(ticket.getDeviceProblemExplanation(), view.problemExplanation()))
-            updateInfo.append("Device problem updated from ").append(ticket.getDeviceProblemExplanation()).append(" to ").append(view.problemExplanation()).append(". ");
+            updateInfo.append("Device problem updated from ").append(ticket.getDeviceProblemExplanation()).append(" to ").append(view.problemExplanation()).append(LOG_SEPARATOR);
         if (!Objects.equals(ticket.getDeviceCondition(), view.deviceCondition()))
-            updateInfo.append("Device condition updated from ").append(ticket.getDeviceCondition()).append(" to ").append(view.deviceCondition()).append(". ");
+            updateInfo.append("Device condition updated from ").append(ticket.getDeviceCondition()).append(" to ").append(view.deviceCondition()).append(LOG_SEPARATOR);
         if (!Objects.equals(ticket.getDevicePassword(), view.devicePassword()))
-            updateInfo.append("Device password updated from ").append(ticket.getDevicePassword()).append(" to ").append(view.devicePassword()).append(". ");
+            updateInfo.append("Device password updated from ").append(ticket.getDevicePassword()).append(" to ").append(view.devicePassword()).append(LOG_SEPARATOR);
         if (!Objects.equals(ticket.getSerialNumberOrImei(), view.serialNumberOrImei()))
-            updateInfo.append("IMEI updated from ").append(ticket.getSerialNumberOrImei()).append(" to ").append(view.serialNumberOrImei()).append(". ");
+            updateInfo.append("IMEI updated from ").append(ticket.getSerialNumberOrImei()).append(" to ").append(view.serialNumberOrImei()).append(LOG_SEPARATOR);
         if (!Objects.equals(ticket.getAccessories(), view.accessories()))
-            updateInfo.append("Accessories updated from ").append(ticket.getAccessories()).append(" to ").append(view.accessories()).append(". ");
-        if (!Objects.equals(ticket.getDeadline().format(dtf), view.deadline().format(dtf)))
-            updateInfo.append("Deadline updated from ").append(ticket.getDeadline().format(dtf)).append(" to ").append(view.deadline().format(dtf)).append(". ");
+            updateInfo.append("Accessories updated from ").append(ticket.getAccessories()).append(" to ").append(view.accessories()).append(LOG_SEPARATOR);
+        if (view.deadline() !=null && !Objects.equals(ticket.getDeadline(), view.deadline()))
+            updateInfo.append("Deadline updated from ").append(ticket.getDeadline().format(dtf)).append(" to ").append(view.deadline().format(dtf)).append(LOG_SEPARATOR);
         if (!Objects.equals(ticket.getNotes(), view.notes()))
-            updateInfo.append("Notes updated from ").append(ticket.getNotes()).append(" to ").append(view.notes()).append(". ");
-        if (!Objects.equals(ticket.getStatus().toString(), view.status().toString()))
-            updateInfo.append("Status updated from ").append(ticket.getStatus().toString()).append(" to ").append(view.status()).append(". ");
-        if (!Objects.equals(ticket.getTotalPrice().toString(), view.totalPrice().toString()))
-            updateInfo.append("Total price updated from ").append(ticket.getTotalPrice().toString()).append(" to ").append(view.totalPrice()).append(". ");
-        if (!Objects.equals(ticket.getDeposit().toString(), view.deposit().toString()))
-            updateInfo.append("Deposit updated from ").append(ticket.getDeposit().toString()).append(" to ").append(view.deposit()).append(". ");
-        if (ticket.getClient() != null && ticket.getClient().getId() != null && !Objects.equals(ticket.getClient().getId().toString(), view.clientId().toString()))
-            updateInfo.append("Client updated from ").append(ticket.getClient().getId().toString()).append(" to ").append(view.clientId()).append(". ");
+            updateInfo.append("Notes updated from ").append(ticket.getNotes()).append(" to ").append(view.notes()).append(LOG_SEPARATOR);
+        if (!Objects.equals(ticket.getStatus(), view.status()))
+            updateInfo.append("Status updated from ").append(ticket.getStatus().toString()).append(" to ").append(view.status()).append(LOG_SEPARATOR);
+        if (!Objects.equals(ticket.getTotalPrice(), view.totalPrice()))
+            updateInfo.append("Total price updated from ").append(ticket.getTotalPrice().toString()).append(" to ").append(view.totalPrice()).append(LOG_SEPARATOR);
+        if (!Objects.equals(ticket.getDeposit(), view.deposit()))
+            updateInfo.append("Deposit updated from ").append(ticket.getDeposit().toString()).append(" to ").append(view.deposit()).append(LOG_SEPARATOR);
+        if (ticket.getClient() != null && ticket.getClient().getId() != null && !Objects.equals(ticket.getClient().getId(), view.clientId()))
+            updateInfo.append("Client updated from ").append(ticket.getClient().getId().toString()).append(" to ").append(view.clientId()).append(LOG_SEPARATOR);
 
         return updateInfo.toString();
     }
@@ -183,24 +186,24 @@ public class LoggerService {
         StringBuilder updateInfo = new StringBuilder(" ");
 
         if (!Objects.equals(user.getUsername(), view.username()))
-            updateInfo.append("Username updated from ").append(user.getUsername()).append(" to ").append(view.username()).append(". ");
+            updateInfo.append("Username updated from ").append(user.getUsername()).append(" to ").append(view.username()).append(LOG_SEPARATOR);
         if (!Objects.equals(user.getFullName(), view.fullName()))
-            updateInfo.append("Full name updated from ").append(user.getFullName()).append(" to ").append(view.fullName()).append(". ");
+            updateInfo.append("Full name updated from ").append(user.getFullName()).append(" to ").append(view.fullName()).append(LOG_SEPARATOR);
         if (!Objects.equals(user.getPassword(), view.password())) updateInfo.append("Password updated. ");
         if (!Objects.equals(user.getRole().getRole(), view.role().getRole()))
-            updateInfo.append("Role updated from ").append(user.getRole().getRole()).append(" to ").append(view.role().getRole()).append(". ");
+            updateInfo.append("Role updated from ").append(user.getRole().getRole()).append(" to ").append(view.role().getRole()).append(LOG_SEPARATOR);
         if (!Objects.equals(user.getEmail(), view.email()))
-            updateInfo.append("Email updated from ").append(user.getEmail()).append(" to ").append(view.email()).append(". ");
+            updateInfo.append("Email updated from ").append(user.getEmail()).append(" to ").append(view.email()).append(LOG_SEPARATOR);
         if (!Objects.equals(user.getShop().getId(), view.shopId()))
-            updateInfo.append("Shop id updated from ").append(user.getShop().getId()).append(" to ").append(view.shopId()).append(". ");
+            updateInfo.append("Shop id updated from ").append(user.getShop().getId()).append(" to ").append(view.shopId()).append(LOG_SEPARATOR);
         if (user.getIsActive() != view.isActive())
-            updateInfo.append("Activity updated from ").append(user.getIsActive()).append(" to ").append(view.isActive()).append(". ");
+            updateInfo.append("Activity updated from ").append(user.getIsActive()).append(" to ").append(view.isActive()).append(LOG_SEPARATOR);
         if (user.getIsBanned() != view.isBanned())
-            updateInfo.append("Ban status updated from ").append(user.getIsBanned()).append(" to ").append(view.isBanned()).append(". ");
+            updateInfo.append("Ban status updated from ").append(user.getIsBanned()).append(" to ").append(view.isBanned()).append(LOG_SEPARATOR);
         if (user.getSmsPermission() != view.smsPermission())
-            updateInfo.append("SMS permissions updated from ").append(user.getSmsPermission()).append(" to ").append(view.smsPermission()).append(". ");
+            updateInfo.append("SMS permissions updated from ").append(user.getSmsPermission()).append(" to ").append(view.smsPermission()).append(LOG_SEPARATOR);
         if (user.getEmailPermission() != view.emailPermission())
-            updateInfo.append("Email permissions updated from ").append(user.getEmailPermission()).append(" to ").append(view.emailPermission()).append(". ");
+            updateInfo.append("Email permissions updated from ").append(user.getEmailPermission()).append(" to ").append(view.emailPermission()).append(LOG_SEPARATOR);
 
         return updateInfo.toString();
     }
@@ -209,21 +212,21 @@ public class LoggerService {
         StringBuilder updateInfo = new StringBuilder(" ");
 
         if (!Objects.equals(item.getShop().getId(), view.shopId()))
-            updateInfo.append("Shop updated from ").append(item.getShop().getId()).append(" to ").append(view.shopId()).append(". ");
+            updateInfo.append("Shop updated from ").append(item.getShop().getId()).append(" to ").append(view.shopId()).append(LOG_SEPARATOR);
         if (!Objects.equals(item.getCategoryId(), view.categoryId()))
-            updateInfo.append("Category updated from ").append(item.getCategoryId()).append(" to ").append(view.categoryId()).append(". ");
+            updateInfo.append("Category updated from ").append(item.getCategoryId()).append(" to ").append(view.categoryId()).append(LOG_SEPARATOR);
         if (!Objects.equals(item.getModelString(), view.model()))
-            updateInfo.append("Model updated from ").append(item.getModelString()).append(" to ").append(view.model()).append(". ");
+            updateInfo.append("Model updated from ").append(item.getModelString()).append(" to ").append(view.model()).append(LOG_SEPARATOR);
         if (!Objects.equals(item.getBrandString(), view.brand()))
-            updateInfo.append("Brand updated from ").append(item.getBrandString()).append(" to ").append(view.brand()).append(". ");
+            updateInfo.append("Brand updated from ").append(item.getBrandString()).append(" to ").append(view.brand()).append(LOG_SEPARATOR);
         if (!Objects.equals(item.getName(), view.name()))
-            updateInfo.append("Name updated from ").append(item.getName()).append(" to ").append(view.name()).append(". ");
+            updateInfo.append("Name updated from ").append(item.getName()).append(" to ").append(view.name()).append(LOG_SEPARATOR);
         if (!Objects.equals(item.getPurchasePrice().toString(), view.purchasePrice().toString()))
-            updateInfo.append("Purchase price updated from ").append(item.getPurchasePrice().toString()).append(" to ").append(view.purchasePrice()).append(". ");
+            updateInfo.append("Purchase price updated from ").append(item.getPurchasePrice().toString()).append(" to ").append(view.purchasePrice()).append(LOG_SEPARATOR);
         if (!Objects.equals(item.getSellPrice().toString(), view.sellPrice().toString()))
-            updateInfo.append("Sell price updated from ").append(item.getSellPrice().toString()).append(" to ").append(view.sellPrice()).append(". ");
+            updateInfo.append("Sell price updated from ").append(item.getSellPrice().toString()).append(" to ").append(view.sellPrice()).append(LOG_SEPARATOR);
         if (!Objects.equals(item.getCount(), view.count()))
-            updateInfo.append("Count updated from ").append(item.getCount()).append(" to ").append(view.count()).append(". ");
+            updateInfo.append("Count updated from ").append(item.getCount()).append(" to ").append(view.count()).append(LOG_SEPARATOR);
 
         return updateInfo.toString();
     }

@@ -6,6 +6,7 @@ import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.tomcat.util.http.fileupload.impl.FileSizeLimitExceededException;
 import org.springframework.http.HttpStatus;
+import org.springframework.mail.MailException;
 import org.springframework.web.ErrorResponse;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -42,6 +43,11 @@ public class AppExceptionHandler {
     }
     @ExceptionHandler({FileSizeLimitExceededException.class})
     public ErrorResponse handleFileSizeExceptions(FileSizeLimitExceededException ex) {
+        ErrorResponse.Builder responseBuilder = ErrorResponse.builder(ex, HttpStatus.BAD_REQUEST, ex.getMessage());
+        return responseBuilder.build();
+    }
+    @ExceptionHandler({MailException.class})
+    public ErrorResponse handleMailException(MailException ex) {
         ErrorResponse.Builder responseBuilder = ErrorResponse.builder(ex, HttpStatus.BAD_REQUEST, ex.getMessage());
         return responseBuilder.build();
     }

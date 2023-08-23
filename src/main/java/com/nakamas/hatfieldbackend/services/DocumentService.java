@@ -302,7 +302,7 @@ public class DocumentService implements ApplicationRunner {
         contents.close();
     }
 
-    public void executePrint(File image) {
+    public void executePrint(File image) throws CustomException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null) {
             log.error("No authenticated user found, skipping print");

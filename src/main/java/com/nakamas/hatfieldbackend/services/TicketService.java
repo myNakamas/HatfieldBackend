@@ -60,11 +60,7 @@ public class TicketService {
         if (create.clientId() != null) ticket.setClient(userService.getUser(create.clientId()));
         Ticket save = ticketRepository.save(ticket);
         createMessageForTicket("Hello! Your ticket main issue is : " + ticket.getDeviceProblemExplanation() + " " + ticket.getCustomerRequest(), loggedUser, ticket);
-        printTicket(save);
-        printTicketTag(save);
-        if (save.getAccessories().contains("With Charger,")) {
-            printTicketTag(save);
-        }
+        printTicketLabels(save);
         loggerService.createLog(new Log(save.getId(), LogType.CREATED_TICKET), save.getId());
         return save;
     }
@@ -135,7 +131,7 @@ public class TicketService {
         Ticket ticket = ticketRepository.getReferenceById(id);
         ticket.setStatus(TicketStatus.FINISHED);
         createMessageForTicket("Repairment actions have finished! Please come and pick " +
-                "up your device at a comfortable time.", user, ticket);
+                               "up your device at a comfortable time.", user, ticket);
         sendEmailOrSms(ticket.getClient(), ticket, "email/ticketCompleted", "ticketCompleted.txt", "Your Device Repair is done!");
 
         loggerService.createLog(new Log(ticket.getId(), LogType.FINISHED_TICKET), ticket.getId());
@@ -166,7 +162,7 @@ public class TicketService {
         invoice.setTicketInfo(ticket);
         Invoice result = invoiceService.create(invoice, user);
         createMessageForTicket("The device has been collected. Information can be found" +
-                " in your 'invoices' tab. If that action hasn't been done by you please contact the store.", user, ticket);
+                               " in your 'invoices' tab. If that action hasn't been done by you please contact the store.", user, ticket);
         sendEmailOrSms(ticket.getClient(), ticket, "email/ticketCollected", "", "Thank you for choosing us!");
         ticketRepository.save(ticket);
         loggerService.createLog(new Log(ticket.getId(), LogType.COLLECTED_TICKET), ticket.getId());
@@ -207,8 +203,18 @@ public class TicketService {
         context.setVariable("deadline", ticket.getDeadline().format(formatter));
         return context;
     }
-
-    public void printTicket(Ticket ticket) {
+    private void printTicketLabels(Ticket ticket) {
+        try {
+            printTicket(ticket);
+            printTicketTag(ticket);
+            if (ticket.getAccessories().contains("With Charger,")) {
+                printTicketTag(ticket);
+            }
+        } catch (CustomException e) {
+            log.warn(e.getMessage());
+        }
+    }
+    public void printTicket(Ticket ticket) throws CustomException {
         if (ticket.getShop().getSettings().isPrintEnabled()) {
             PdfAndImageDoc doc = documentService.createTicket(ticket);
             documentService.executePrint(doc.image());
@@ -216,7 +222,7 @@ public class TicketService {
 
     }
 
-    public void printTicketTag(Ticket ticket) {
+    public void printTicketTag(Ticket ticket) throws CustomException {
         if (ticket.getShop().getSettings().isPrintEnabled()) {
             PdfAndImageDoc doc = documentService.createRepairTag("%s/tickets?ticketId=%s".formatted(documentService.getFrontendHost(), ticket.getId()), ticket);
             documentService.executePrint(doc.image());
