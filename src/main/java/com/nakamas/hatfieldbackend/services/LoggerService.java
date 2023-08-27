@@ -193,14 +193,14 @@ public class LoggerService {
         if (first == null && second == null) return false;
         if (first != null && second != null)
             return first.compareTo(second.withZoneSameInstant(first.getZone())) != 0;
-        return true;
+        return second!=null;
 
     }
 
     private boolean isBigDecimalDifferent(BigDecimal first, BigDecimal second) {
         if (first == null && second == null) return false;
         if (first != null && second != null) return first.compareTo(second) != 0;
-        return true;
+        return second!=null;
     }
 
     public String userUpdateCheck(User user, CreateUser view) {

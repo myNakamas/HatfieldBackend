@@ -23,6 +23,7 @@ import com.nakamas.hatfieldbackend.repositories.TicketRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
@@ -191,7 +192,7 @@ public class TicketService {
         } else if (!smsTemplate.isBlank()) {
             boolean result = smsService.sendSms(client, smsTemplate, getTicketContext(ticket));
             if (!result)
-                throw new CustomException("The client could not be reached through email or sms. Please check their or the shop's settings.");
+                throw new CustomException(HttpStatus.OK,"The client could not be reached through email or sms. Please check their settings or the shop's settings.");
         }
     }
 
