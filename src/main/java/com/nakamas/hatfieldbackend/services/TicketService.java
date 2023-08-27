@@ -81,7 +81,7 @@ public class TicketService {
     private void setOptionalProperties(CreateTicket create, Ticket ticket) {
         if(create.deviceBrand() != null)
             ticket.setDeviceBrand(inventoryService.getOrCreateBrand(create.deviceBrand()));
-        if (ticket.getDeviceBrand() != null)
+        if (create.deviceModel() != null)
             ticket.setDeviceModel(inventoryService.getOrCreateModel(create.deviceModel(), ticket.getDeviceBrand()));
         if (create.deviceLocation() != null) {
             DeviceLocation location = getOrCreateLocation(create.deviceLocation());
