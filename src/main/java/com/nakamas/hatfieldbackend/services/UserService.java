@@ -79,7 +79,8 @@ public class UserService implements UserDetailsService, UserDetailsPasswordServi
     public void changePassword(User user, String oldPassword, String newPassword) {
         if (!passwordEncoder.matches(oldPassword, user.getPassword()))
             throw new CustomException("Incorrect old password!");
-        updatePassword(user, passwordEncoder.encode(newPassword));
+        User userFromDb = getUser(user.getId());
+        updatePassword(userFromDb, passwordEncoder.encode(newPassword));
     }
 
     // admin changing the settings of other users

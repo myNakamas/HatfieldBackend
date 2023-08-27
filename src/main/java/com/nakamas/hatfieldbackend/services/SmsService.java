@@ -31,7 +31,7 @@ public class SmsService {
     }
 
     public boolean sendSms(User client, String template, Context context) {
-        String messageBody = templateEngine.process("templates/sms/"+template, context);
+        String messageBody = createMessageBody(template, context);
         if (isSmsEnabled(client) && client.getPhones().size() > 0) {
             String phone = client.getPhones().get(0);
             String smsApiKey = client.getShop().getSettings().getSmsApiKey();
@@ -42,6 +42,10 @@ public class SmsService {
         else return false;
     }
 
+    public String createMessageBody(String template, Context context) {
+        return templateEngine.process("templates/sms/" + template, context);
+    }
+
     @Async
     protected void postSendSmsMessage(String phone, String messageBody, String smsApiKey) {
         SmsMessage message= new SmsMessage(List.of(phone),messageBody);
@@ -50,7 +54,7 @@ public class SmsService {
     }
 
     public boolean isSmsEnabled(User user) {
-        return user.getSmsPermission() && user.getShop().getSettings().isSmsEnabled();
+        return user.isSMSEnabled() && user.getShop().getSettings().isSmsEnabled();
     }
 
 }

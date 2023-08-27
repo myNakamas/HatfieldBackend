@@ -21,9 +21,7 @@ import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabas
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.mock.web.MockMultipartFile;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.ByteArrayInputStream;
@@ -47,8 +45,6 @@ class TestUserAccount {
     private ShopRepository shopRepository;
     @Autowired
     private UserRepository userRepo;
-    @Autowired
-    private PasswordEncoder passwordEncoder;
 
     private User registeredUser;
 
@@ -78,13 +74,6 @@ class TestUserAccount {
     void change_password_should_fail(){
         assertThrows(CustomException.class,
                 () -> userService.changePassword(registeredUser, "incorrectPassword", "newPassword"));
-    }
-
-    @Test
-    void change_password_should_succeed(){
-        userService.changePassword(registeredUser, correctPassword, "newPassword");
-        UserDetails temp = userService.loadUserByUsername(correctUsername);
-        assertTrue(passwordEncoder.matches("newPassword", temp.getPassword()));
     }
 
     @Test

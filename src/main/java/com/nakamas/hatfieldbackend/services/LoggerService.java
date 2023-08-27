@@ -25,6 +25,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Objects;
 import java.util.UUID;
@@ -37,7 +39,7 @@ public class LoggerService {
     private final UserRepository userRepository;
 
     private final DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
-    private static final String LOG_SEPARATOR = ". ";
+    private static final String LOG_SEPARATOR = ";";
 
 
     private String saveUser(Log logMessage) {
@@ -73,6 +75,12 @@ public class LoggerService {
         log.setTicketId(ticketId);
         log.setItemId(item.getId());
         log.setAction(log.getLogType().getMessage().formatted(saveUser(log), count, item.getName(), ticketId));
+        logRepository.save(log);
+    }
+
+    public void createLog(Log log, InventoryItem item, Integer oldCount, Integer newCount) {
+        log.setItemId(item.getId());
+        log.setAction(log.getLogType().getMessage().formatted(saveUser(log), item.getName(), oldCount, newCount));
         logRepository.save(log);
     }
 
@@ -166,20 +174,33 @@ public class LoggerService {
             updateInfo.append("IMEI updated from ").append(ticket.getSerialNumberOrImei()).append(" to ").append(view.serialNumberOrImei()).append(LOG_SEPARATOR);
         if (!Objects.equals(ticket.getAccessories(), view.accessories()))
             updateInfo.append("Accessories updated from ").append(ticket.getAccessories()).append(" to ").append(view.accessories()).append(LOG_SEPARATOR);
-        if (view.deadline() !=null && !Objects.equals(ticket.getDeadline(), view.deadline()))
-            updateInfo.append("Deadline updated from ").append(ticket.getDeadline().format(dtf)).append(" to ").append(view.deadline().format(dtf)).append(LOG_SEPARATOR);
+        if (isZonedDateTimeDifferent(ticket.getDeadline(), view.deadline()))
+            updateInfo.append("Deadline updated from ").append(ticket.getDeadline().format(dtf)).append(" to ").append(view.deadline().withZoneSameInstant(ticket.getDeadline().getZone()).format(dtf)).append(LOG_SEPARATOR);
         if (!Objects.equals(ticket.getNotes(), view.notes()))
             updateInfo.append("Notes updated from ").append(ticket.getNotes()).append(" to ").append(view.notes()).append(LOG_SEPARATOR);
         if (!Objects.equals(ticket.getStatus(), view.status()))
             updateInfo.append("Status updated from ").append(ticket.getStatus().toString()).append(" to ").append(view.status()).append(LOG_SEPARATOR);
-        if (!Objects.equals(ticket.getTotalPrice(), view.totalPrice()))
+        if (isBigDecimalDifferent(ticket.getTotalPrice(), view.totalPrice()))
             updateInfo.append("Total price updated from ").append(ticket.getTotalPrice().toString()).append(" to ").append(view.totalPrice()).append(LOG_SEPARATOR);
-        if (!Objects.equals(ticket.getDeposit(), view.deposit()))
+        if (isBigDecimalDifferent(ticket.getDeposit(), view.deposit()))
             updateInfo.append("Deposit updated from ").append(ticket.getDeposit().toString()).append(" to ").append(view.deposit()).append(LOG_SEPARATOR);
         if (ticket.getClient() != null && ticket.getClient().getId() != null && !Objects.equals(ticket.getClient().getId(), view.clientId()))
             updateInfo.append("Client updated from ").append(ticket.getClient().getId().toString()).append(" to ").append(view.clientId()).append(LOG_SEPARATOR);
-
         return updateInfo.toString();
+    }
+
+    private boolean isZonedDateTimeDifferent(ZonedDateTime first, ZonedDateTime second) {
+        if (first == null && second == null) return false;
+        if (first != null && second != null)
+            return first.compareTo(second.withZoneSameInstant(first.getZone())) != 0;
+        return true;
+
+    }
+
+    private boolean isBigDecimalDifferent(BigDecimal first, BigDecimal second) {
+        if (first == null && second == null) return false;
+        if (first != null && second != null) return first.compareTo(second) != 0;
+        return true;
     }
 
     public String userUpdateCheck(User user, CreateUser view) {

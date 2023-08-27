@@ -4,6 +4,7 @@ import com.nakamas.hatfieldbackend.models.entities.User;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.mail.MailAuthenticationException;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -32,6 +33,8 @@ public class EmailService {
         } catch (MessagingException e) {
             log.error("Email could not be sent to '%s'. Printing stack trace:".formatted(user.getEmail()));
             e.printStackTrace();
+        } catch (MailAuthenticationException e){
+            log.error("Email sending is turned on, but gmail credentials are incorrect! To fix this issue change the credentials to the correct ones. Gmail returned `{}`", e.getMessage());
         }
     }
 

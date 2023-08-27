@@ -303,7 +303,7 @@ public class InventoryItemService {
 
     public void addQuantity(Long itemId, Integer count) {
         InventoryItem item = getItem(itemId);
-        loggerService.createLog(new Log(LogType.UPDATE_ITEM_COUNT), item.getCount().toString(), Integer.toString(item.getCount() + count));
+        loggerService.createLog(new Log(LogType.UPDATE_ITEM_COUNT),item, item.getCount(), item.getCount() + count);
         item.addCount(count);
         inventoryItemRepository.save(item);
     }

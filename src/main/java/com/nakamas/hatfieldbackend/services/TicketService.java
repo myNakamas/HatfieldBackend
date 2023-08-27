@@ -78,12 +78,15 @@ public class TicketService {
 
     //region Ticket population
     private void setOptionalProperties(CreateTicket create, Ticket ticket) {
-        ticket.setDeviceBrand(inventoryService.getOrCreateBrand(create.deviceBrand()));
+        if(create.deviceBrand() != null)
+            ticket.setDeviceBrand(inventoryService.getOrCreateBrand(create.deviceBrand()));
         if (ticket.getDeviceBrand() != null)
             ticket.setDeviceModel(inventoryService.getOrCreateModel(create.deviceModel(), ticket.getDeviceBrand()));
-        DeviceLocation location = getOrCreateLocation(create.deviceLocation());
-        if (location != null) {
-            ticket.setDeviceLocation(location);
+        if (create.deviceLocation() != null) {
+            DeviceLocation location = getOrCreateLocation(create.deviceLocation());
+            if (location != null) {
+                ticket.setDeviceLocation(location);
+            }
         }
     }
 
@@ -108,8 +111,8 @@ public class TicketService {
 
     //region Ticket buttons
     public void startRepair(User user, Long id) {
-        Ticket ticket = ticketRepository.getReferenceById(id);
-        ticket.setDeviceLocation(deviceLocationRepository.findByName("at lab"));
+        Ticket ticket = getTicket(id);
+//        ticket.setDeviceLocation(deviceLocationRepository.findByName("IN_THE_LAB"));
         ticket.setStatus(TicketStatus.STARTED);
         createMessageForTicket("Hello! The repair of your device has been initiated.", user, ticket);
         sendEmailOrSms(ticket.getClient(), ticket, "email/ticketStarted", "", "Your Device Repair has been started!");
@@ -128,7 +131,7 @@ public class TicketService {
     }
 
     public void completeRepair(User user, Long id) {
-        Ticket ticket = ticketRepository.getReferenceById(id);
+        Ticket ticket = getTicket(id);
         ticket.setStatus(TicketStatus.FINISHED);
         createMessageForTicket("Repairment actions have finished! Please come and pick " +
                                "up your device at a comfortable time.", user, ticket);
@@ -139,7 +142,7 @@ public class TicketService {
     }
 
     public void freezeRepair(User user, Long id) {
-        Ticket ticket = ticketRepository.getReferenceById(id);
+        Ticket ticket = getTicket(id);
         ticket.setStatus(TicketStatus.ON_HOLD);
         createMessageForTicket("Repairment actions are on hold!", user, ticket);
         sendEmailOrSms(ticket.getClient(), ticket, "email/ticketFrozen", "", "Your device repair has been frozen!");
@@ -148,7 +151,7 @@ public class TicketService {
     }
 
     public void cancelRepair(User user, Long id) {
-        Ticket ticket = ticketRepository.getReferenceById(id);
+        Ticket ticket = getTicket(id);
         ticket.setStatus(TicketStatus.CANCELLED_BY_CLIENT);
         createMessageForTicket("Repairment actions are canceled!", user, ticket);
         loggerService.createLog(new Log(ticket.getId(), LogType.UPDATED_TICKET), Objects.requireNonNull(ticket.getId()).toString(), "Status updated to CANCELLED.");
