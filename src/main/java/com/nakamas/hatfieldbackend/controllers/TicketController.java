@@ -23,8 +23,8 @@ public class TicketController {
     private final TicketService ticketService;
 
     @PostMapping("worker/create")
-    public Long createTicket(@RequestBody CreateTicket ticket , @AuthenticationPrincipal User user){
-        return ticketService.createTicket(ticket,user).getId();
+    public Long createTicket(@RequestBody CreateTicket ticket, @AuthenticationPrincipal User user) {
+        return ticketService.createTicket(ticket, user).getId();
     }
 
     @GetMapping("byId")
@@ -33,8 +33,8 @@ public class TicketController {
     }
 
     @PutMapping("worker/update/{id}")
-    public Long updateTicket(@RequestBody CreateTicket ticket, @PathVariable Long id){
-        return ticketService.update(ticket,id);
+    public Long updateTicket(@RequestBody CreateTicket ticket, @PathVariable Long id) {
+        return ticketService.update(ticket, id);
     }
 
     @GetMapping("all")
@@ -44,8 +44,8 @@ public class TicketController {
     }
 
     /**
-     * @param user The logged-in user
-     * @param ticketFilter The ticket filter
+     * @param user            The logged-in user
+     * @param ticketFilter    The ticket filter
      * @param pageRequestView View containing the requested page and pageSize
      * @return all tickets that the logged user is assigned as client
      */
@@ -55,42 +55,51 @@ public class TicketController {
         ticketFilter.setClientId(user.getId());
         return ticketService.findAll(ticketFilter, pageRequestView);
     }
+
     @GetMapping("active")
     public List<TicketView> getAllActiveTickets(TicketFilter ticketFilter) {
         return ticketService.findAllActive(ticketFilter);
     }
+
     @GetMapping("client/active")
     public List<TicketView> getAllActiveTicketsForClient(@AuthenticationPrincipal User user, TicketFilter ticketFilter) {
         ticketFilter.setShopId(user.getShop().getId());
         ticketFilter.setClientId(user.getId());
         return ticketService.findAllActive(ticketFilter);
     }
+
     @PutMapping("client/freeze")
-    public void freezeTicket(@AuthenticationPrincipal User user, @RequestParam Long id){
+    public void freezeTicket(@AuthenticationPrincipal User user, @RequestParam Long id) {
         ticketService.freezeRepair(user, id);
     }
+
     @PutMapping("client/cancel")
-    public void cancelTicket(@AuthenticationPrincipal User user, @RequestParam Long id){
+    public void cancelTicket(@AuthenticationPrincipal User user, @RequestParam Long id) {
         ticketService.cancelRepair(user, id);
     }
 
-//    todo: Post Start repair (move to lab, status started + message in chat + Open chat)
     @PutMapping("worker/start")
-    public void startTicket(@AuthenticationPrincipal User user, @RequestParam Long id){
+    public void startTicket(@AuthenticationPrincipal User user, @RequestParam Long id) {
         ticketService.startRepair(user, id);
     }
-//    todo: Complete repair(move to? Status Completed, send notification)
+
     @PutMapping("worker/complete")
-    public void completeTicket(@AuthenticationPrincipal User user, @RequestParam Long id){
+    public void completeTicket(@AuthenticationPrincipal User user, @RequestParam Long id) {
         ticketService.completeRepair(user, id);
     }
-//    todo: Mark as collected + chat message + generate invoice
+
     @PutMapping("worker/collected")
-    public byte[] collectedDevice(@AuthenticationPrincipal User user, @RequestParam Long id, @RequestBody CreateInvoice invoice){
+    public byte[] collectedDeviceAndCreateInvoice(@AuthenticationPrincipal User user, @RequestParam Long id, @RequestBody CreateInvoice invoice) {
         return ticketService.collectedDevice(user, id, invoice);
     }
+
+    @PutMapping("worker/deposit")
+    public byte[] createDepositInvoice(@AuthenticationPrincipal User user, @RequestParam Long id, @RequestBody CreateInvoice invoice) {
+        return ticketService.createDepositInvoice(user, id, invoice);
+    }
+
     @PostMapping("worker/part/use")
-    public TicketView useItem(@RequestBody CreateUsedItem usedItem){
+    public TicketView useItem(@RequestBody CreateUsedItem usedItem) {
         return new TicketView(ticketService.usePartFromInventory(usedItem.ticketId(), usedItem.itemId(), usedItem.count()));
     }
 }

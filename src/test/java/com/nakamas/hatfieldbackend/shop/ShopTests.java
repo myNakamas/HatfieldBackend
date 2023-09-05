@@ -76,14 +76,14 @@ public class ShopTests {
     @Test
     public void testUpdate() {
         Shop save = shopRepository.save(TestData.getTestShop());
-        CreateShop update = new CreateShop(save.getId(), "Other name", "some other address", "+359898768595", "email.new@gmail.com", "3456", "numReg", new ShopSettingsView(TestData.getTestShopSettings()));
+        CreateShop update = new CreateShop(save.getId(), "Other name", "some other address", "+359-898768595", "email.new@gmail.com", "3456", "numReg", new ShopSettingsView(TestData.getTestShopSettings()));
         Shop result = shopService.update(update);
         assertEquals(update.shopName(), result.getShopName());
     }
 
     @Test()
     public void testUpdateShopNotFound() {
-        CreateShop update = new CreateShop(1L, "Other name", "some other address", "+359898768595", "email.new@gmail.com", "3456", "numReg", new ShopSettingsView(TestData.getTestShopSettings()));
+        CreateShop update = new CreateShop(1L, "Other name", "some other address", "+359-898768595", "email.new@gmail.com", "3456", "numReg", new ShopSettingsView(TestData.getTestShopSettings()));
         assertThrows(CustomException.class, () -> shopService.update(update));
     }
 

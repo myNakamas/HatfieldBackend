@@ -1,6 +1,7 @@
 package com.nakamas.hatfieldbackend.repositories;
 
 import com.nakamas.hatfieldbackend.models.entities.ticket.Invoice;
+import com.nakamas.hatfieldbackend.models.enums.InvoiceType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
@@ -19,4 +20,7 @@ public interface InvoiceRepository extends JpaRepository<Invoice, Long>, JpaSpec
 
     @Query
     boolean existsByTicketId(Long ticketId);
+
+    @Query("from Invoice i where i.ticketId = ?1 and i.type = ?2 order by i.timestamp desc")
+    List<Invoice> findByTicketIdAndType(Long ticketId, InvoiceType invoiceType);
 }

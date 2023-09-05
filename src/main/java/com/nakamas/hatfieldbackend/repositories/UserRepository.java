@@ -17,9 +17,20 @@ public interface UserRepository extends JpaRepository<User, UUID>, JpaSpecificat
     @Query("""
              select u
              from User u
-             where u.username like ?1 or u.email like ?1 or ?1 member of u.phones
+             where u.username like ?1
+             or u.email like ?1
             """)
     Optional<User> findUser(String username);
+
+    @Query("""
+             select u
+             from User u
+             join u.phones p
+             where p like ?1
+             or SUBSTRING(p,LOCATE("-",p)+1) like ?1
+             or CONCAT(SUBSTRING(p,0,LOCATE("-",p)),SUBSTRING(p,LOCATE("-",p)+1)) like ?1
+            """)
+    Optional<User> findUserByPhone(String phone);
 
     @Query("""
              select u
@@ -33,10 +44,10 @@ public interface UserRepository extends JpaRepository<User, UUID>, JpaSpecificat
     void setBanned(UUID userId, boolean isBanned);
 
     @Query("""
-             select new com.nakamas.hatfieldbackend.models.views.outgoing.user.UserAndPhone(u,p)
-             from User u
-             join u.phones p
-             where p in ?1
-             """)
-    List<UserAndPhone> findPhonesWithOtherUserId(List<String> phones);
+            select new com.nakamas.hatfieldbackend.models.views.outgoing.user.UserAndPhone(u,p)
+            from User u
+            join u.phones p
+            where p in ?1 or SUBSTRING(p,LOCATE("-",p)+1) in ?1
+            """)
+    List<UserAndPhone> findUniquePhones(List<String> phones);
 }

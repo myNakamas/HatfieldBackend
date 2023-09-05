@@ -7,7 +7,6 @@ import com.nakamas.hatfieldbackend.models.enums.WarrantyPeriod;
 import com.nakamas.hatfieldbackend.models.views.incoming.CreateInvoice;
 import jakarta.persistence.*;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.data.jpa.domain.AbstractPersistable;
 
@@ -16,7 +15,6 @@ import java.time.ZonedDateTime;
 
 @Getter
 @Setter
-@NoArgsConstructor
 @Table
 @Entity
 public class Invoice extends AbstractPersistable<Long> {
@@ -28,7 +26,7 @@ public class Invoice extends AbstractPersistable<Long> {
     private Long ticketId;
     private ZonedDateTime timestamp;
     private Integer count;
-    @Column (columnDefinition = "text")
+    @Column(columnDefinition = "text")
     private String notes;
     private BigDecimal totalPrice;
     @ManyToOne
@@ -41,18 +39,19 @@ public class Invoice extends AbstractPersistable<Long> {
     private WarrantyPeriod warrantyPeriod;
     private Boolean valid;
 
-
-    public Invoice(CreateInvoice invoiceView, User creator, User client) {
-        if (invoiceView.getType() != null) this.type = invoiceView.getType();
-        if (invoiceView.getDeviceName() != null) this.deviceName = invoiceView.getDeviceName();
-        if (invoiceView.getSerialNumber() != null && !invoiceView.getSerialNumber().isBlank()) {
-            this.serialNumber = invoiceView.getSerialNumber();
-        } else {
-            this.serialNumber = "-";
-        }
-        this.ticketId = invoiceView.getTicketId();
+    public Invoice() {
         this.timestamp = ZonedDateTime.now();
         this.valid = true;
+
+    }
+
+    public Invoice(CreateInvoice invoiceView, User creator, User client) {
+        this();
+        if (invoiceView.getType() != null) this.type = invoiceView.getType();
+        if (invoiceView.getDeviceName() != null) this.deviceName = invoiceView.getDeviceName();
+        if (invoiceView.getSerialNumber() != null && !invoiceView.getSerialNumber().isBlank())
+            this.serialNumber = invoiceView.getSerialNumber();
+        else this.serialNumber = "-";
         if (invoiceView.getTicketId() != null) this.ticketId = invoiceView.getTicketId();
         if (invoiceView.getCount() != null) {
             this.count = invoiceView.getCount();
@@ -71,7 +70,21 @@ public class Invoice extends AbstractPersistable<Long> {
         }
     }
 
-    public boolean isValid(){
-        return this.valid==null || this.valid;
+    public Invoice(Ticket ticket, InvoiceType type, User creator) {
+        this.type = type;
+        this.serialNumber = ticket.getSerialNumberOrImei();
+        this.deviceName = "%s %s".formatted(ticket.getDeviceBrandString(), ticket.getDeviceModelString());
+        this.client = ticket.getClient();
+        this.createdBy = creator;
+        this.count = 1;
+//        What is the payment method if its just deposit?> Always cash?no. make it like the rest.
+    }
+
+    public boolean isValid() {
+        return this.valid == null || this.valid;
+    }
+
+    public static boolean isTicketInvoice(Invoice i) {
+        return i.isValid() && i.getType().equals(InvoiceType.REPAIR);
     }
 }

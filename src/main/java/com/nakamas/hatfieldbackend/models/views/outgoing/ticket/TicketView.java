@@ -1,5 +1,6 @@
 package com.nakamas.hatfieldbackend.models.views.outgoing.ticket;
 
+import com.nakamas.hatfieldbackend.models.entities.ticket.Invoice;
 import com.nakamas.hatfieldbackend.models.entities.ticket.Ticket;
 import com.nakamas.hatfieldbackend.models.enums.TicketStatus;
 import com.nakamas.hatfieldbackend.models.views.outgoing.user.UserProfile;
@@ -50,6 +51,6 @@ public record TicketView(
                 new UserProfile(ticket.getCreatedBy()),
                 (ticket.getClient() != null) ? new UserProfile(ticket.getClient()) : null,
                 ticket.getUsedParts().stream().map(UsedPartView::new).toList(),
-                ticket.getInvoices().size() > 0? new InvoiceView(ticket.getInvoices().get(0)): null);
+                ticket.getInvoices().stream().filter(Invoice::isTicketInvoice).findFirst().map(InvoiceView::new).orElse(null));
     }
 }

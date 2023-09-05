@@ -32,6 +32,7 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 
 @Slf4j
@@ -60,10 +61,19 @@ public class TicketService {
         setOptionalProperties(create, ticket);
         if (create.clientId() != null) ticket.setClient(userService.getUser(create.clientId()));
         Ticket save = ticketRepository.save(ticket);
-        createMessageForTicket("Hello! Your ticket main issue is : " + ticket.getDeviceProblemExplanation() + " " + ticket.getCustomerRequest(), loggedUser, ticket);
+        sendInitialTicketMessage(loggedUser, ticket);
         printTicketLabels(save);
         loggerService.createLog(new Log(save.getId(), LogType.CREATED_TICKET), save.getId());
         return save;
+    }
+
+    private void sendInitialTicketMessage(User loggedUser, Ticket ticket) {
+        StringBuilder stringBuilder = new StringBuilder("Hello! We created Ticket#%s for you. \n");
+        if (!ticket.getDeviceProblemExplanation().isBlank())
+            stringBuilder.append("\nTicket description:").append(ticket.getDeviceProblemExplanation());
+        if (!ticket.getCustomerRequest().isBlank())
+            stringBuilder.append("\nAdditional request:").append(ticket.getDeviceProblemExplanation());
+        createMessageForTicket(stringBuilder.toString(), loggedUser, ticket);
     }
 
     public Long update(CreateTicket ticket, Long id) {
@@ -79,7 +89,7 @@ public class TicketService {
 
     //region Ticket population
     private void setOptionalProperties(CreateTicket create, Ticket ticket) {
-        if(create.deviceBrand() != null)
+        if (create.deviceBrand() != null)
             ticket.setDeviceBrand(inventoryService.getOrCreateBrand(create.deviceBrand()));
         if (ticket.getDeviceBrand() != null)
             ticket.setDeviceModel(inventoryService.getOrCreateModel(create.deviceModel(), ticket.getDeviceBrand()));
@@ -192,7 +202,7 @@ public class TicketService {
         } else if (!smsTemplate.isBlank()) {
             boolean result = smsService.sendSms(client, smsTemplate, getTicketContext(ticket));
             if (!result)
-                throw new CustomException(HttpStatus.OK,"The client could not be reached through email or sms. Please check their settings or the shop's settings.");
+                throw new CustomException(HttpStatus.OK, "The client could not be reached through email or sms. Please check their settings or the shop's settings.");
         }
     }
 
@@ -200,13 +210,15 @@ public class TicketService {
         Context context = new Context();
         context.setVariable("ticket", ticket);
         context.setVariable("client", ticket.getClient());
-        if (ticket.getInvoices().size() > 0) {
-            Invoice invoice = ticket.getInvoices().get(0);
+        Optional<Invoice> ticketInvoiceOptional = ticket.getInvoices().stream().filter(Invoice::isTicketInvoice).findFirst();
+        if (ticketInvoiceOptional.isPresent()) {
+            Invoice invoice = ticketInvoiceOptional.get();
             context.setVariable("invoice", invoice);
         }
         context.setVariable("deadline", ticket.getDeadline().format(formatter));
         return context;
     }
+
     private void printTicketLabels(Ticket ticket) {
         try {
             printTicket(ticket);
@@ -218,6 +230,7 @@ public class TicketService {
             log.warn(e.getMessage());
         }
     }
+
     public void printTicket(Ticket ticket) throws CustomException {
         if (ticket.getShop().getSettings().isPrintEnabled()) {
             PdfAndImageDoc doc = documentService.createTicket(ticket);
@@ -233,5 +246,16 @@ public class TicketService {
         }
     }
 
+    public byte[] createDepositInvoice(User user, Long id, CreateInvoice invoice) {
+        Ticket ticket = getTicket(id);
+        if(ticket.getDeposit()==null)
+            ticket.setDeposit(invoice.getTotalPrice());
+        else ticket.setDeposit(ticket.getDeposit().add(invoice.getTotalPrice()));
+        ticketRepository.save(ticket);
 
+        invoice.setType(InvoiceType.DEPOSIT);
+        invoice.setTicketInfo(ticket);
+        Invoice result = invoiceService.create(invoice, user);
+        return invoiceService.getAsBlob(result);
+    }
 }

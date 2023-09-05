@@ -60,25 +60,36 @@ public class UserService implements UserDetailsService, UserDetailsPasswordServi
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        return userRepository.findUser(username).orElseThrow(() -> new UsernameNotFoundException("User does not exist"));
+        Optional<User> userByUsernameOrEmail = userRepository.findUser(username);
+        if (userByUsernameOrEmail.isPresent())
+            return userByUsernameOrEmail.get();
+        String phone = extractPhoneNumber(username);
+        return userRepository.findUserByPhone(phone).orElseThrow(() -> new UsernameNotFoundException("User does not exist"));
+    }
+
+    private String extractPhoneNumber(String phone) {
+        if (phone.contains("-")) return phone.substring(phone.indexOf('-') + 1);
+        if (phone.startsWith("0")) return phone.substring(1);
+        return phone;
     }
 
     @Override
     public UserDetails updatePassword(UserDetails userDetails, String newPassword) {
         User user = (User) userDetails;
         user.setPassword(newPassword);
-        validateAndSave(user);
+        userRepository.save(user);
         return user;
     }
 
     public void clientUpdatePassword(User user, String newPassword) {
-        user.setPassword(passwordEncoder.encode(newPassword));
-        validateAndSave(user);
+        validatePassword(newPassword);
+        updatePassword(user, passwordEncoder.encode(newPassword));
     }
 
     public void changePassword(User user, String oldPassword, String newPassword) {
         if (!passwordEncoder.matches(oldPassword, user.getPassword()))
             throw new CustomException("Incorrect old password!");
+        validatePassword(newPassword);
         User userFromDb = getUser(user.getId());
         updatePassword(userFromDb, passwordEncoder.encode(newPassword));
     }
@@ -114,6 +125,7 @@ public class UserService implements UserDetailsService, UserDetailsPasswordServi
         if (Objects.equals(userInfo.role(), UserRole.CLIENT)) {
             return createClient(userInfo);
         } else {
+            validatePassword(userInfo.password());
             user.setPassword(passwordEncoder.encode(user.getPassword()));
             user.setEmailPermission(false);
             user.setSmsPermission(false);
@@ -138,7 +150,10 @@ public class UserService implements UserDetailsService, UserDetailsPasswordServi
         User user = getUser(userInfo.userId());
         String updateInfo = loggerService.userUpdateCheck(user, userInfo);
         user.updateAsAdmin(userInfo, shopRepository.findById(userInfo.shopId()).orElse(user.getShop()));
-        if (!userInfo.password().isBlank()) user.setPassword(passwordEncoder.encode(userInfo.password()));
+        if (!userInfo.password().isBlank()) {
+            validatePassword(userInfo.password());
+            user.setPassword(passwordEncoder.encode(userInfo.password()));
+        }
         User endUser = validateAndSave(user);
         loggerService.createLog(new Log(LogType.UPDATED_USER), user.getFullName(), updateInfo);
         return endUser;
@@ -221,10 +236,13 @@ public class UserService implements UserDetailsService, UserDetailsPasswordServi
     }
 
     private void validateUniquePhones(User user) {
-        List<UserAndPhone> phonesWithOtherUserId = userRepository.findPhonesWithOtherUserId(user.getPhones());
-        String message = "Phone numbers already exist on a different user:" + phonesWithOtherUserId.stream().map(UserAndPhone::phone).collect(Collectors.joining(","));
+        if (user.getPhones() == null || user.getPhones().size() == 0) return;
+        List<String> phones = user.getPhones().stream().map(this::extractPhoneNumber).toList();
+        List<UserAndPhone> uniquePhones = userRepository.findUniquePhones(phones);
 
-        if (!phonesWithOtherUserId.isEmpty() && user.getId() == null || phonesWithOtherUserId.stream().anyMatch(u -> !Objects.equals(u.user().getId(), user.getId())))
+        String message = "Phone numbers already exist on a different user:" + uniquePhones.stream().map(UserAndPhone::phone).collect(Collectors.joining(","));
+
+        if (!uniquePhones.isEmpty() && user.getId() == null || uniquePhones.stream().anyMatch(u -> !Objects.equals(u.user().getId(), user.getId())))
             throw new CustomException(message);
     }
 
@@ -267,4 +285,9 @@ public class UserService implements UserDetailsService, UserDetailsPasswordServi
         ));
         return context;
     }
+
+    private static void validatePassword(String newPassword) {
+        if (newPassword.length() < 5) throw new CustomException("Password must be at least 5 symbols");
+    }
+
 }

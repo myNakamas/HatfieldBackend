@@ -33,11 +33,11 @@ public final class TestData {
     }
 
     public static CreateUser getTestUser(Shop shop) {
-        return new CreateUser(null, correctUsername, "Adam John", correctPassword, UserRole.ADMIN, "email@email.com", List.of("+359898575932"), shop.getId());
+        return new CreateUser(null, correctUsername, "Adam John", correctPassword, UserRole.ADMIN, "email@email.com", new ArrayList<>(), shop.getId());
     }
 
     public static CreateUser getTestUser(String username, String email, UserRole role, Shop shop) {
-        return new CreateUser(null, username, "Adam John", correctPassword, role, email, List.of("+359898575932" + phoneCount++), shop.getId());
+        return new CreateUser(null, username, "Adam John", correctPassword, role, email, List.of("+359-898575932" + phoneCount++), shop.getId());
     }
 
     public static Category getCategory() {

@@ -1,5 +1,6 @@
 package com.nakamas.hatfieldbackend.services;
 
+import com.nakamas.hatfieldbackend.config.exception.CustomException;
 import com.nakamas.hatfieldbackend.models.entities.Log;
 import com.nakamas.hatfieldbackend.models.entities.User;
 import com.nakamas.hatfieldbackend.models.entities.shop.InventoryItem;
@@ -48,8 +49,8 @@ public class InvoicingService {
 
     public Invoice getByTicketId(Long id) {
         List<Invoice> invoices = invoiceRepository.findByTicketId(id);
-        if (invoices.size() > 0) return invoices.get(0);
-        return null;
+        Optional<Invoice> first = invoices.stream().filter(Invoice::isValid).findFirst();
+        return first.orElse(null);
     }
 
     public Invoice getById(Long invoiceId) {
@@ -65,7 +66,8 @@ public class InvoicingService {
     }
 
     public byte[] getAsBlob(Invoice invoice) {
-        return documentService.createInvoice("%s/invoices?invoiceId=%s".formatted(frontendHost, invoice.getId()), invoice);
+        String qrContent = "%s/invoices?invoiceId=%s".formatted(frontendHost, invoice.getId());
+        return documentService.createInvoice(qrContent, invoice);
     }
 
     public InvoiceReport getInvoiceMonthlyReport(InvoiceFilter invoiceFilter) {
@@ -112,5 +114,12 @@ public class InvoicingService {
         byId.setValid(false);
         loggerService.createLog(new Log(LogType.INVALIDATED_INVOICE, invoiceId), invoiceId);
         invoiceRepository.save(byId);
+    }
+
+    public Invoice getDepositInvoice(Long ticketId) {
+        List<Invoice> invoices = invoiceRepository.findByTicketIdAndType(ticketId, InvoiceType.DEPOSIT);
+        Optional<Invoice> first = invoices.stream().filter(Invoice::isValid).findFirst();
+        if (first.isEmpty()) throw new CustomException("No deposit invoice was found for this ticket");
+        return first.get();
     }
 }

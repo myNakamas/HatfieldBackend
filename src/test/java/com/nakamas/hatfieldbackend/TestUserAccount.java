@@ -27,6 +27,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -61,67 +62,101 @@ class TestUserAccount {
     }
 
     @Test
-    void load_user_by_username_should_fail(){
+    void load_user_by_username_should_fail() {
         assertThrows(UsernameNotFoundException.class, () -> userService.loadUserByUsername("fakeName"));
     }
 
     @Test
-    void load_user_by_username_should_succeed(){
+    void load_user_by_username_should_succeed() {
         assertEquals(userService.loadUserByUsername(correctUsername), registeredUser);
     }
 
+    //    Assert that it login works with either 0 or the country code.
     @Test
-    void change_password_should_fail(){
+    void load_user_by_phones_should_succeed() {
+        User existingUser = userService.createUser(new CreateUser(null, "new Username", "new user",
+                correctPassword, UserRole.ENGINEER, "newemail@email.com", List.of("+359-898575932"), registeredUser.getShop().getId()));
+        String userPhone = existingUser.getPhones().get(0);
+        String phoneNum = userPhone.substring(userPhone.indexOf("-") + 1);
+        assertEquals(userService.loadUserByUsername(userPhone), existingUser);
+        assertEquals(userService.loadUserByUsername("0" + phoneNum), existingUser);
+    }
+
+    @Test
+    void change_password_should_fail() {
         assertThrows(CustomException.class,
                 () -> userService.changePassword(registeredUser, "incorrectPassword", "newPassword"));
     }
 
     @Test
-    void create_user_existing_username_should_fail(){
+    void create_user_existing_username_should_fail() {
         assertThrows(CustomException.class,
                 () -> createSecondUser(correctUsername, "exmaple@email.com"));
     }
 
     @Test
-    void create_user_existing_email_should_fail(){
+    void create_user_existing_email_should_fail() {
         assertThrows(CustomException.class,
-                () ->  createSecondUser("new username", registeredUser.getEmail()));
+                () -> createSecondUser("new username", registeredUser.getEmail()));
     }
 
     @Test
-    void create_user_should_succeed(){
+    void create_user_existing_phones_should_fail() {
+        User existingUser = userService.createUser(new CreateUser(null, "new Username", "new user",
+                correctPassword, UserRole.ENGINEER, "newemail@email.com", List.of("+359-898575932"), registeredUser.getShop().getId()));
+        List<String> phones = new ArrayList<>(existingUser.getPhones());
+        assertThrows(CustomException.class,
+                () -> userService.createUser(new CreateUser(null, "new Username", "new user",
+                        correctPassword, UserRole.ENGINEER, "newemail@email.com", phones, existingUser.getShop().getId())));
+    }
+
+    //    Assert that phones will interfere, no matter the country code
+    //    It is required so the users can log in with their localized phone number.
+    //    For example "08.." instead of "+44..."
+    @Test
+    void create_user_existing_phones_different_format_should_fail() {
+        User existingUser = userService.createUser(new CreateUser(null, "new Username", "new user",
+                correctPassword, UserRole.ENGINEER, "newemail@email.com", List.of("+359-898575932"), registeredUser.getShop().getId()));
+        List<String> phones = new ArrayList<>(existingUser.getPhones().stream().map(s -> 0 + s.substring(s.indexOf("-") + 1)).toList());
+        assertThrows(CustomException.class,
+                () -> userService.createUser(new CreateUser(null, "new Username", "new user",
+                        correctPassword, UserRole.ENGINEER, "newemail@email.com", phones, existingUser.getShop().getId())));
+    }
+
+    @Test
+    void create_user_should_succeed() {
         assertDoesNotThrow(() -> createSecondUser("new username", "newEmail@gmail.com"));
     }
 
     @Test
-    void create_client_existing_username_should_fail(){
+    void create_client_existing_username_should_fail() {
         assertThrows(CustomException.class,
                 () -> createSecondUser(correctUsername, "exmaple@email.com"));
     }
 
     @Test
-    void create_client_existing_email_should_fail(){
+    void create_client_existing_email_should_fail() {
         assertThrows(CustomException.class,
                 () -> createClient("new username", registeredUser.getEmail()));
     }
 
     @Test
-    void create_client_should_succeed(){
+    void create_client_should_succeed() {
         assertDoesNotThrow(() -> createClient("new username", "newEmail@gmail.com"));
     }
 
     @Test
     @Transactional
-    void update_user_as_admin_existing_username_should_fail(){
+    void update_user_as_admin_existing_username_should_fail() {
         User user = createSecondUser("new username", "exmaple@email.com");
         assertThrows(CustomException.class,
                 () -> userService.updateUser(new CreateUser(user.getId(), correctUsername, "new user",
-                        correctPassword, UserRole.ENGINEER,"exmaple@email.com", null, registeredUser.getShop().getId())));
+                        correctPassword, UserRole.ENGINEER, "exmaple@email.com", null, registeredUser.getShop().getId())));
     }
 
     @Test
     @Transactional
-    void update_user_as_admin_existing_email_should_fail(){
+    void update_user_as_admin_existing_email_should_fail() {
         User user = createSecondUser("new username", "exmaple@email.com");
         assertThrows(CustomException.class,
                 () -> userService.updateUser(new CreateUser(user.getId(), "new username", "new user",
@@ -130,24 +165,24 @@ class TestUserAccount {
 
     @Test
     @Transactional
-    void update_user_as_admin_should_succeed(){
+    void update_user_as_admin_should_succeed() {
         User user = createSecondUser("new username", "exmaple@email.com");
-        assertDoesNotThrow(() ->userService.updateUser(new CreateUser(user.getId(), "new new username", "new user",
-                correctPassword, UserRole.ENGINEER,"newNewEmail@gmail.com", null, registeredUser.getShop().getId())));
+        assertDoesNotThrow(() -> userService.updateUser(new CreateUser(user.getId(), "new new username", "new user",
+                correctPassword, UserRole.ENGINEER, "newNewEmail@gmail.com", null, registeredUser.getShop().getId())));
     }
 
     @Test
     @Transactional
-    void update_user_existing_username_should_fail(){
+    void update_user_existing_username_should_fail() {
         User user = createSecondUser("new username", "exmaple@email.com");
         assertThrows(CustomException.class,
                 () -> userService.updateUser(user, new CreateUser(user.getId(), correctUsername, "new user",
-                        correctPassword, UserRole.ENGINEER,"exmaple@email.com", null, registeredUser.getShop().getId())));
+                        correctPassword, UserRole.ENGINEER, "exmaple@email.com", null, registeredUser.getShop().getId())));
     }
 
     @Test
     @Transactional
-    void update_user_existing_email_should_fail(){
+    void update_user_existing_email_should_fail() {
         User user = createSecondUser("new username", "exmaple@email.com");
         assertThrows(CustomException.class,
                 () -> userService.updateUser(user, new CreateUser(user.getId(), "new username", "new user",
@@ -156,14 +191,14 @@ class TestUserAccount {
 
     @Test
     @Transactional
-    void update_user_should_succeed(){
+    void update_user_should_succeed() {
         User user = createSecondUser("new username", "exmaple@email.com");
-        assertDoesNotThrow(() ->userService.updateUser(user, new CreateUser(user.getId(), "new new username", "new user",
-                correctPassword, UserRole.ENGINEER,"newNewEmail@gmail.com", null, registeredUser.getShop().getId())));
+        assertDoesNotThrow(() -> userService.updateUser(user, new CreateUser(user.getId(), "new new username", "new user",
+                correctPassword, UserRole.ENGINEER, "newNewEmail@gmail.com", null, registeredUser.getShop().getId())));
     }
 
     @Test
-    void get_workers_should_fail(){
+    void get_workers_should_fail() {
         createClient("new username", "newEmail@gmail.com");
         UserFilter filter = new UserFilter();
         filter.setSearchBy("new username");

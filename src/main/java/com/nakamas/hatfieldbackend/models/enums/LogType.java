@@ -38,6 +38,7 @@ public enum LogType {
     CREATED_REPAIR_INVOICE("User %s created repair Invoice#%s;"),
     CREATED_BUY_INVOICE("User %s created buy Invoice#%s;"),
     CREATED_ACCESSORIES_INVOICE("User %s created accessory Invoice#%s;"),
+    CREATED_DEPOSIT_INVOICE("User %s created a deposit Invoice#%s for a ticket;"),
     INVALIDATED_INVOICE("User %s invalidated Invoice#%s;"),
     //endregion
 
@@ -64,6 +65,7 @@ public enum LogType {
             case REPAIR -> CREATED_REPAIR_INVOICE;
             case BUY -> CREATED_BUY_INVOICE;
             case ACCESSORIES -> CREATED_ACCESSORIES_INVOICE;
+            case DEPOSIT -> CREATED_DEPOSIT_INVOICE;
         };
     }
 
