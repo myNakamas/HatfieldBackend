@@ -162,29 +162,29 @@ public class LoggerService {
             updateInfo.append("Brand updated from ").append(ticket.getDeviceBrandString()).append(" to ").append(view.deviceBrand()).append(LOG_SEPARATOR);
         if (view.deviceLocation() != null && !Objects.equals(ticket.getDeviceLocationString(), view.deviceLocation()))
             updateInfo.append("Location updated from ").append(ticket.getDeviceLocationString()).append(" to ").append(view.deviceLocation()).append(LOG_SEPARATOR);
-        if (!Objects.equals(ticket.getCustomerRequest(), view.customerRequest()))
+        if (view.customerRequest() != null && !Objects.equals(ticket.getCustomerRequest(), view.customerRequest()))
             updateInfo.append("Customer request updated from ").append(ticket.getCustomerRequest()).append(" to ").append(view.customerRequest()).append(LOG_SEPARATOR);
-        if (!Objects.equals(ticket.getDeviceProblemExplanation(), view.problemExplanation()))
+        if (view.problemExplanation()  != null && !Objects.equals(ticket.getDeviceProblemExplanation(), view.problemExplanation()))
             updateInfo.append("Device problem updated from ").append(ticket.getDeviceProblemExplanation()).append(" to ").append(view.problemExplanation()).append(LOG_SEPARATOR);
-        if (!Objects.equals(ticket.getDeviceCondition(), view.deviceCondition()))
+        if (view.deviceCondition() != null && !Objects.equals(ticket.getDeviceCondition(), view.deviceCondition()))
             updateInfo.append("Device condition updated from ").append(ticket.getDeviceCondition()).append(" to ").append(view.deviceCondition()).append(LOG_SEPARATOR);
-        if (!Objects.equals(ticket.getDevicePassword(), view.devicePassword()))
+        if (view.devicePassword() != null && !Objects.equals(ticket.getDevicePassword(), view.devicePassword()))
             updateInfo.append("Device password updated from ").append(ticket.getDevicePassword()).append(" to ").append(view.devicePassword()).append(LOG_SEPARATOR);
-        if (!Objects.equals(ticket.getSerialNumberOrImei(), view.serialNumberOrImei()))
+        if (view.serialNumberOrImei() != null && !Objects.equals(ticket.getSerialNumberOrImei(), view.serialNumberOrImei()))
             updateInfo.append("IMEI updated from ").append(ticket.getSerialNumberOrImei()).append(" to ").append(view.serialNumberOrImei()).append(LOG_SEPARATOR);
-        if (!Objects.equals(ticket.getAccessories(), view.accessories()))
+        if (view.accessories() != null && !Objects.equals(ticket.getAccessories(), view.accessories()))
             updateInfo.append("Accessories updated from ").append(ticket.getAccessories()).append(" to ").append(view.accessories()).append(LOG_SEPARATOR);
-        if (isZonedDateTimeDifferent(ticket.getDeadline(), view.deadline()))
+        if (view.deadline() != null && isZonedDateTimeDifferent(ticket.getDeadline(), view.deadline()))
             updateInfo.append("Deadline updated from ").append(ticket.getDeadline().format(dtf)).append(" to ").append(view.deadline().withZoneSameInstant(ticket.getDeadline().getZone()).format(dtf)).append(LOG_SEPARATOR);
-        if (!Objects.equals(ticket.getNotes(), view.notes()))
+        if (view.notes() != null && !Objects.equals(ticket.getNotes(), view.notes()))
             updateInfo.append("Notes updated from ").append(ticket.getNotes()).append(" to ").append(view.notes()).append(LOG_SEPARATOR);
-        if (!Objects.equals(ticket.getStatus(), view.status()))
+        if (view.status() != null && !Objects.equals(ticket.getStatus(), view.status()))
             updateInfo.append("Status updated from ").append(ticket.getStatus().toString()).append(" to ").append(view.status()).append(LOG_SEPARATOR);
-        if (isBigDecimalDifferent(ticket.getTotalPrice(), view.totalPrice()))
+        if (view.totalPrice() != null && isBigDecimalDifferent(ticket.getTotalPrice(), view.totalPrice()))
             updateInfo.append("Total price updated from ").append(ticket.getTotalPrice().toString()).append(" to ").append(view.totalPrice()).append(LOG_SEPARATOR);
-        if (isBigDecimalDifferent(ticket.getDeposit(), view.deposit()))
+        if (view.deposit() != null && isBigDecimalDifferent(ticket.getDeposit(), view.deposit()))
             updateInfo.append("Deposit updated from ").append(ticket.getDeposit().toString()).append(" to ").append(view.deposit()).append(LOG_SEPARATOR);
-        if (ticket.getClient() != null && ticket.getClient().getId() != null && !Objects.equals(ticket.getClient().getId(), view.clientId()))
+        if (view.clientId() != null && ticket.getClient() != null && ticket.getClient().getId() != null && !Objects.equals(ticket.getClient().getId(), view.clientId()))
             updateInfo.append("Client updated from ").append(ticket.getClient().getId().toString()).append(" to ").append(view.clientId()).append(LOG_SEPARATOR);
         return updateInfo.toString();
     }
@@ -210,7 +210,7 @@ public class LoggerService {
             updateInfo.append("Username updated from ").append(user.getUsername()).append(" to ").append(view.username()).append(LOG_SEPARATOR);
         if (!Objects.equals(user.getFullName(), view.fullName()))
             updateInfo.append("Full name updated from ").append(user.getFullName()).append(" to ").append(view.fullName()).append(LOG_SEPARATOR);
-        if (!Objects.equals(user.getPassword(), view.password())) updateInfo.append("Password updated. ");
+        if (!Objects.equals(user.getPassword(), view.password())) updateInfo.append("Password updated. ").append(LOG_SEPARATOR);
         if (!Objects.equals(user.getRole().getRole(), view.role().getRole()))
             updateInfo.append("Role updated from ").append(user.getRole().getRole()).append(" to ").append(view.role().getRole()).append(LOG_SEPARATOR);
         if (!Objects.equals(user.getEmail(), view.email()))

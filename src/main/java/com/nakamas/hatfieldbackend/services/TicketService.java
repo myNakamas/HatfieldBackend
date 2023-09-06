@@ -68,7 +68,7 @@ public class TicketService {
     }
 
     private void sendInitialTicketMessage(User loggedUser, Ticket ticket) {
-        StringBuilder stringBuilder = new StringBuilder("Hello! We created Ticket#%s for you. \n");
+        StringBuilder stringBuilder = new StringBuilder("Hello! We created Ticket#%s for you. \n".formatted(ticket.getId()));
         if (!ticket.getDeviceProblemExplanation().isBlank())
             stringBuilder.append("\nTicket description:").append(ticket.getDeviceProblemExplanation());
         if (!ticket.getCustomerRequest().isBlank())
@@ -114,7 +114,8 @@ public class TicketService {
     }
 
     public List<TicketView> findAllActive(TicketFilter ticketFilter) {
-        ticketFilter.setTicketStatuses(List.of(TicketStatus.STARTED, TicketStatus.DIAGNOSED, TicketStatus.PENDING));
+        if (ticketFilter.getTicketStatuses() == null || ticketFilter.getTicketStatuses().size() == 0)
+            ticketFilter.setTicketStatuses(List.of(TicketStatus.STARTED, TicketStatus.DIAGNOSED, TicketStatus.PENDING, TicketStatus.FINISHED));
         return ticketRepository.findAll(ticketFilter).stream().map(TicketView::new).toList();
     }
 
@@ -248,7 +249,7 @@ public class TicketService {
 
     public byte[] createDepositInvoice(User user, Long id, CreateInvoice invoice) {
         Ticket ticket = getTicket(id);
-        if(ticket.getDeposit()==null)
+        if (ticket.getDeposit() == null)
             ticket.setDeposit(invoice.getTotalPrice());
         else ticket.setDeposit(ticket.getDeposit().add(invoice.getTotalPrice()));
         ticketRepository.save(ticket);

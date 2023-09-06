@@ -35,7 +35,7 @@ public class InitialConfig implements ApplicationRunner {
     }
 
     private static ShopSettings defaultShopSettings() {
-        return new ShopSettings("#eec550", "#203e5f", false, "gmail", "password", true, "192.168.0.51", "QL-580N", false, "smsApiKey", null, null);
+        return new ShopSettings("#eec550", "#203e5f", false, "", "", false, "", "QL-580N", false, "", null, null);
     }
 
     private void persistInitialBrands() {
