@@ -22,6 +22,7 @@ public class InventoryItemFilter implements Specification<InventoryItem> {
     private Long categoryId;
     private Integer minCount;
     private Boolean isNeeded;
+    private Boolean onlyNonEmpty;
     private Boolean inShoppingList;
 
     @Override
@@ -42,6 +43,9 @@ public class InventoryItemFilter implements Specification<InventoryItem> {
             predicates.add(criteriaBuilder.ge(item.get("count"), minCount));
         if (inShoppingList != null && inShoppingList) {
             predicates.add(criteriaBuilder.gt(item.get("requiredItem").get("requiredAmount"), item.get("count")));
+        }
+        if (onlyNonEmpty != null && onlyNonEmpty) {
+            predicates.add(criteriaBuilder.gt(item.get("count"),0));
         }
         if (searchBy != null && !searchBy.isBlank()) {
             MapJoin<InventoryItem, String, String> otherProperties = item.joinMap("otherProperties");

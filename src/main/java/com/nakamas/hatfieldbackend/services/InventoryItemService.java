@@ -148,13 +148,13 @@ public class InventoryItemService {
     @Transactional
     public void updateQuantity(Long id, Integer quantity) {
         InventoryItem item = inventoryItemRepository.findById(id).orElseThrow(() -> new CustomException("Item with provided id could not be found"));
-        loggerService.createLog(new Log(LogType.UPDATE_ITEM_COUNT), item.getCount().toString(), quantity.toString());
+        loggerService.createLog(new Log(LogType.UPDATE_ITEM_COUNT),item, item.getCount(), quantity);
         inventoryItemRepository.updateQuantity(id, quantity);
     }
 
     public void remove(Long id) {
         InventoryItem item = inventoryItemRepository.findById(id).orElseThrow(() -> new CustomException("Item with provided id could not be found"));
-        loggerService.createLog(new Log(LogType.UPDATE_ITEM_COUNT), item.getCount().toString(), "0");
+        loggerService.createLog(new Log(LogType.UPDATE_ITEM_COUNT),item, item.getCount(), 0);
         item.setCount(0);
         item.getRequiredItem().setNeeded(false);
         inventoryItemRepository.save(item);
