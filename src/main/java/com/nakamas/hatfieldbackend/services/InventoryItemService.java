@@ -111,17 +111,11 @@ public class InventoryItemService {
 
     public UsedPart useItemForTicket(Long inventoryItemId, Ticket ticket, Integer count) {
         InventoryItem item = getItem(inventoryItemId);
-        updateItemCount(count, item);
+        item.removeCount(count);
         inventoryItemRepository.save(item);
         UsedPart usedPart = new UsedPart(ticket, item, count, ZonedDateTime.now());
         loggerService.createLog(new Log(LogType.USED_PART), item, ticket.getId(), count);
         return usedPartRepository.save(usedPart);
-    }
-
-    private static void updateItemCount(Integer count, InventoryItem item) {
-        if (item.getCount() < count)
-            throw new CustomException("Not enough Items in storage!");
-        item.setCount(item.getCount() - count);
     }
 
     public PageView<InventoryItemView> getShopInventory(InventoryItemFilter filter, PageRequestView pageRequestView) {
@@ -254,9 +248,16 @@ public class InventoryItemService {
         return categoryRepository.findById(categoryId).map(CategoryView::new).orElse(null);
     }
 
+    public void buyItem(Long itemId, Integer count) {
+        InventoryItem item = getItem(itemId);
+        item.addCount(count);
+        loggerService.createLog(new Log(LogType.BOUGHT_ITEM), item, count);
+        inventoryItemRepository.save(item);
+    }
+
     public void sellItem(Long id, Integer count) {
         InventoryItem item = getItem(id);
-        updateItemCount(count, item);
+        item.removeCount(count);
         loggerService.createLog(new Log(LogType.SOLD_ITEM), item, count);
         inventoryItemRepository.save(item);
     }

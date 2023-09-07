@@ -24,6 +24,8 @@ public class Invoice extends AbstractPersistable<Long> {
     private String serialNumber;
     @Column(name = "ticket_id")
     private Long ticketId;
+    @Column(name = "item_id")
+    private Long itemId;
     private ZonedDateTime timestamp;
     private Integer count;
     @Column(columnDefinition = "text")
@@ -53,6 +55,7 @@ public class Invoice extends AbstractPersistable<Long> {
             this.serialNumber = invoiceView.getSerialNumber();
         else this.serialNumber = "-";
         if (invoiceView.getTicketId() != null) this.ticketId = invoiceView.getTicketId();
+        if (invoiceView.getItemId() != null) this.itemId = invoiceView.getItemId();
         if (invoiceView.getCount() != null) {
             this.count = invoiceView.getCount();
         } else {

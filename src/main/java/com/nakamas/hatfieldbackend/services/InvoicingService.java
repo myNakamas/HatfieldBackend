@@ -3,7 +3,6 @@ package com.nakamas.hatfieldbackend.services;
 import com.nakamas.hatfieldbackend.config.exception.CustomException;
 import com.nakamas.hatfieldbackend.models.entities.Log;
 import com.nakamas.hatfieldbackend.models.entities.User;
-import com.nakamas.hatfieldbackend.models.entities.shop.InventoryItem;
 import com.nakamas.hatfieldbackend.models.entities.ticket.Invoice;
 import com.nakamas.hatfieldbackend.models.enums.InvoiceType;
 import com.nakamas.hatfieldbackend.models.enums.LogType;
@@ -35,11 +34,7 @@ public class InvoicingService {
     private final LoggerService loggerService;
 
     public Invoice create(CreateInvoice invoice, User user) {
-        if (invoice.getItemId() != null) {
-            InventoryItem item = inventoryItemService.getItem(invoice.getItemId());
-            invoice.setItemInfo(item);
-            inventoryItemService.sellItem(item.getId(), invoice.getCount());
-        }
+        if (invoice.getItemId() != null) updateItemFromInvoice(invoice);
         Invoice newInvoice = invoiceRepository.save(new Invoice(invoice,
                 user,
                 invoice.getClientId() == null ? null : userService.getUser(invoice.getClientId())));
@@ -121,5 +116,13 @@ public class InvoicingService {
         Optional<Invoice> first = invoices.stream().filter(Invoice::isValid).findFirst();
         if (first.isEmpty()) throw new CustomException("No deposit invoice was found for this ticket");
         return first.get();
+    }
+
+    private void updateItemFromInvoice(CreateInvoice invoice) {
+        switch (invoice.getType()){
+            case BUY -> inventoryItemService.buyItem(invoice.getItemId(),invoice.getCount());
+            case SELL,ACCESSORIES -> inventoryItemService.sellItem(invoice.getItemId(), invoice.getCount());
+        }
+
     }
 }

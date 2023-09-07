@@ -50,7 +50,7 @@ public class InitialConfig implements ApplicationRunner {
 
     public void run(ApplicationArguments args) {
         if (userRepository.count() == 0) {
-            Shop initialShop = new Shop("Hatfield", "London, Street 023", "fakePhoneNum", "gakeEmail@email.com", defaultShopSettings());
+            Shop initialShop = new Shop("Hatfield", "","","", defaultShopSettings());
             Shop save = shopRepository.save(initialShop);
             userService.createUser(defaultUser(save.getId()));
             persistInitialBrands();

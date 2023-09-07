@@ -25,6 +25,7 @@ public enum LogType {
     ADD_ITEM_TO_SHOPPING_LIST("User %s added item %s to the shopping list;"),
     REMOVE_ITEM_FROM_SHOPPING_LIST("User %s removed item %s from the shopping list;"),
     USED_PART("User %s used %s %s for Ticket#%s;"),
+    BOUGHT_ITEM("User %s bought %s of %s;"),
     SOLD_ITEM("User %s sold %s of %s;"),
     UPDATE_ITEM_COUNT("User %s updated item %s count from %s to %s;"),
     UPDATE_ITEM("User %s updated item %s;%s;"),
