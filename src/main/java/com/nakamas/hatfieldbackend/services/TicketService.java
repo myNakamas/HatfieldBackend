@@ -175,6 +175,7 @@ public class TicketService {
         ticket.setStatus(TicketStatus.COLLECTED);
         invoice.setType(InvoiceType.REPAIR);
         invoice.setTicketInfo(ticket);
+        //        todo: Invalidate all previous Deposit invoices for the selected ticket
         Invoice result = invoiceService.create(invoice, user);
         createMessageForTicket("The device has been collected. Information can be found" +
                                " in your 'invoices' tab. If that action hasn't been done by you please contact the store.", user, ticket);
@@ -249,14 +250,12 @@ public class TicketService {
 
     public byte[] createDepositInvoice(User user, Long id, CreateInvoice invoice) {
         Ticket ticket = getTicket(id);
-        if (ticket.getDeposit() == null)
-            ticket.setDeposit(invoice.getTotalPrice());
-        else ticket.setDeposit(ticket.getDeposit().add(invoice.getTotalPrice()));
+        ticket.setDeposit(invoice.getTotalPrice());
         ticketRepository.save(ticket);
-
         invoice.setType(InvoiceType.DEPOSIT);
         invoice.setTicketInfo(ticket);
         Invoice result = invoiceService.create(invoice, user);
+//        todo: Invalidate all previous Deposit invoices for the selected ticket
         return invoiceService.getAsBlob(result);
     }
 }
