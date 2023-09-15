@@ -25,6 +25,7 @@ dependencies {
 
 //	Communication
 	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation 'org.springframework.boot:spring-boot-starter-webflux'
 	implementation 'org.springframework.boot:spring-boot-starter-websocket'
 	implementation 'org.webjars:stomp-websocket:2.3.4'
 
@@ -43,8 +44,10 @@ dependencies {
 	implementation 'com.google.code.findbugs:jsr305:3.0.2'
 	annotationProcessor 'org.projectlombok:lombok'
 
-// Email
+// Email & SMS
 	implementation 'org.springframework.boot:spring-boot-starter-mail'
+	implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+	implementation 'ognl:ognl:3.4.1' // Use the appropriate version
 
 //	Tests
 	testRuntimeOnly 'com.h2database:h2'

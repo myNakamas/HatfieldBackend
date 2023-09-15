@@ -21,10 +21,11 @@ import java.util.Random;
 public final class TestData {
     public static final String correctPassword = "CorrectPassword";
     public static final String correctUsername = "CorrectUsername";
+    public static Integer phoneCount = 0;
     private static final Random random = new Random();
 
     public static ShopSettings getTestShopSettings() {
-        return new ShopSettings("#eec550", "#1a2634", "gmail", "password",false,"printerIp","QL-500N", "smsApiKey", null, null);
+        return new ShopSettings("#eec550", "#1a2634", false, "gmail", "password", false, "printerIp", "QL-500N", false, "smsApiKey", null, null);
     }
 
     public static Shop getTestShop() {
@@ -32,11 +33,11 @@ public final class TestData {
     }
 
     public static CreateUser getTestUser(Shop shop) {
-        return new CreateUser(null, correctUsername, "Adam John", correctPassword, UserRole.ADMIN, "email@email.com", List.of("+359898575932"), shop.getId());
+        return new CreateUser(null, correctUsername, "Adam John", correctPassword, UserRole.ADMIN, "email@email.com", new ArrayList<>(), shop.getId());
     }
 
     public static CreateUser getTestUser(String username, String email, UserRole role, Shop shop) {
-        return new CreateUser(null, username, "Adam John", correctPassword, role, email, List.of("+359898575932"), shop.getId());
+        return new CreateUser(null, username, "Adam John", correctPassword, role, email, List.of("+359-898575932" + phoneCount++), shop.getId());
     }
 
     public static Category getCategory() {

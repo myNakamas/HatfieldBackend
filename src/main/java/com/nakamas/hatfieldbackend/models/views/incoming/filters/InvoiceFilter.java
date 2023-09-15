@@ -24,6 +24,7 @@ public class InvoiceFilter implements Specification<Invoice> {
     private Long shopId;
     private UUID clientId;
     private UUID createdById;
+    private Long ticketId;
     private LocalDate createdBefore;
     private LocalDate createdAfter;
     private InvoiceType type;
@@ -33,10 +34,10 @@ public class InvoiceFilter implements Specification<Invoice> {
     public Predicate toPredicate(@NonNull Root<Invoice> invoice, @NonNull CriteriaQuery<?> query, @NonNull CriteriaBuilder builder) {
         List<Predicate> predicates = new ArrayList<>();
         if (model != null && !model.isBlank())
-            predicates.add(builder.like(invoice.get("deviceModel"), model));
+            predicates.add(builder.like(invoice.get("deviceName"), "%" + model + "%"));
         predicates.add(builder.equal(invoice.get("valid"), Objects.requireNonNullElse(valid, true)));
         if (brand != null && !brand.isBlank())
-            predicates.add(builder.like(invoice.get("deviceBrand"), brand));
+            predicates.add(builder.like(invoice.get("deviceName"), "%" + brand + "%"));
         if (createdById != null)
             predicates.add(builder.equal(invoice.get("createdBy").get("id"), createdById));
         if (shopId != null)
@@ -47,6 +48,8 @@ public class InvoiceFilter implements Specification<Invoice> {
             predicates.add(builder.lessThanOrEqualTo(invoice.get("timestamp"), createdBefore.plusDays(1L).atStartOfDay().atZone(ZoneId.systemDefault())));
         if (createdAfter != null)
             predicates.add(builder.greaterThanOrEqualTo(invoice.get("timestamp"), createdAfter.atStartOfDay().atZone(ZoneId.systemDefault())));
+        if (ticketId != null)
+            predicates.add(builder.equal(invoice.get("ticketId"), ticketId));
         if (type != null)
             predicates.add(builder.equal(invoice.get("type"), type));
         if (searchBy != null && !searchBy.isBlank()) {

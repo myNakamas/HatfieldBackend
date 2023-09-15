@@ -32,27 +32,29 @@ public class ShopService {
         return new ShopSettingsView(shop.getSettings());
     }
 
-    public ShopView getShopById(Long id){
+    public ShopView getShopById(Long id) {
         return new ShopView(shopRepository.findById(id).orElseThrow(() -> new CustomException("")));
     }
+
     public Shop create(CreateShop create) {
         Shop newShop = shopRepository.save(new Shop(create));
-        loggerService.shopActions(new Log(LogType.CREATED_SHOP), newShop);
+        loggerService.createLog(new Log(LogType.CREATED_SHOP), newShop.getShopName());
         return newShop;
     }
 
     public Shop update(CreateShop updateView) {
         Optional<Shop> byId = shopRepository.findById(updateView.id());
         Shop shop = byId.orElseThrow(() -> new CustomException("Could not find shop with id '%s'".formatted(updateView.id())));
+        String updateInfo = loggerService.shopUpdateCheck(shop, updateView);
         shop.update(updateView);
-        loggerService.shopActions(new Log(LogType.UPDATED_SHOP), shop);
+        loggerService.createLog(new Log(LogType.UPDATED_SHOP), shop.getShopName(), updateInfo);
         return shopRepository.save(shop);
     }
 
-    public List<WorkerShopView> workerShops(){
+    public List<WorkerShopView> workerShops() {
         List<Shop> allAdminShops = shopRepository.findAll();
         List<WorkerShopView> allWorkerShops = new ArrayList<>();
-        for (Shop shop: allAdminShops) {
+        for (Shop shop : allAdminShops) {
             allWorkerShops.add(new WorkerShopView(shop.getId(), shop.getShopName()));
         }
         return allWorkerShops;

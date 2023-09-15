@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Repair Status Update</title>
+</head>
+<body>
+<h2>Repair Status Update: Ticket Frozen</h2>
+<p>Hello <span th:text="${ticket.client.fullName}"></span>,</p>
+
+<p>We want to inform you that the status of your repair ticket has been updated. The repair for your device is currently on hold. Here are the details:</p>
+
+<ul>
+    <li><strong>Ticket ID:</strong> <span th:text="${ticket.id}"></span></li>
+    <li><strong>Device Model:</strong> <span th:text="${ticket.deviceModelString}"></span></li>
+    <li><strong>Device Brand:</strong> <span th:text="${ticket.deviceBrandString}"></span></li>
+    <li><strong>Device Location:</strong> <span th:text="${ticket.deviceLocationString}"></span></li>
+    <li><strong>Problem Explanation:</strong> <span th:text="${ticket.deviceProblemExplanation}"></span></li>
+    <li><strong>Device Condition:</strong> <span th:text="${ticket.deviceCondition}"></span></li>
+    <li><strong>Serial Number or IMEI:</strong> <span th:text="${ticket.serialNumberOrImei}"></span></li>
+    <li><strong>Accessories:</strong> <span th:text="${ticket.accessories}"></span></li>
+    <li><strong>Deadline:</strong> <span th:text="${deadline}"></span></li>
+    <li><strong>Notes:</strong> <span th:text="${ticket.notes}"></span></li>
+</ul>
+
+<p>We apologize for any inconvenience this may cause. Our team is working diligently to resolve the situation and will provide you with updates as soon as possible.</p>
+
+<p>If you have any questions or concerns, please feel free to contact us. We appreciate your understanding and patience.</p>
+
+<p>Best regards,<br>
+    <span th:text="${ticket.shop.shopName}"/></p>
+
+</body>
+</html>

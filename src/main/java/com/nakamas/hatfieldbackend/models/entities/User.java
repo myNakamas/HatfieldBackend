@@ -34,6 +34,9 @@ public class User extends AbstractPersistable<UUID> implements UserDetails {
 
     private String email;
     @ElementCollection
+    @CollectionTable( name = "user_phones",
+            uniqueConstraints= @UniqueConstraint(columnNames={"phones"})
+    )
     private List<String> phones;
     private UserRole role;
     private Boolean isActive;
@@ -112,5 +115,12 @@ public class User extends AbstractPersistable<UUID> implements UserDetails {
     @Override
     public boolean isCredentialsNonExpired() {
         return true;
+    }
+
+    public boolean isEmailEnabled() {
+        return this.emailPermission && this.email!=null && !this.email.isBlank();
+    }
+    public boolean isSMSEnabled() {
+        return this.smsPermission && this.phones.size()>0;
     }
 }

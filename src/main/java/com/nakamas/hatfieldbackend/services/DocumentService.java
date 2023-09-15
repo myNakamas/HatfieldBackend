@@ -9,6 +9,7 @@ import com.nakamas.hatfieldbackend.models.entities.ticket.Ticket;
 import com.nakamas.hatfieldbackend.models.views.outgoing.PdfAndImageDoc;
 import com.nakamas.hatfieldbackend.repositories.InvoiceRepository;
 import jakarta.transaction.Transactional;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import net.glxn.qrgen.javase.QRCode;
 import org.apache.commons.io.FileUtils;
@@ -30,6 +31,7 @@ import org.springframework.boot.ApplicationRunner;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
@@ -46,6 +48,7 @@ import java.util.List;
 
 @Slf4j
 @Service
+@Getter
 public class DocumentService implements ApplicationRunner {
     @Value(value = "${fe-host:http://localhost:5173}")
     private String frontendHost;
@@ -299,8 +302,13 @@ public class DocumentService implements ApplicationRunner {
         contents.close();
     }
 
-    public void executePrint(File image) {
-        ShopSettings settings = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getShop().getSettings();
+    public void executePrint(File image) throws CustomException {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null) {
+            log.error("No authenticated user found, skipping print");
+            return;
+        }
+        ShopSettings settings = ((User) authentication.getPrincipal()).getShop().getSettings();
         if (!settings.isPrintEnabled()) {
             log.info("Shop settings do not allow printing. Cannot print images.");
             return;

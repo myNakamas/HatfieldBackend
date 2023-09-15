@@ -1,9 +1,11 @@
 package com.nakamas.hatfieldbackend.services;
 
+import com.nakamas.hatfieldbackend.config.exception.CustomException;
+import com.nakamas.hatfieldbackend.models.entities.Log;
 import com.nakamas.hatfieldbackend.models.entities.User;
-import com.nakamas.hatfieldbackend.models.entities.shop.InventoryItem;
 import com.nakamas.hatfieldbackend.models.entities.ticket.Invoice;
 import com.nakamas.hatfieldbackend.models.enums.InvoiceType;
+import com.nakamas.hatfieldbackend.models.enums.LogType;
 import com.nakamas.hatfieldbackend.models.views.incoming.CreateInvoice;
 import com.nakamas.hatfieldbackend.models.views.incoming.PageRequestView;
 import com.nakamas.hatfieldbackend.models.views.incoming.filters.InvoiceFilter;
@@ -32,22 +34,18 @@ public class InvoicingService {
     private final LoggerService loggerService;
 
     public Invoice create(CreateInvoice invoice, User user) {
-        if(invoice.getItemId()!=null ) {
-            InventoryItem item = inventoryItemService.getItem(invoice.getItemId());
-            invoice.setItemInfo(item);
-            inventoryItemService.sellItem(item.getId(), invoice.getCount());
-        }
+        if (invoice.getItemId() != null) updateItemFromInvoice(invoice);
         Invoice newInvoice = invoiceRepository.save(new Invoice(invoice,
                 user,
                 invoice.getClientId() == null ? null : userService.getUser(invoice.getClientId())));
-        loggerService.createInvoiceActions(newInvoice.getType(), newInvoice.getId());
+        loggerService.createLog(new Log(LogType.getLogType(invoice.getType()), newInvoice.getId()), newInvoice.getId());
         return newInvoice;
     }
 
     public Invoice getByTicketId(Long id) {
         List<Invoice> invoices = invoiceRepository.findByTicketId(id);
-        if (invoices.size() > 0) return invoices.get(0);
-        return null;
+        Optional<Invoice> first = invoices.stream().filter(Invoice::isValid).findFirst();
+        return first.orElse(null);
     }
 
     public Invoice getById(Long invoiceId) {
@@ -63,7 +61,8 @@ public class InvoicingService {
     }
 
     public byte[] getAsBlob(Invoice invoice) {
-        return documentService.createInvoice("%s/invoices?invoiceId=%s".formatted(frontendHost, invoice.getId()), invoice);
+        String qrContent = "%s/invoices?invoiceId=%s".formatted(frontendHost, invoice.getId());
+        return documentService.createInvoice(qrContent, invoice);
     }
 
     public InvoiceReport getInvoiceMonthlyReport(InvoiceFilter invoiceFilter) {
@@ -108,7 +107,22 @@ public class InvoicingService {
     public void invalidateInvoice(Long invoiceId) {
         Invoice byId = getById(invoiceId);
         byId.setValid(false);
-        loggerService.invalidateInvoiceActions(invoiceId);
+        loggerService.createLog(new Log(LogType.INVALIDATED_INVOICE, invoiceId), invoiceId);
         invoiceRepository.save(byId);
+    }
+
+    public Invoice getDepositInvoice(Long ticketId) {
+        List<Invoice> invoices = invoiceRepository.findByTicketIdAndType(ticketId, InvoiceType.DEPOSIT);
+        Optional<Invoice> first = invoices.stream().filter(Invoice::isValid).findFirst();
+        if (first.isEmpty()) throw new CustomException("No deposit invoice was found for this ticket");
+        return first.get();
+    }
+
+    private void updateItemFromInvoice(CreateInvoice invoice) {
+        switch (invoice.getType()){
+            case BUY -> inventoryItemService.buyItem(invoice.getItemId(),invoice.getCount());
+            case SELL,ACCESSORIES -> inventoryItemService.sellItem(invoice.getItemId(), invoice.getCount());
+        }
+
     }
 }

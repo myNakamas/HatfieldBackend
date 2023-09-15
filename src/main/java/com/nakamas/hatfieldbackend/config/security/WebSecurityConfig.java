@@ -72,7 +72,7 @@ public class WebSecurityConfig {
                         .requestMatchers(adminUrlMatchers).hasAuthority(UserRole.ADMIN_VALUE)
                         .requestMatchers(workerUrlMatchers).hasAnyAuthority(UserRole.WORKER_VALUE, UserRole.ADMIN_VALUE)
                         .requestMatchers(clientUrlMatchers).hasAnyAuthority(UserRole.CLIENT_VALUE,UserRole.WORKER_VALUE, UserRole.ADMIN_VALUE)
-                        .requestMatchers("/public/**", "/ws").permitAll()
+                        .requestMatchers("/api/public/**", "/ws").permitAll()
                         .anyRequest().authenticated().and())
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and()
                 .exceptionHandling().authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED));

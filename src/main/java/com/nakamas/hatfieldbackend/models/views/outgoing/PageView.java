@@ -14,7 +14,7 @@ public class PageView<T> {
     private final List<T> content;
 
     public PageView(Page<T> page) {
-        this.page = page.getNumber();
+        this.page = page.getNumber() + 1;
         this.pageSize = page.getSize();
         this.totalCount = page.getTotalElements();
         this.pageCount = page.getTotalPages();

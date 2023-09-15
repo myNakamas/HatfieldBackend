@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Repair Completed: Thank You</title>
+</head>
+<body>
+<h2>Thank You for Choosing Us!</h2>
+<p>Dear <span th:text="${client.fullName}"></span>,</p>
+
+<p>We wanted to express our sincere gratitude for choosing our repair services. Your trust in us means a lot, and we are delighted to have been able to assist you with your device.</p>
+
+<p>Your device has been successfully repaired, and we hope it's working perfectly for you now. Our team has worked hard to ensure that the repair was carried out with the utmost care and expertise.</p>
+
+<p>As a part of our commitment to your satisfaction, we provide you with a warranty for the repair service. Your warranty details are as follows:</p>
+
+<ul>
+    <li><strong>Device Name:</strong> <span th:text="${invoice.deviceName}"></span></li>
+    <li><strong>Serial Number:</strong> <span th:text="${invoice.serialNumber}"></span></li>
+    <li><strong>Warranty Period:</strong> <span th:text="${invoice.warrantyPeriod}"></span></li>
+</ul>
+
+<p>This warranty covers any potential issues related to the repair work, and we are here to assist you should you encounter any problems within the specified warranty period.</p>
+
+<p>If you have any feedback or suggestions for improvement, please don't hesitate to share them with us. We value your opinion and are always striving to enhance our services.</p>
+
+<p>Thank you again for your business. If you need any further assistance in the future, please don't hesitate to reach out to us. We look forward to serving you again!</p>
+
+<p>Best regards,<br>
+    <span th:text="${ticket.shop.shopName}"/></p>
+</body>
+</html>

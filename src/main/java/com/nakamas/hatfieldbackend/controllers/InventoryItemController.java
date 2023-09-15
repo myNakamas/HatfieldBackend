@@ -113,6 +113,11 @@ public class InventoryItemController {
         return inventoryItemService.getAllModels();
     }
 
+    @PatchMapping("model/edit")
+    public void renameModel(@RequestBody ItemPropertyView model) {
+        inventoryItemService.renameModel(model.id(), model.value());
+    }
+
     @GetMapping("brand/all")
     public List<BrandView> getAllBrands() {
         return inventoryItemService.getAllBrands();

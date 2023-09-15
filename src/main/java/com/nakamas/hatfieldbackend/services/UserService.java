@@ -8,15 +8,20 @@ import com.nakamas.hatfieldbackend.models.enums.LogType;
 import com.nakamas.hatfieldbackend.models.enums.UserRole;
 import com.nakamas.hatfieldbackend.models.views.incoming.CreateUser;
 import com.nakamas.hatfieldbackend.models.views.incoming.filters.UserFilter;
+import com.nakamas.hatfieldbackend.models.views.outgoing.ResponseMessage;
+import com.nakamas.hatfieldbackend.models.views.outgoing.user.UserAndPhone;
 import com.nakamas.hatfieldbackend.repositories.PhotoRepository;
 import com.nakamas.hatfieldbackend.repositories.ShopRepository;
 import com.nakamas.hatfieldbackend.repositories.UserRepository;
+import com.nakamas.hatfieldbackend.util.JwtUtil;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.mail.MailAuthenticationException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsPasswordService;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -24,14 +29,14 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import org.thymeleaf.TemplateEngine;
+import org.thymeleaf.context.Context;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.List;
-import java.util.Locale;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -42,36 +47,60 @@ public class UserService implements UserDetailsService, UserDetailsPasswordServi
     private final PhotoRepository photoRepository;
     private final ShopRepository shopRepository;
     private final LoggerService loggerService;
+    private final EmailService emailService;
+    private final SmsService smsService;
+    private final TemplateEngine templateEngine;
+    @Value(value = "${fe-host:http://localhost:5173}")
+    private String frontendHost;
+    private final JwtUtil jwtUtil;
+
     public User getUser(UUID id) {
         return userRepository.findById(id).orElseThrow(() -> new CustomException("User does not exist"));
     }
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        return userRepository.findUser(username).orElseThrow(() -> new UsernameNotFoundException("User does not exist"));
+        Optional<User> userByUsernameOrEmail = userRepository.findUser(username);
+        if (userByUsernameOrEmail.isPresent())
+            return userByUsernameOrEmail.get();
+        String phone = extractPhoneNumber(username);
+        return userRepository.findUserByPhone(phone).orElseThrow(() -> new UsernameNotFoundException("User does not exist"));
+    }
+
+    private String extractPhoneNumber(String phone) {
+        if (phone.contains("-")) return phone.substring(phone.indexOf('-') + 1);
+        if (phone.startsWith("0")) return phone.substring(1);
+        return phone;
     }
 
     @Override
     public UserDetails updatePassword(UserDetails userDetails, String newPassword) {
         User user = (User) userDetails;
         user.setPassword(newPassword);
-        validateAndSave(user);
+        userRepository.save(user);
         return user;
+    }
+
+    public void clientUpdatePassword(User user, String newPassword) {
+        validatePassword(newPassword);
+        updatePassword(user, passwordEncoder.encode(newPassword));
     }
 
     public void changePassword(User user, String oldPassword, String newPassword) {
         if (!passwordEncoder.matches(oldPassword, user.getPassword()))
             throw new CustomException("Incorrect old password!");
-        updatePassword(user, passwordEncoder.encode(newPassword));
+        validatePassword(newPassword);
+        User userFromDb = getUser(user.getId());
+        updatePassword(userFromDb, passwordEncoder.encode(newPassword));
     }
 
     // admin changing the settings of other users
     @Transactional
     public void updateUserBan(UUID id, Boolean status) {
         if (status) {
-            loggerService.userActions(new Log(LogType.BANNED_USER), id.toString());
+            loggerService.createLog(new Log(LogType.BANNED_USER), id.toString());
         } else {
-            loggerService.userActions(new Log(LogType.UNBANNED_USER), id.toString());
+            loggerService.createLog(new Log(LogType.UNBANNED_USER), id.toString());
         }
         userRepository.setBanned(id, status);
     }
@@ -83,9 +112,9 @@ public class UserService implements UserDetailsService, UserDetailsPasswordServi
     //user "deleting" his account
     public void updateUserActivity(User user, Boolean status) {
         if (!status) {
-            loggerService.userActions(new Log(LogType.DELETED_USER), user.getFullName());
+            loggerService.createLog(new Log(LogType.DELETED_USER), user.getFullName());
         } else {
-            loggerService.userActions(new Log(LogType.RESTORED_USER), user.getFullName());
+            loggerService.createLog(new Log(LogType.RESTORED_USER), user.getFullName());
         }
         user.setIsActive(status);
         userRepository.save(user);
@@ -96,6 +125,7 @@ public class UserService implements UserDetailsService, UserDetailsPasswordServi
         if (Objects.equals(userInfo.role(), UserRole.CLIENT)) {
             return createClient(userInfo);
         } else {
+            validatePassword(userInfo.password());
             user.setPassword(passwordEncoder.encode(user.getPassword()));
             user.setEmailPermission(false);
             user.setSmsPermission(false);
@@ -118,17 +148,26 @@ public class UserService implements UserDetailsService, UserDetailsPasswordServi
      */
     public User updateUser(CreateUser userInfo) {
         User user = getUser(userInfo.userId());
+        String updateInfo = loggerService.userUpdateCheck(user, userInfo);
         user.updateAsAdmin(userInfo, shopRepository.findById(userInfo.shopId()).orElse(user.getShop()));
-        if(!userInfo.password().isBlank()) user.setPassword(passwordEncoder.encode(userInfo.password()));
-        return validateAndSave(user);
+        if (!userInfo.password().isBlank()) {
+            validatePassword(userInfo.password());
+            user.setPassword(passwordEncoder.encode(userInfo.password()));
+        }
+        User endUser = validateAndSave(user);
+        loggerService.createLog(new Log(LogType.UPDATED_USER), user.getFullName(), updateInfo);
+        return endUser;
     }
 
     /**
      * Allows the user to make changes to itself.
      */
     public User updateUser(User user, CreateUser update) {
+        String updateInfo = loggerService.userUpdateCheck(user, update);
         user.update(update);
-        return validateAndSave(user);
+        User endUser = validateAndSave(user);
+        loggerService.createLog(new Log(LogType.UPDATED_USER), user.getFullName(), updateInfo);
+        return endUser;
     }
 
     public List<User> getAll(UserFilter filter) {
@@ -167,7 +206,7 @@ public class UserService implements UserDetailsService, UserDetailsPasswordServi
         try {
             Photo photo = photoRepository.save(new Photo(image.getBytes(), false));
             user.setImage(photo);
-            loggerService.userActions(new Log(LogType.UPDATED_USER), user.getFullName());
+            loggerService.createLog(new Log(LogType.UPDATED_USER), user.getFullName(), "User updated their photo.");
             userRepository.save(user);
         } catch (IOException e) {
             e.printStackTrace();
@@ -176,21 +215,35 @@ public class UserService implements UserDetailsService, UserDetailsPasswordServi
     }
 
     private User validateAndSave(User user) {
-        if(user.getShop()==null) throw new CustomException("User must be attached to a shop!");
-        List<User> existingUsers = userRepository.uniqueUserExists(user.getUsername(), user.getEmail());
-        if (user.isNew() && existingUsers.size() > 0 ||
-                existingUsers.stream().anyMatch(profile -> !Objects.equals(profile.getId(), user.getId())))
-            throw new CustomException("Username or email already taken!");
+        validateUser(user);
         if (user.isNew()) {
             if (Objects.equals(user.getRole(), UserRole.CLIENT)) {
-                loggerService.userActions(new Log(LogType.CREATED_CLIENT), user.getFullName());
+                loggerService.createLog(new Log(LogType.CREATED_CLIENT), user.getFullName());
             } else {
-                loggerService.userActions(new Log(LogType.CREATED_WORKER), user.getFullName());
+                loggerService.createLog(new Log(LogType.CREATED_WORKER), user.getFullName());
             }
-        }else{
-            loggerService.userActions(new Log(LogType.UPDATED_USER), user.getFullName());
         }
         return userRepository.save(user);
+    }
+
+    private void validateUser(User user) {
+        if (user.getShop() == null) throw new CustomException("User must be attached to a shop!");
+        List<User> existingUsers = userRepository.uniqueUserExists(user.getUsername(), user.getEmail());
+        if (user.isNew() && existingUsers.size() > 0 ||
+            existingUsers.stream().anyMatch(profile -> !Objects.equals(profile.getId(), user.getId())))
+            throw new CustomException("Username or email already taken!");
+        validateUniquePhones(user);
+    }
+
+    private void validateUniquePhones(User user) {
+        if (user.getPhones() == null || user.getPhones().size() == 0) return;
+        List<String> phones = user.getPhones().stream().map(this::extractPhoneNumber).toList();
+        List<UserAndPhone> uniquePhones = userRepository.findUniquePhones(phones);
+
+        String message = "Phone numbers already exist on a different user:" + uniquePhones.stream().map(UserAndPhone::phone).collect(Collectors.joining(","));
+
+        if (!uniquePhones.isEmpty() && user.getId() == null || uniquePhones.stream().anyMatch(u -> !Objects.equals(u.user().getId(), user.getId())))
+            throw new CustomException(message);
     }
 
     public String generateUsername() {
@@ -203,4 +256,38 @@ public class UserService implements UserDetailsService, UserDetailsPasswordServi
     public String generatePass() {
         return UUID.randomUUID().toString().substring(0, 7);
     }
+
+    public ResponseMessage forgotPassword(String userInfo) {
+        User user = userRepository.findUser(userInfo).orElseThrow(() -> new CustomException("There is no user with such username, email or phone!"));
+        final String NO_REQUEST_SENT_TO_USER_ERROR = "Your account or our shop do not allow email or sms communication. Please contact us on %s or %s or come visit us in person at %s".formatted(user.getShop().getEmail(), user.getShop().getPhone(), user.getShop().getAddress());
+        try {
+            if (user.isEmailEnabled()) {
+                String messageBody = templateEngine.process("email/forgotPassword", getUserForgotPasswordContext(user));
+                emailService.sendMail(user, messageBody, "Forgot password");
+                return new ResponseMessage("email");
+            }
+            if (smsService.isSmsEnabled(user)) {
+                smsService.sendSms(user, "forgotPassword.txt", getUserForgotPasswordContext(user));
+                return new ResponseMessage("phone");
+            }
+        } catch (MailAuthenticationException e) {
+            log.error("Cannot authenticate in Gmail using shop {}'s settings. Gmail's response: {}", user.getShop().getShopName(), e.getMessage());
+            throw new CustomException(NO_REQUEST_SENT_TO_USER_ERROR);
+        }
+        throw new CustomException(NO_REQUEST_SENT_TO_USER_ERROR);
+    }
+
+    private Context getUserForgotPasswordContext(User user) {
+        Context context = new Context();
+        context.setVariables(Map.of("clientName", user.getFullName(),
+                "shopName", user.getShop().getShopName(),
+                "resetLink", "%s/login/update-password?token=%s".formatted(frontendHost, jwtUtil.encode(user))
+        ));
+        return context;
+    }
+
+    private static void validatePassword(String newPassword) {
+        if (newPassword.length() < 5) throw new CustomException("Password must be at least 5 symbols");
+    }
+
 }

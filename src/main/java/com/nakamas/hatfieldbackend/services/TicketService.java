@@ -4,7 +4,6 @@ import com.nakamas.hatfieldbackend.config.exception.CustomException;
 import com.nakamas.hatfieldbackend.models.entities.Log;
 import com.nakamas.hatfieldbackend.models.entities.User;
 import com.nakamas.hatfieldbackend.models.entities.shop.DeviceLocation;
-import com.nakamas.hatfieldbackend.models.entities.shop.ShopSettings;
 import com.nakamas.hatfieldbackend.models.entities.shop.UsedPart;
 import com.nakamas.hatfieldbackend.models.entities.ticket.Invoice;
 import com.nakamas.hatfieldbackend.models.entities.ticket.Ticket;
@@ -17,17 +16,26 @@ import com.nakamas.hatfieldbackend.models.views.incoming.CreateTicket;
 import com.nakamas.hatfieldbackend.models.views.incoming.PageRequestView;
 import com.nakamas.hatfieldbackend.models.views.incoming.filters.TicketFilter;
 import com.nakamas.hatfieldbackend.models.views.outgoing.PageView;
+import com.nakamas.hatfieldbackend.models.views.outgoing.PdfAndImageDoc;
 import com.nakamas.hatfieldbackend.models.views.outgoing.ticket.TicketView;
 import com.nakamas.hatfieldbackend.repositories.DeviceLocationRepository;
 import com.nakamas.hatfieldbackend.repositories.TicketRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.thymeleaf.TemplateEngine;
+import org.thymeleaf.context.Context;
 
 import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class TicketService {
@@ -38,8 +46,14 @@ public class TicketService {
     private final LoggerService loggerService;
     private final InvoicingService invoiceService;
     private final MessageService messageService;
-
     private final EmailService emailService;
+    private final SmsService smsService;
+    private final TemplateEngine templateEngine;
+
+    private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm");
+
+
+    private final DocumentService documentService;
 
     //region Main
     public Ticket createTicket(CreateTicket create, User loggedUser) {
@@ -47,31 +61,43 @@ public class TicketService {
         setOptionalProperties(create, ticket);
         if (create.clientId() != null) ticket.setClient(userService.getUser(create.clientId()));
         Ticket save = ticketRepository.save(ticket);
-        loggerService.ticketActions(new Log(LogType.CREATED_TICKET), save);
+        sendInitialTicketMessage(loggedUser, ticket);
+        printTicketLabels(save);
+        loggerService.createLog(new Log(save.getId(), LogType.CREATED_TICKET), save.getId());
         return save;
+    }
+
+    private void sendInitialTicketMessage(User loggedUser, Ticket ticket) {
+        StringBuilder stringBuilder = new StringBuilder("Hello! We created Ticket#%s for you. \n".formatted(ticket.getId()));
+        if (!ticket.getDeviceProblemExplanation().isBlank())
+            stringBuilder.append("\nTicket description:").append(ticket.getDeviceProblemExplanation());
+        if (!ticket.getCustomerRequest().isBlank())
+            stringBuilder.append("\nAdditional request:").append(ticket.getDeviceProblemExplanation());
+        createMessageForTicket(stringBuilder.toString(), loggedUser, ticket);
     }
 
     public Long update(CreateTicket ticket, Long id) {
         Ticket ticketEntity = getTicket(id);
+        String updateInfo = loggerService.ticketUpdateCheck(ticketEntity, ticket);
         ticketEntity.update(ticket);
         if (ticket.clientId() != null) ticketEntity.setClient(userService.getUser(ticket.clientId()));
         setOptionalProperties(ticket, ticketEntity);
-        loggerService.ticketActions(new Log(LogType.UPDATED_TICKET), ticketEntity);
+        loggerService.createLog(new Log(ticketEntity.getId(), LogType.UPDATED_TICKET), Objects.requireNonNull(ticketEntity.getId()).toString(), updateInfo);
         return ticketRepository.save(ticketEntity).getId();
     }
     //endregion
 
     //region Ticket population
     private void setOptionalProperties(CreateTicket create, Ticket ticket) {
-        ticket.setDeviceBrand(inventoryService.getOrCreateBrand(create.deviceBrand()));
-        if (ticket.getDeviceBrand() != null)
+        if (create.deviceBrand() != null)
+            ticket.setDeviceBrand(inventoryService.getOrCreateBrand(create.deviceBrand()));
+        if (create.deviceModel() != null)
             ticket.setDeviceModel(inventoryService.getOrCreateModel(create.deviceModel(), ticket.getDeviceBrand()));
-        if (!ticket.getDeviceLocationString().isBlank() && !ticket.getDeviceLocationString().equals(create.deviceLocation())) {
-            loggerService.ticketActions(new Log(LogType.MOVED_TICKET), ticket);
-        }
-        DeviceLocation location = getOrCreateLocation(create.deviceLocation());
-        if (location != null) {
-            ticket.setDeviceLocation(location);
+        if (create.deviceLocation() != null) {
+            DeviceLocation location = getOrCreateLocation(create.deviceLocation());
+            if (location != null) {
+                ticket.setDeviceLocation(location);
+            }
         }
     }
 
@@ -88,23 +114,22 @@ public class TicketService {
     }
 
     public List<TicketView> findAllActive(TicketFilter ticketFilter) {
-        ticketFilter.setTicketStatuses(List.of(TicketStatus.STARTED, TicketStatus.DIAGNOSED, TicketStatus.PENDING));
+        if (ticketFilter.getTicketStatuses() == null || ticketFilter.getTicketStatuses().size() == 0)
+            ticketFilter.setTicketStatuses(List.of(TicketStatus.STARTED, TicketStatus.DIAGNOSED, TicketStatus.PENDING, TicketStatus.FINISHED));
         return ticketRepository.findAll(ticketFilter).stream().map(TicketView::new).toList();
     }
 
     //endregion
 
     //region Ticket buttons
-
     public void startRepair(User user, Long id) {
-        Ticket ticket = ticketRepository.getReferenceById(id);
-        ticket.setDeviceLocation(deviceLocationRepository.findByName("at lab"));
+        Ticket ticket = getTicket(id);
+//        ticket.setDeviceLocation(deviceLocationRepository.findByName("IN_THE_LAB"));
         ticket.setStatus(TicketStatus.STARTED);
         createMessageForTicket("Hello! The repair of your device has been initiated.", user, ticket);
-        //send sms if options allow
-        sendEmail(ticket.getClient(), "Update on Your Device Repair",
-                "Dear client, \n\nYour device repair has begun. Updates coming soon. Please do check your chat in our system. \n\n Best regards, \n" + user.getShop().getShopName());
-        loggerService.ticketActions(new Log(LogType.STARTED_TICKET), ticket);
+        sendEmailOrSms(ticket.getClient(), ticket, "email/ticketStarted", "", "Your Device Repair has been started!");
+
+        loggerService.createLog(new Log(ticket.getId(), LogType.STARTED_TICKET), ticket.getId());
         ticketRepository.save(ticket);
     }
 
@@ -118,35 +143,30 @@ public class TicketService {
     }
 
     public void completeRepair(User user, Long id) {
-        Ticket ticket = ticketRepository.getReferenceById(id);
+        Ticket ticket = getTicket(id);
         ticket.setStatus(TicketStatus.FINISHED);
         createMessageForTicket("Repairment actions have finished! Please come and pick " +
-                "up your device at a comfortable time.", user, ticket);
-        //send sms if options allow
-        sendEmail(ticket.getClient(), "Update on Your Device Repair",
-                "Dear client, \n\nYour device repair has been completed. Please come pick up your device. \n\n Best regards, \n" + user.getShop().getShopName());
-        loggerService.ticketActions(new Log(LogType.FINISHED_TICKET), ticket);
+                               "up your device at a comfortable time.", user, ticket);
+        sendEmailOrSms(ticket.getClient(), ticket, "email/ticketCompleted", "ticketCompleted.txt", "Your Device Repair is done!");
+
+        loggerService.createLog(new Log(ticket.getId(), LogType.FINISHED_TICKET), ticket.getId());
         ticketRepository.save(ticket);
     }
 
     public void freezeRepair(User user, Long id) {
-        Ticket ticket = ticketRepository.getReferenceById(id);
+        Ticket ticket = getTicket(id);
         ticket.setStatus(TicketStatus.ON_HOLD);
         createMessageForTicket("Repairment actions are on hold!", user, ticket);
-        //send sms if options allow
-        sendEmail(ticket.getClient(), "Update on Your Device Repair",
-                "Dear client, \n\nYour device repair has been frozen. Please contact us to resolve the issue. \n\n Best regards, \n" + user.getShop().getShopName());
-        loggerService.ticketActions(new Log(LogType.FINISHED_TICKET), ticket);
+        sendEmailOrSms(ticket.getClient(), ticket, "email/ticketFrozen", "", "Your device repair has been frozen!");
+        loggerService.createLog(new Log(ticket.getId(), LogType.UPDATED_TICKET), Objects.requireNonNull(ticket.getId()).toString(), "Status updated to FROZEN.");
         ticketRepository.save(ticket);
     }
 
     public void cancelRepair(User user, Long id) {
-        Ticket ticket = ticketRepository.getReferenceById(id);
+        Ticket ticket = getTicket(id);
         ticket.setStatus(TicketStatus.CANCELLED_BY_CLIENT);
         createMessageForTicket("Repairment actions are canceled!", user, ticket);
-        //send sms if options allow
-        //email not needed - from client to client? xD
-        loggerService.ticketActions(new Log(LogType.UPDATED_TICKET), ticket);
+        loggerService.createLog(new Log(ticket.getId(), LogType.UPDATED_TICKET), Objects.requireNonNull(ticket.getId()).toString(), "Status updated to CANCELLED.");
         ticketRepository.save(ticket);
     }
 
@@ -155,14 +175,13 @@ public class TicketService {
         ticket.setStatus(TicketStatus.COLLECTED);
         invoice.setType(InvoiceType.REPAIR);
         invoice.setTicketInfo(ticket);
+        //        todo: Invalidate all previous Deposit invoices for the selected ticket
         Invoice result = invoiceService.create(invoice, user);
         createMessageForTicket("The device has been collected. Information can be found" +
-                " in your 'invoices' tab. If that action hasn't been done by you please contact the store.", user, ticket);
-        //sms
-        sendEmail(ticket.getClient(), "Update on Your Device",
-                "Dear client, \n\nYour device has been collected. Enjoy! \n\n Best regards, \n" + user.getShop().getShopName());
+                               " in your 'invoices' tab. If that action hasn't been done by you please contact the store.", user, ticket);
+        sendEmailOrSms(ticket.getClient(), ticket, "email/ticketCollected", "", "Thank you for choosing us!");
         ticketRepository.save(ticket);
-        loggerService.ticketActions(new Log(LogType.COLLECTED_TICKET), ticket);
+        loggerService.createLog(new Log(ticket.getId(), LogType.COLLECTED_TICKET), ticket.getId());
         return invoiceService.getAsBlob(result);
     }
 
@@ -176,16 +195,67 @@ public class TicketService {
     public Ticket getTicket(Long id) {
         return ticketRepository.findById(id).orElseThrow(() -> new CustomException("Cannot find Ticket with selected ID"));
     }
-    //endregion
 
-    private void sendSMS() {
+    //endregion
+    private void sendEmailOrSms(User client, Ticket ticket, String emailTemplate, String smsTemplate, String title) {
+        if (emailService.isEmailEnabled(client)) {
+            String messageBody = templateEngine.process(emailTemplate, getTicketContext(ticket));
+            emailService.sendMail(client, messageBody, title);
+        } else if (!smsTemplate.isBlank()) {
+            boolean result = smsService.sendSms(client, smsTemplate, getTicketContext(ticket));
+            if (!result)
+                throw new CustomException(HttpStatus.OK, "The client could not be reached through email or sms. Please check their settings or the shop's settings.");
+        }
+    }
+
+    public Context getTicketContext(Ticket ticket) {
+        Context context = new Context();
+        context.setVariable("ticket", ticket);
+        context.setVariable("client", ticket.getClient());
+        Optional<Invoice> ticketInvoiceOptional = ticket.getInvoices().stream().filter(Invoice::isTicketInvoice).findFirst();
+        if (ticketInvoiceOptional.isPresent()) {
+            Invoice invoice = ticketInvoiceOptional.get();
+            context.setVariable("invoice", invoice);
+        }
+        context.setVariable("deadline", ticket.getDeadline().format(formatter));
+        return context;
+    }
+
+    private void printTicketLabels(Ticket ticket) {
+        try {
+            printTicket(ticket);
+            printTicketTag(ticket);
+            if (ticket.getAccessories().contains("With Charger,")) {
+                printTicketTag(ticket);
+            }
+        } catch (CustomException e) {
+            log.warn(e.getMessage());
+        }
+    }
+
+    public void printTicket(Ticket ticket) throws CustomException {
+        if (ticket.getShop().getSettings().isPrintEnabled()) {
+            PdfAndImageDoc doc = documentService.createTicket(ticket);
+            documentService.executePrint(doc.image());
+        }
 
     }
 
-    private void sendEmail(User client, String title, String mailMessage) {
-        if (client != null && client.getEmailPermission() && client.getEmail() != null) {
-            ShopSettings shopSettings = client.getShop().getSettings();
-            emailService.sendMail(shopSettings.getGmail(), shopSettings.getGmailPassword(), client.getEmail(), title, mailMessage);
+    public void printTicketTag(Ticket ticket) throws CustomException {
+        if (ticket.getShop().getSettings().isPrintEnabled()) {
+            PdfAndImageDoc doc = documentService.createRepairTag("%s/tickets?ticketId=%s".formatted(documentService.getFrontendHost(), ticket.getId()), ticket);
+            documentService.executePrint(doc.image());
         }
+    }
+
+    public byte[] createDepositInvoice(User user, Long id, CreateInvoice invoice) {
+        Ticket ticket = getTicket(id);
+        ticket.setDeposit(invoice.getTotalPrice());
+        ticketRepository.save(ticket);
+        invoice.setType(InvoiceType.DEPOSIT);
+        invoice.setTicketInfo(ticket);
+        Invoice result = invoiceService.create(invoice, user);
+//        todo: Invalidate all previous Deposit invoices for the selected ticket
+        return invoiceService.getAsBlob(result);
     }
 }
