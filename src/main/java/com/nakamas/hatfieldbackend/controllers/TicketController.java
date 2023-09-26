@@ -84,8 +84,8 @@ public class TicketController {
     }
 
     @PutMapping("worker/complete")
-    public void completeTicket(@AuthenticationPrincipal User user, @RequestParam Long id) {
-        ticketService.completeRepair(user, id);
+    public void completeTicket(@AuthenticationPrincipal User user, @RequestParam Long id, @RequestParam Boolean success) {
+        ticketService.completeRepair(user, id, success);
     }
 
     @PutMapping("worker/collected")

@@ -67,7 +67,7 @@ class SmsServiceTest {
     @Test
     void sendSms() {
         user.setSmsPermission(true);
-        smsService.sendSms(user, "ticketCompleted.txt", ticketService.getTicketContext(ticket));
+        smsService.sendSms(user, "ticketCompletedSuccess.txt", ticketService.getTicketContext(ticket));
         verify(smsClient, times(1)).sendMessage(any(), any());
     }
 
