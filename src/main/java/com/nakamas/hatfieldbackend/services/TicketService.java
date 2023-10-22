@@ -39,6 +39,10 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class TicketService {
+    private static final String START_REPAIR_CHAT_MESSAGE = "Repair in Progress.\nWe're working on your device. Updates coming soon!";
+    private static final String SUCCESS_REPAIR_CHAT_MESSAGE = "Repair Completed!\nYour device is ready for pickup at your convenience.";
+    private static final String FAILED_REPAIR_CHAT_MESSAGE = "Repair Unsuccessful.\nUnfortunately, your device cannot be repaired.\nPlease come and pick it up at your earliest convenience.";
+
     private final TicketRepository ticketRepository;
     private final DeviceLocationRepository deviceLocationRepository;
     private final InventoryItemService inventoryService;
@@ -114,7 +118,7 @@ public class TicketService {
     }
 
     public List<TicketView> findAllActive(TicketFilter ticketFilter) {
-        if (ticketFilter.getTicketStatuses() == null || ticketFilter.getTicketStatuses().size() == 0)
+        if (ticketFilter.getTicketStatuses() == null || ticketFilter.getTicketStatuses().isEmpty())
             ticketFilter.setTicketStatuses(List.of(TicketStatus.STARTED, TicketStatus.DIAGNOSED, TicketStatus.PENDING, TicketStatus.FINISHED));
         return ticketRepository.findAll(ticketFilter).stream().map(TicketView::new).toList();
     }
@@ -126,9 +130,7 @@ public class TicketService {
         Ticket ticket = getTicket(id);
 //        ticket.setDeviceLocation(deviceLocationRepository.findByName("IN_THE_LAB"));
         ticket.setStatus(TicketStatus.STARTED);
-        createMessageForTicket("Hello! The repair of your device has been initiated.", user, ticket);
-        sendEmailOrSms(ticket.getClient(), ticket, "email/ticketStarted", "", "Your Device Repair has been started!");
-
+        createMessageForTicket(START_REPAIR_CHAT_MESSAGE, user, ticket);
         loggerService.createLog(new Log(ticket.getId(), LogType.STARTED_TICKET), ticket.getId());
         ticketRepository.save(ticket);
     }
@@ -142,22 +144,34 @@ public class TicketService {
                 ZonedDateTime.now(), user.getId(), clientId, ticket.getId(), false, true, null));
     }
 
-    public void completeRepair(User user, Long id) {
+    public void completeRepair(User user, Long id, Boolean success) {
         Ticket ticket = getTicket(id);
+        if (success)
+            completeSuccessfulRepair(user, ticket);
+        else completeUnfixableRepair(user, ticket);
+        ticketRepository.save(ticket);
+    }
+
+    private void completeSuccessfulRepair(User user, Ticket ticket) {
         ticket.setStatus(TicketStatus.FINISHED);
-        createMessageForTicket("Repairment actions have finished! Please come and pick " +
-                               "up your device at a comfortable time.", user, ticket);
-        sendEmailOrSms(ticket.getClient(), ticket, "email/ticketCompleted", "ticketCompleted.txt", "Your Device Repair is done!");
+        createMessageForTicket(SUCCESS_REPAIR_CHAT_MESSAGE, user, ticket);
+        sendEmailOrSms(ticket.getClient(), ticket, "email/ticketCompletedSuccess", "ticketCompletedSuccess.txt", "Your Device Repair has been completed!");
 
         loggerService.createLog(new Log(ticket.getId(), LogType.FINISHED_TICKET), ticket.getId());
-        ticketRepository.save(ticket);
+    }
+
+    private void completeUnfixableRepair(User user, Ticket ticket) {
+        ticket.setStatus(TicketStatus.UNFIXABLE);
+        createMessageForTicket(FAILED_REPAIR_CHAT_MESSAGE, user, ticket);
+        sendEmailOrSms(ticket.getClient(), ticket, "email/ticketCompletedFail", "ticketCompletedFail.txt", "Unsuccessful repair.");
+
+        loggerService.createLog(new Log(ticket.getId(), LogType.FINISHED_TICKET), ticket.getId());
     }
 
     public void freezeRepair(User user, Long id) {
         Ticket ticket = getTicket(id);
         ticket.setStatus(TicketStatus.ON_HOLD);
         createMessageForTicket("Repairment actions are on hold!", user, ticket);
-        sendEmailOrSms(ticket.getClient(), ticket, "email/ticketFrozen", "", "Your device repair has been frozen!");
         loggerService.createLog(new Log(ticket.getId(), LogType.UPDATED_TICKET), Objects.requireNonNull(ticket.getId()).toString(), "Status updated to FROZEN.");
         ticketRepository.save(ticket);
     }
@@ -178,8 +192,7 @@ public class TicketService {
         //        todo: Invalidate all previous Deposit invoices for the selected ticket
         Invoice result = invoiceService.create(invoice, user);
         createMessageForTicket("The device has been collected. Information can be found" +
-                               " in your 'invoices' tab. If that action hasn't been done by you please contact the store.", user, ticket);
-        sendEmailOrSms(ticket.getClient(), ticket, "email/ticketCollected", "", "Thank you for choosing us!");
+                " in your 'invoices' tab. If that action hasn't been done by you please contact the store.", user, ticket);
         ticketRepository.save(ticket);
         loggerService.createLog(new Log(ticket.getId(), LogType.COLLECTED_TICKET), ticket.getId());
         return invoiceService.getAsBlob(result);

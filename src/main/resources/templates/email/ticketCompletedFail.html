@@ -2,7 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org" lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Repair Completed</title>
+    <title>Repair Unsuccessful</title>
     <style>
         .details {
             font-weight: bold;
@@ -14,10 +14,10 @@
     </style>
 </head>
 <body>
-<h2>Repair Completed</h2>
+<h2>Repair Unsuccessful</h2>
 <p>Hello <span th:text="${ticket.client.fullName}"></span>,</p>
 
-<p>We are pleased to inform you that the repair of your device is now complete! Here are the details:</p>
+<p>We regret to inform you that the repair of your device was unsuccessful. Here are the details:</p>
 
 <ul>
     <li><strong>Ticket ID:</strong> <span th:text="${ticket.id}"></span></li>
@@ -32,18 +32,17 @@
     <li><strong>Notes:</strong> <span th:text="${ticket.notes}"></span></li>
 </ul>
 
-<p>Your device is now ready for pickup or delivery. Please visit our shop at <strong><span
+<p>Your device cannot be repaired, and we apologize for any inconvenience caused. You may visit our shop at <strong><span
         th:text="${ticket.shop.address}"></span></strong> during our business hours to collect your device. If you
-    prefer delivery, please contact us to arrange the details.</p>
+    prefer disposal or have any specific instructions, please contact us to arrange the details.</p>
 
-<p>If you have any questions or need further assistance, feel free to reach out to us. We look forward to seeing you
-    soon!</p>
+<p>If you have any questions or need further assistance, feel free to reach out to us. We appreciate your understanding and patience.</p>
 
 <p class="details">Total Price: <span class="price" th:text="${ticket.totalPrice}"></span></p>
 <p class="details">Deposit Paid: <span class="price" th:text="${ticket.deposit}"></span></p>
 
 <p>Best regards,<br>
-    <span th:text="${ticket.shop.shopName}"/></p>
+    <span th:text="${ticket.shop.shopName}"></span></p>
 
 </body>
 </html>

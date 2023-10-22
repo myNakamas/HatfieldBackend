@@ -7,6 +7,7 @@ import com.nakamas.hatfieldbackend.models.entities.ticket.ChatMessage;
 import com.nakamas.hatfieldbackend.models.entities.ticket.Ticket;
 import com.nakamas.hatfieldbackend.models.enums.UserRole;
 import com.nakamas.hatfieldbackend.models.views.incoming.CreateChatMessage;
+import com.nakamas.hatfieldbackend.models.views.outgoing.PageView;
 import com.nakamas.hatfieldbackend.models.views.outgoing.ticket.ChatMessageView;
 import com.nakamas.hatfieldbackend.models.views.outgoing.ticket.UserChats;
 import com.nakamas.hatfieldbackend.repositories.MessageRepository;
@@ -15,6 +16,7 @@ import com.nakamas.hatfieldbackend.repositories.TicketRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.SimpMessageType;
@@ -98,8 +100,8 @@ public class MessageService {
      * @return A list containing the outgoing chat message view
      * @see ChatMessageView
      */
-    public List<ChatMessageView> getChatMessagesByTicketId(Long ticketId) {
-        return messageRepository.findAllByTicket(ticketId).stream().map(ChatMessageView::new).toList();
+    public PageView<ChatMessageView> getChatMessagesByTicketId(Long ticketId, PageRequest pageRequest) {
+        return new PageView<>(messageRepository.findAllByTicket(ticketId, pageRequest).map(ChatMessageView::new));
     }
 
     /**
@@ -109,8 +111,8 @@ public class MessageService {
      * @return A list containing the outgoing chat message view
      * @see ChatMessageView
      */
-    public List<ChatMessageView> getChatMessagesForClientByTicket(UUID userId, Long ticketId) {
-        return messageRepository.findAllForClient(userId, ticketId).stream().map(ChatMessageView::new).toList();
+    public PageView<ChatMessageView> getChatMessagesForClientByTicket(UUID userId, Long ticketId, PageRequest pageRequest) {
+        return new PageView<>(messageRepository.findAllForClient(userId, ticketId, pageRequest).map(ChatMessageView::new));
     }
 
     public void createImageMessage(MultipartFile file, Long ticketId, Boolean publicMessage, User sender) {

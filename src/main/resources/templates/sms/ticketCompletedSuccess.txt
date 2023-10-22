@@ -1,0 +1,4 @@
+We regret to inform you that the attempted repair for your device '[[${ticket.deviceModelString}]] [[${ticket.deviceBrandString}]]' was unsuccessful.
+We apologize for any inconvenience caused. Thank you for considering our repair services.
+
+[[${ticket.shop.shopName}]]

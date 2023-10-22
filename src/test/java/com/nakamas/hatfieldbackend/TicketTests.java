@@ -161,7 +161,7 @@ public class TicketTests {
     @Test
     @Transactional
     void complete_ticket_repair_should_succeed() {
-        ticketService.completeRepair(user, ticket.getId());
+        ticketService.completeRepair(user, ticket.getId(), true);
         Assertions.assertEquals(ticketService.getTicket(ticket.getId()).getStatus(), TicketStatus.FINISHED);
     }
 
