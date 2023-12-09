@@ -128,7 +128,7 @@ public class TicketService {
     //region Ticket buttons
     public void startRepair(User user, Long id) {
         Ticket ticket = getTicket(id);
-//        ticket.setDeviceLocation(deviceLocationRepository.findByName("IN_THE_LAB"));
+        ticket.setDeviceLocation(deviceLocationRepository.findByName("IN_THE_LAB"));
         ticket.setStatus(TicketStatus.STARTED);
         createMessageForTicket(START_REPAIR_CHAT_MESSAGE, user, ticket);
         loggerService.createLog(new Log(ticket.getId(), LogType.STARTED_TICKET), ticket.getId());

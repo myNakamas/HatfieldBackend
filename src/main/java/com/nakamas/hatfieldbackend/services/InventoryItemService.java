@@ -100,7 +100,7 @@ public class InventoryItemService {
         if (item.getCount() < count) {
             throw new CustomException("Not enough items in inventory!");
         }
-        CreateInventoryItem itemView = new CreateInventoryItem(null, item.getName(), item.getPurchasePrice(), item.getSellPrice(), null, null, null, null, 0, null, null, new HashMap<>(item.getOtherProperties()));
+        CreateInventoryItem itemView = new CreateInventoryItem(null, item.getName(), "", item.getPurchasePrice(), item.getSellPrice(), null, null, null, null, 0, null, null, new HashMap<>(item.getOtherProperties()));
         InventoryItem newItem = inventoryItemRepository.findDublicateByShop(item.getBrand(), item.getModel(), item.getCategoryId(), shop).
                 orElse(new InventoryItem(itemView, item.getBrand(), item.getModel(), shop, categoryRepository.findById(item.getCategoryId()).orElse(null)));
         newItem.setCount(newItem.getCount() + count);
@@ -142,13 +142,13 @@ public class InventoryItemService {
     @Transactional
     public void updateQuantity(Long id, Integer quantity) {
         InventoryItem item = inventoryItemRepository.findById(id).orElseThrow(() -> new CustomException("Item with provided id could not be found"));
-        loggerService.createLog(new Log(LogType.UPDATE_ITEM_COUNT),item, item.getCount(), quantity);
+        loggerService.createLog(new Log(LogType.UPDATE_ITEM_COUNT), item, item.getCount(), quantity);
         inventoryItemRepository.updateQuantity(id, quantity);
     }
 
     public void remove(Long id) {
         InventoryItem item = inventoryItemRepository.findById(id).orElseThrow(() -> new CustomException("Item with provided id could not be found"));
-        loggerService.createLog(new Log(LogType.UPDATE_ITEM_COUNT),item, item.getCount(), 0);
+        loggerService.createLog(new Log(LogType.UPDATE_ITEM_COUNT), item, item.getCount(), 0);
         item.setCount(0);
         item.getRequiredItem().setNeeded(false);
         inventoryItemRepository.save(item);
@@ -304,7 +304,7 @@ public class InventoryItemService {
 
     public void addQuantity(Long itemId, Integer count) {
         InventoryItem item = getItem(itemId);
-        loggerService.createLog(new Log(LogType.UPDATE_ITEM_COUNT),item, item.getCount(), item.getCount() + count);
+        loggerService.createLog(new Log(LogType.UPDATE_ITEM_COUNT), item, item.getCount(), item.getCount() + count);
         item.addCount(count);
         inventoryItemRepository.save(item);
     }

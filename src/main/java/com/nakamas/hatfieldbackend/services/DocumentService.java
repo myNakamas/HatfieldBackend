@@ -26,8 +26,6 @@ import org.apache.pdfbox.pdmodel.interactive.form.PDField;
 import org.apache.pdfbox.pdmodel.interactive.form.PDTextField;
 import org.apache.pdfbox.rendering.PDFRenderer;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.ApplicationArguments;
-import org.springframework.boot.ApplicationRunner;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -49,7 +47,7 @@ import java.util.List;
 @Slf4j
 @Service
 @Getter
-public class DocumentService implements ApplicationRunner {
+public class DocumentService {
     @Value(value = "${fe-host:http://localhost:5173}")
     private String frontendHost;
 
@@ -246,11 +244,11 @@ public class DocumentService implements ApplicationRunner {
 
         boolean isPaid = invoiceRepository.existsByTicketId(ticket.getId());
         String details = "Created at: " + ticket.getTimestamp().format(dtf) + "\n" +
-                         "Brand & Model: " + ticket.getDeviceBrandString() + " ; " + ticket.getDeviceModelString() + "\n" +
-                         "Condition: " + ticket.getDeviceCondition() + "\n" +
-                         "Request: " + ticket.getCustomerRequest() + "\n" +
-                         "Payment:  " + ticket.getTotalPrice() + (isPaid ? "/PAID" : "/NOT PAID") + "\n" +
-                         "Ready to collect by: " + ticket.getDeadline().format(dtf) + "\n";
+                "Brand & Model: " + ticket.getDeviceBrandString() + " ; " + ticket.getDeviceModelString() + "\n" +
+                "Condition: " + ticket.getDeviceCondition() + "\n" +
+                "Request: " + ticket.getCustomerRequest() + "\n" +
+                "Payment:  " + ticket.getTotalPrice() + (isPaid ? "/PAID" : "/NOT PAID") + "\n" +
+                "Ready to collect by: " + ticket.getDeadline().format(dtf) + "\n";
 
 
         acroForm.getField("ticket_id").setValue("REPAIR TICKET ID:" + ticket.getId());
@@ -290,7 +288,7 @@ public class DocumentService implements ApplicationRunner {
         acroForm.getField("device_num_or_imei").setValue(invoice.getSerialNumber());
         acroForm.getField("device_count").setValue(invoice.getCount().toString());
         acroForm.getField("device_price").setValue(invoice.getTotalPrice().toString());
-        acroForm.getField("invoice_note").setValue("Notes : " + invoice.getNotes());
+        acroForm.getField("invoice_note").setValue("Notes : " + (invoice.getNotes() != null ? invoice.getNotes() : "None"));
 
         acroForm.getField("invoice_payment_method").setValue(invoice.getPaymentMethod().toString());
         acroForm.getField("invoice_80").setValue(String.format("%.2f", (invoice.getTotalPrice().doubleValue() / 100) * 80));
@@ -335,7 +333,6 @@ public class DocumentService implements ApplicationRunner {
             }
         } catch (IOException | InterruptedException e) {
             log.error("Failed to print label. " + e.getMessage());
-            e.printStackTrace();
         }
     }
 
@@ -371,46 +368,20 @@ public class DocumentService implements ApplicationRunner {
         }
     }
 
+    /**
+     * Used to test the printing
+     */
+    public void executeExamplePrint() {
+        InputStream input = getTemplate("/smallTag.pdf");
+        try (PDDocument document = PDDocument.load(input)) {
+            String deviceName = "Testing ticket";
+            List<String> details = List.of();
+            Float price = 0.00f;
+            fillPriceTagTemplate("Test", deviceName, details, price, document);
+            executePrint(getImage(document, "priceTag"));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
 
-    @Override
-    public void run(ApplicationArguments args) {
-//        Ticket ticket = new Ticket();
-//        User user = new User();
-//        user.setFullName("FullName");
-//        user.setPhones(List.of("+452 2413 435 12", "+452 8513 654 12"));
-//        ticket.setAccessories("One USB Cable");
-//        ticket.setDeviceBrand(new Brand("Samsung"));
-//        ticket.setDeviceModel(new Model("Galaxy 20"));
-//        ticket.setTimestamp(ZonedDateTime.now());
-//        ticket.setDeadline(ZonedDateTime.now().plusDays(5));
-//        ticket.setDeviceCondition("A+");
-//        ticket.setCustomerRequest("Do not reset phone");
-//        ticket.setClient(user);
-//        ticket.setDeposit(BigDecimal.valueOf(25.99));
-//        ticket.setTotalPrice(BigDecimal.valueOf(25.99));
-//        Invoice invoice = new Invoice();
-//        invoice.setType(InvoiceType.SELL);
-//        invoice.setDeviceModel(new Model("Galaxy 20 5G"));
-//        invoice.setDeviceBrand(new Brand("SamsungS"));
-//        invoice.setTimestamp(ZonedDateTime.now());
-//        invoice.setNotes("bla");
-//        invoice.setSerialNumber("948376598745MA324");
-//        invoice.setTotalPrice(BigDecimal.TEN);
-//        invoice.setCreatedBy(userRepository.findUserByUsername("admin").orElse(null));
-//        invoice.setPaymentMethod(PaymentMethod.CASH);
-//        invoice.setWarrantyPeriod(WarrantyPeriod.ONE_MONTH);
-//        if (printerIp != null && !printerIp.isBlank()) {
-//            File image = createRepairTag("QR", ticket);
-//            File image2 = createPriceTag("QR", "Some text", "Galaxy230", List.of("One detail", "SecondDetail"), 240f);
-//            File image3 = createTicket("QR", ticket);
-//            File image4 = createInvoice("QR", invoice);
-//            log.info("Printer IP provided, proceeding to printEnabled images");
-//            executePrint(image);
-//            executePrint(image2);
-//            executePrint(image3);
-//            executePrint(image4);
-//        } else {
-//            log.warn("Missing Printer IP. Cannot printEnabled images");
-//        }
     }
 }

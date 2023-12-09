@@ -27,6 +27,7 @@ public class InventoryItem extends AbstractPersistable<Long> {
     private Model model;
     @ManyToOne
     private Brand brand;
+    private String imei;
     private Integer count;
     private BigDecimal purchasePrice;
     private BigDecimal sellPrice;
@@ -45,6 +46,7 @@ public class InventoryItem extends AbstractPersistable<Long> {
 
     public InventoryItem(CreateInventoryItem item, Brand brand, Model model, Shop shop, @Nullable Category category) {
         this.name = item.name();
+        this.imei = item.imei();
         this.model = model;
         this.brand = brand;
         this.shop = shop;
@@ -65,6 +67,7 @@ public class InventoryItem extends AbstractPersistable<Long> {
 
     public void update(CreateInventoryItem item, Brand brand, Model model, @Nullable Shop shop, @Nullable Category category) {
         if (item.name() != null) this.name = item.name();
+        if (item.imei() != null) this.imei = item.imei();
         if (model != null) this.model = model;
         if (brand != null) this.brand = brand;
         if (shop != null) this.shop = shop;

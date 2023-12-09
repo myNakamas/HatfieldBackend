@@ -6,7 +6,7 @@ import com.nakamas.hatfieldbackend.models.views.outgoing.shop.CategoryView;
 import java.math.BigDecimal;
 import java.util.Map;
 
-public record InventoryItemView(Long id, String name, BigDecimal purchasePrice, BigDecimal sellPrice, String model,
+public record InventoryItemView(Long id, String name, String imei, BigDecimal purchasePrice, BigDecimal sellPrice, String model,
                                 String brand, int count,
                                 RequiredItemView requiredItem, Long shopId,
                                 CategoryView categoryView,
@@ -15,6 +15,7 @@ public record InventoryItemView(Long id, String name, BigDecimal purchasePrice, 
     public InventoryItemView(InventoryItem item, CategoryView categoryView) {
         this(item.getId(),
                 item.getName(),
+                item.getImei(),
                 item.getPurchasePrice(),
                 item.getSellPrice(),
                 item.getModel() != null ? item.getModel().getModel() : null,
@@ -29,6 +30,7 @@ public record InventoryItemView(Long id, String name, BigDecimal purchasePrice, 
     public InventoryItemView(InventoryItem item) {
         this(item.getId(),
                 item.getName(),
+                item.getImei(),
                 item.getPurchasePrice(),
                 item.getSellPrice(),
                 item.getModel() != null ? item.getModel().getModel() : null,
