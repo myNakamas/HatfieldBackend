@@ -10,6 +10,7 @@ import com.nakamas.hatfieldbackend.repositories.TicketRepository;
 import com.nakamas.hatfieldbackend.repositories.UserRepository;
 import com.nakamas.hatfieldbackend.services.communication.sms.api.SmsClient;
 import com.nakamas.hatfieldbackend.services.communication.sms.models.SmsApiResponse;
+import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -48,6 +49,7 @@ class SmsServiceTest {
     private Ticket ticket;
 
     @BeforeEach
+    @Transactional
     void setUp() {
         Shop testShop = TestData.getTestShop();
         testShop.getSettings().setSmsEnabled(true);
