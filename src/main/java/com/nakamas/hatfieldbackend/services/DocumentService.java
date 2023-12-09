@@ -320,6 +320,7 @@ public class DocumentService {
         ProcessBuilder builder = new ProcessBuilder(cmd);
         builder.environment().put("BROTHER_QL_PRINTER", printerUrl);
         builder.environment().put("BROTHER_QL_MODEL", settings.getPrinterModel());
+        builder.environment().putAll(System.getenv());
         if (pythonLocation != null && !pythonLocation.isBlank()) builder.environment().put("PYTHONPATH", pythonLocation);
         builder.inheritIO();
         try {
