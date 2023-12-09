@@ -23,7 +23,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class InitialConfig implements ApplicationRunner {
     private static final String[] INITIAL_BRANDS_FOR_DB = {"Apple", "Samsung", "HP", "Dell", "Lenovo", "Xiaomi", "Nokia", "HTC", "OnePlus", "Motorola", "Sony", "DJI", "Huawei", "Honor", "Razer", "Vivo", "Oppo", "Redmi"};
-    private static final String[] INITIAL_LOCATIONS_FOR_DB = {"AT_THE_FRONT","IN_THE_LAB"};
+    private static final String[] INITIAL_LOCATIONS_FOR_DB = {"AT_THE_FRONT", "IN_THE_LAB"};
     private final UserService userService;
     private final UserRepository userRepository;
     private final BrandRepository brandsRepository;
@@ -49,12 +49,17 @@ public class InitialConfig implements ApplicationRunner {
     }
 
     public void run(ApplicationArguments args) {
-        if (userRepository.count() == 0) {
-            Shop initialShop = new Shop("Hatfield", "","","", defaultShopSettings());
-            Shop save = shopRepository.save(initialShop);
-            userService.createUser(defaultUser(save.getId()));
-            persistInitialBrands();
-            persistInitialLocations();
+        Shop primary = shopRepository.findByName("Hatfield");
+        if (primary == null) {
+            Shop initialShop = new Shop("Hatfield", "", "", "", defaultShopSettings());
+            primary = shopRepository.save(initialShop);
         }
+        if (userRepository.count() == 0)
+            userService.createUser(defaultUser(primary.getId()));
+        if (brandsRepository.count() == 0)
+            persistInitialBrands();
+        if (deviceLocationRepository.count() == 0)
+            persistInitialLocations();
+
     }
 }

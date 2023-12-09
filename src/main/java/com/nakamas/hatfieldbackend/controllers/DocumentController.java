@@ -120,4 +120,8 @@ public class DocumentController {
         byte[] bytes = doc.pdfBytes();
         return ResponseEntity.ok().contentType(MediaType.APPLICATION_PDF).body(bytes);
     }
+    @PostMapping(value = "print/example")
+    private void printExampleTag() {
+        documentService.executeExamplePrint();
+    }
 }

@@ -28,7 +28,6 @@ public class InventoryItemFilter implements Specification<InventoryItem> {
     @Override
     public Predicate toPredicate(@NonNull Root<InventoryItem> item, @NonNull CriteriaQuery<?> query, @NonNull CriteriaBuilder criteriaBuilder) {
         List<Predicate> predicates = new ArrayList<>();
-        predicates.add(criteriaBuilder.conjunction());
         if (modelId != null)
             predicates.add(criteriaBuilder.equal(item.get("model").get("id"), modelId));
         if (brandId != null)
@@ -45,26 +44,26 @@ public class InventoryItemFilter implements Specification<InventoryItem> {
             predicates.add(criteriaBuilder.gt(item.get("requiredItem").get("requiredAmount"), item.get("count")));
         }
         if (onlyNonEmpty != null && onlyNonEmpty) {
-            predicates.add(criteriaBuilder.gt(item.get("count"),0));
+            predicates.add(criteriaBuilder.gt(item.get("count"), 0));
         }
         if (searchBy != null && !searchBy.isBlank()) {
-            MapJoin<InventoryItem, String, String> otherProperties = item.joinMap("otherProperties");
+            searchBy = searchBy.trim();
+            MapJoin<InventoryItem, String, String> otherProperties = item.joinMap("otherProperties", JoinType.LEFT);
             Predicate searchMatchesProperty = getOtherPropertyEntrySearch(criteriaBuilder, otherProperties);
-            predicates.add(criteriaBuilder.or(criteriaBuilder.like(criteriaBuilder.lower((item.get("name"))), "%" + searchBy.toLowerCase() + "%"), searchMatchesProperty));
+            predicates.add(criteriaBuilder.or(criteriaBuilder.like(criteriaBuilder.lower(item.get("name")), "%" + searchBy.toLowerCase() + "%"), searchMatchesProperty));
         }
-
         query.orderBy(criteriaBuilder.desc(item.get("id")));
-        return criteriaBuilder.and(predicates.toArray(Predicate[]::new));
+        return predicates.isEmpty() ? criteriaBuilder.conjunction() : criteriaBuilder.and(predicates.toArray(Predicate[]::new));
     }
 
     private Predicate getOtherPropertyEntrySearch(CriteriaBuilder criteriaBuilder, MapJoin<InventoryItem, String, String> otherProperties) {
         Map<String, String> searchEntries = extractKeyValues(searchBy);
-        if(searchEntries.isEmpty()) return criteriaBuilder.disjunction();
+        if (searchEntries.isEmpty()) return criteriaBuilder.disjunction();
         List<Predicate> parametersMatch = new ArrayList<>();
         for (Map.Entry<String, String> searchEntry : searchEntries.entrySet()) {
             Predicate keyMatches = criteriaBuilder.like(criteriaBuilder.lower(otherProperties.key()), searchEntry.getKey().toLowerCase());
-            Predicate valueMatches = criteriaBuilder.like(criteriaBuilder.lower(otherProperties.value()), "%"+searchEntry.getValue().toLowerCase()+"%");
-            parametersMatch.add(criteriaBuilder.and(keyMatches,valueMatches));
+            Predicate valueMatches = criteriaBuilder.like(criteriaBuilder.lower(otherProperties.value()), "%" + searchEntry.getValue().toLowerCase() + "%");
+            parametersMatch.add(criteriaBuilder.and(keyMatches, valueMatches));
         }
         return criteriaBuilder.or(parametersMatch.toArray(Predicate[]::new));
     }

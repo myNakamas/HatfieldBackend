@@ -45,7 +45,7 @@ public final class TestData {
     }
 
     public static CreateInventoryItem getTestInventoryItem(Shop shop, Category category) {
-        return new CreateInventoryItem(null, "phone Samsung s4", BigDecimal.TEN, BigDecimal.TEN, "Brand" + random.nextInt(), null, "Model" + random.nextInt(), null, 10, shop.getId(), category.getId(), new HashMap<>());
+        return new CreateInventoryItem(null, "phone Samsung s4", "",BigDecimal.TEN, BigDecimal.TEN, "Brand" + random.nextInt(), null, "Model" + random.nextInt(), null, 10, shop.getId(), category.getId(), new HashMap<>());
     }
 
     public static CreateTicket getTestTicket(User client) {
