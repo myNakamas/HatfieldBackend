@@ -41,7 +41,6 @@ import java.nio.file.Path;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
-import java.util.Arrays;
 import java.util.List;
 
 @Slf4j
@@ -311,17 +310,17 @@ public class DocumentService {
             log.info("Shop settings do not allow printing. Cannot print images.");
             return;
         }
-        if (settings.getPrinterIp() == null || settings.getPrinterIp().isBlank() || brotherLocation.isBlank() || pythonLocation.isBlank() || settings.getPrinterModel() == null || settings.getPrinterModel().isBlank()) {
+        if (settings.getPrinterIp() == null || settings.getPrinterIp().isBlank() || brotherLocation.isBlank() || settings.getPrinterModel() == null || settings.getPrinterModel().isBlank()) {
             throw new CustomException("Missing Printer IP, Model or library location. Cannot print images.");
         }
         log.info("Printer IP provided, proceeding to print images");
         String printerUrl = "tcp://" + settings.getPrinterIp();
-        String[] cmd = {brotherLocation + "brother_ql", "-b", "network", "-p", printerUrl, "-m", settings.getPrinterModel(), "print", "-l", "62", image.getAbsolutePath()};
-        log.info("Running " + Arrays.toString(cmd));
+        List<String> cmd = List.of(brotherLocation, "-b", "network", "-p", printerUrl, "-m", settings.getPrinterModel(), "print", "-l", "62", image.getAbsolutePath());
+        log.info("Running " + String.join(" ", cmd));
         ProcessBuilder builder = new ProcessBuilder(cmd);
         builder.environment().put("BROTHER_QL_PRINTER", printerUrl);
         builder.environment().put("BROTHER_QL_MODEL", settings.getPrinterModel());
-        builder.environment().put("PYTHONPATH", pythonLocation);
+        if (pythonLocation != null && !pythonLocation.isBlank()) builder.environment().put("PYTHONPATH", pythonLocation);
         builder.inheritIO();
         try {
             Process process = builder.start();
@@ -329,10 +328,10 @@ public class DocumentService {
             if (exitCode == 0) {
                 log.info("Label printed successfully.");
             } else {
-                log.error("Failed to print label. Exit code: " + exitCode);
+                throw new CustomException("Failed to print label. Exit code: " + exitCode);
             }
         } catch (IOException | InterruptedException e) {
-            log.error("Failed to print label. " + e.getMessage());
+            throw new CustomException("Failed to print label. " + e.getMessage());
         }
     }
 
