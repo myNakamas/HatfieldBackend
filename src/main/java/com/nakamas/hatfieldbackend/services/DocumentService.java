@@ -320,20 +320,33 @@ public class DocumentService {
         ProcessBuilder builder = new ProcessBuilder(cmd);
         builder.environment().put("BROTHER_QL_PRINTER", printerUrl);
         builder.environment().put("BROTHER_QL_MODEL", settings.getPrinterModel());
-        builder.environment().putAll(System.getenv());
-        if (pythonLocation != null && !pythonLocation.isBlank()) builder.environment().put("PYTHONPATH", pythonLocation);
         builder.inheritIO();
+        if (pythonLocation != null && !pythonLocation.isBlank()) builder.environment().put("PYTHONPATH", pythonLocation);
         try {
             Process process = builder.start();
+            String output = extractOutput(process);
             int exitCode = process.waitFor();
             if (exitCode == 0) {
                 log.info("Label printed successfully.");
             } else {
                 throw new CustomException("Failed to print label. Exit code: " + exitCode);
             }
+            log.info(output);
         } catch (IOException | InterruptedException e) {
             throw new CustomException("Failed to print label. " + e.getMessage());
         }
+    }
+
+    private String extractOutput(Process process) throws IOException {
+        BufferedReader reader =
+                new BufferedReader(new InputStreamReader(process.getInputStream()));
+        StringBuilder sb = new StringBuilder();
+        String line;
+        while ( (line = reader.readLine()) != null) {
+            sb.append(line);
+            sb.append(System.getProperty("line.separator"));
+        }
+        return sb.toString();
     }
 
     private File createFile(String name) throws IOException {
