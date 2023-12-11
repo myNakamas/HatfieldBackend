@@ -53,7 +53,7 @@ public class DocumentService {
     private final ResourceLoader resourceLoader;
     private final InvoiceRepository invoiceRepository;
 
-    private final String outputPath = Path.of(System.getProperty("user.dir"), "..", "output", "images").toString();
+    private final String outputPath = Path.of(System.getProperty("user.dir"), "..", "output", "images","documents").toString();
     private final String printOutputPath = Path.of(System.getProperty("user.dir"), "..", "output", "logs").toString();
     private final DateTimeFormatter dtf = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM);
     private final DateTimeFormatter shortDtf = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss");
@@ -316,9 +316,6 @@ public class DocumentService {
             String printerUrl = "tcp://" + settings.getPrinterIp();
             List<String> cmd = List.of(scriptLocation, printerUrl, settings.getPrinterModel(), image.getAbsolutePath());
             ProcessBuilder builder = new ProcessBuilder(cmd);
-            builder.environment().putAll(System.getenv());
-            builder.environment().put("BROTHER_QL_PRINTER", printerUrl);
-            builder.environment().put("BROTHER_QL_MODEL", settings.getPrinterModel());
             builder.redirectOutput(new File(printOutputPath + "/printOutput.txt"));
             builder.redirectError(new File(printOutputPath + "/printErrorOutput.txt"));
             log.info("Execute '{}'", String.join(" ", cmd));
