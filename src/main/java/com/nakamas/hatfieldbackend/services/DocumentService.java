@@ -315,10 +315,11 @@ public class DocumentService {
             String printerUrl = "tcp://" + settings.getPrinterIp();
             List<String> cmd = List.of(scriptLocation, printerUrl, settings.getPrinterModel(), image.getAbsolutePath());
             ProcessBuilder builder = new ProcessBuilder(cmd);
+            builder.environment().putAll(System.getenv());
             builder.environment().put("BROTHER_QL_PRINTER", printerUrl);
             builder.environment().put("BROTHER_QL_MODEL", settings.getPrinterModel());
             builder.inheritIO();
-
+            log.info("Execute '{}'",String.join(" ", cmd));
             Process process = builder.start();
             int exitCode = process.waitFor();
             if (exitCode == 0) {
