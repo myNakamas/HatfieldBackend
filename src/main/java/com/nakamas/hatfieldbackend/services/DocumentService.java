@@ -52,10 +52,6 @@ public class DocumentService {
 
     private final ResourceLoader resourceLoader;
     private final InvoiceRepository invoiceRepository;
-    @Value(value = "${brother_loc:#{null}}")
-    private String brotherLocation = "";
-    @Value(value = "${python_loc:#{null}}")
-    private String pythonLocation = "";
 
     private final String outputPath = Path.of(System.getProperty("user.dir"), "output").toString();
     private final DateTimeFormatter dtf = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM);
@@ -310,43 +306,29 @@ public class DocumentService {
             log.info("Shop settings do not allow printing. Cannot print images.");
             return;
         }
-        if (settings.getPrinterIp() == null || settings.getPrinterIp().isBlank() || brotherLocation.isBlank() || settings.getPrinterModel() == null || settings.getPrinterModel().isBlank()) {
+        if (settings.getPrinterIp() == null || settings.getPrinterIp().isBlank() || settings.getPrinterModel() == null || settings.getPrinterModel().isBlank()) {
             throw new CustomException("Missing Printer IP, Model or library location. Cannot print images.");
         }
-        log.info("Printer IP provided, proceeding to print images");
-        String printerUrl = "tcp://" + settings.getPrinterIp();
-        List<String> cmd = List.of(brotherLocation, "-b", "network", "-p", printerUrl, "-m", settings.getPrinterModel(), "print", "-l", "62", image.getAbsolutePath());
-        log.info("Running " + String.join(" ", cmd));
-        ProcessBuilder builder = new ProcessBuilder(cmd);
-        builder.environment().put("BROTHER_QL_PRINTER", printerUrl);
-        builder.environment().put("BROTHER_QL_MODEL", settings.getPrinterModel());
-        builder.inheritIO();
-        if (pythonLocation != null && !pythonLocation.isBlank()) builder.environment().put("PYTHONPATH", pythonLocation);
         try {
+            String scriptLocation = resourceLoader.getResource("shell/print.sh").getFile().getAbsolutePath();
+            log.info("Printer IP provided, proceeding to print images");
+            String printerUrl = "tcp://" + settings.getPrinterIp();
+            List<String> cmd = List.of(scriptLocation, printerUrl, settings.getPrinterModel(), image.getAbsolutePath());
+            ProcessBuilder builder = new ProcessBuilder(cmd);
+            builder.environment().put("BROTHER_QL_PRINTER", printerUrl);
+            builder.environment().put("BROTHER_QL_MODEL", settings.getPrinterModel());
+            builder.inheritIO();
+
             Process process = builder.start();
-            String output = extractOutput(process);
             int exitCode = process.waitFor();
             if (exitCode == 0) {
                 log.info("Label printed successfully.");
             } else {
                 throw new CustomException("Failed to print label. Exit code: " + exitCode);
             }
-            log.info(output);
         } catch (IOException | InterruptedException e) {
-            throw new CustomException("Failed to print label. " + e.getMessage());
+            throw new CustomException("Error thrown: " + e.getMessage());
         }
-    }
-
-    private String extractOutput(Process process) throws IOException {
-        BufferedReader reader =
-                new BufferedReader(new InputStreamReader(process.getInputStream()));
-        StringBuilder sb = new StringBuilder();
-        String line;
-        while ( (line = reader.readLine()) != null) {
-            sb.append(line);
-            sb.append(System.getProperty("line.separator"));
-        }
-        return sb.toString();
     }
 
     private File createFile(String name) throws IOException {
