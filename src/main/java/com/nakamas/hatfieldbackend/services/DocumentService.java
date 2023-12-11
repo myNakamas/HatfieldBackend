@@ -41,7 +41,6 @@ import java.nio.file.Path;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
-import java.util.Arrays;
 import java.util.List;
 
 @Slf4j
@@ -53,12 +52,9 @@ public class DocumentService {
 
     private final ResourceLoader resourceLoader;
     private final InvoiceRepository invoiceRepository;
-    @Value(value = "${brother_loc:#{null}}")
-    private String brotherLocation = "";
-    @Value(value = "${python_loc:#{null}}")
-    private String pythonLocation = "";
 
-    private final String outputPath = Path.of(System.getProperty("user.dir"), "output").toString();
+    private final String outputPath = Path.of(System.getProperty("user.dir"), "..", "output", "images","documents").toString();
+    private final String printOutputPath = Path.of(System.getProperty("user.dir"), "..", "output", "logs").toString();
     private final DateTimeFormatter dtf = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM);
     private final DateTimeFormatter shortDtf = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss");
 
@@ -311,28 +307,29 @@ public class DocumentService {
             log.info("Shop settings do not allow printing. Cannot print images.");
             return;
         }
-        if (settings.getPrinterIp() == null || settings.getPrinterIp().isBlank() || brotherLocation.isBlank() || pythonLocation.isBlank() || settings.getPrinterModel() == null || settings.getPrinterModel().isBlank()) {
+        if (settings.getPrinterIp() == null || settings.getPrinterIp().isBlank() || settings.getPrinterModel() == null || settings.getPrinterModel().isBlank()) {
             throw new CustomException("Missing Printer IP, Model or library location. Cannot print images.");
         }
-        log.info("Printer IP provided, proceeding to print images");
-        String printerUrl = "tcp://" + settings.getPrinterIp();
-        String[] cmd = {brotherLocation + "brother_ql", "-b", "network", "-p", printerUrl, "-m", settings.getPrinterModel(), "print", "-l", "62", image.getAbsolutePath()};
-        log.info("Running " + Arrays.toString(cmd));
-        ProcessBuilder builder = new ProcessBuilder(cmd);
-        builder.environment().put("BROTHER_QL_PRINTER", printerUrl);
-        builder.environment().put("BROTHER_QL_MODEL", settings.getPrinterModel());
-        builder.environment().put("PYTHONPATH", pythonLocation);
-        builder.inheritIO();
         try {
+            String scriptLocation = Path.of(System.getProperty("user.dir"), "scripts", "print.sh").toFile().getAbsolutePath();
+            log.info("Printer IP provided, proceeding to print images");
+            String printerUrl = "tcp://" + settings.getPrinterIp();
+            List<String> cmd = List.of(scriptLocation, printerUrl, settings.getPrinterModel(), image.getAbsolutePath());
+            ProcessBuilder builder = new ProcessBuilder(cmd);
+            builder.redirectOutput(new File(printOutputPath + "/printOutput.txt"));
+            builder.redirectError(new File(printOutputPath + "/printErrorOutput.txt"));
+            log.info("Execute '{}'", String.join(" ", cmd));
             Process process = builder.start();
             int exitCode = process.waitFor();
             if (exitCode == 0) {
                 log.info("Label printed successfully.");
             } else {
-                log.error("Failed to print label. Exit code: " + exitCode);
+                log.error("Exit code: {}", exitCode);
+                throw new IOException();
             }
         } catch (IOException | InterruptedException e) {
-            log.error("Failed to print label. " + e.getMessage());
+            log.error(e.getMessage());
+            throw new CustomException("Failed to print label, check the logs");
         }
     }
 
