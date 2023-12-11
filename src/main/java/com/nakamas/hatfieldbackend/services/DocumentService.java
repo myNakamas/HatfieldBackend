@@ -310,7 +310,7 @@ public class DocumentService {
             throw new CustomException("Missing Printer IP, Model or library location. Cannot print images.");
         }
         try {
-            String scriptLocation = resourceLoader.getResource("shell/print.sh").getFile().getAbsolutePath();
+            String scriptLocation = resourceLoader.getResource("classpath:shell/print.sh").getFile().getAbsolutePath();
             log.info("Printer IP provided, proceeding to print images");
             String printerUrl = "tcp://" + settings.getPrinterIp();
             List<String> cmd = List.of(scriptLocation, printerUrl, settings.getPrinterModel(), image.getAbsolutePath());
