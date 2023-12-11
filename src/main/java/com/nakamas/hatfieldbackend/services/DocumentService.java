@@ -54,6 +54,7 @@ public class DocumentService {
     private final InvoiceRepository invoiceRepository;
 
     private final String outputPath = Path.of(System.getProperty("user.dir"),"..", "output","images").toString();
+    private final String printOutputPath = Path.of(System.getProperty("user.dir"),"..", "output","logs").toString();
     private final DateTimeFormatter dtf = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM);
     private final DateTimeFormatter shortDtf = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss");
 
@@ -318,18 +319,20 @@ public class DocumentService {
             builder.environment().putAll(System.getenv());
             builder.environment().put("BROTHER_QL_PRINTER", printerUrl);
             builder.environment().put("BROTHER_QL_MODEL", settings.getPrinterModel());
-            builder.redirectOutput(new File(outputPath+"/printOutput.txt"));
-            builder.redirectError(new File(outputPath+"/printErrorOutput.txt"));
+            builder.redirectOutput(new File(printOutputPath+"/printOutput.txt"));
+            builder.redirectError(new File(printOutputPath+"/printErrorOutput.txt"));
             log.info("Execute '{}'",String.join(" ", cmd));
             Process process = builder.start();
             int exitCode = process.waitFor();
             if (exitCode == 0) {
                 log.info("Label printed successfully.");
             } else {
-                throw new CustomException("Failed to print label. Exit code: " + exitCode);
+                log.error("Exit code: {}",exitCode);
+                throw new IOException();
             }
         } catch (IOException | InterruptedException e) {
-            throw new CustomException(e.getMessage());
+            log.error(e.getMessage());
+            throw new CustomException("Failed to print label, check the logs");
         }
     }
 
