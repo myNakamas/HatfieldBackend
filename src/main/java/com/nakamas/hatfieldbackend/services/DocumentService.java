@@ -53,7 +53,7 @@ public class DocumentService {
     private final ResourceLoader resourceLoader;
     private final InvoiceRepository invoiceRepository;
 
-    private final String outputPath = Path.of(System.getProperty("user.dir"),"..", "output").toString();
+    private final String outputPath = Path.of(System.getProperty("user.dir"),"..", "output","images").toString();
     private final DateTimeFormatter dtf = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM);
     private final DateTimeFormatter shortDtf = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss");
 
@@ -327,7 +327,7 @@ public class DocumentService {
                 throw new CustomException("Failed to print label. Exit code: " + exitCode);
             }
         } catch (IOException | InterruptedException e) {
-            throw new CustomException("Error thrown: " + e.getMessage());
+            throw new CustomException(e.getMessage());
         }
     }
 
