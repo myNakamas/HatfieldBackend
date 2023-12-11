@@ -53,7 +53,7 @@ public class DocumentService {
     private final ResourceLoader resourceLoader;
     private final InvoiceRepository invoiceRepository;
 
-    private final String outputPath = Path.of(System.getProperty("user.dir"), "output").toString();
+    private final String outputPath = Path.of(System.getProperty("user.dir"),"..", "output").toString();
     private final DateTimeFormatter dtf = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM);
     private final DateTimeFormatter shortDtf = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss");
 
@@ -310,7 +310,7 @@ public class DocumentService {
             throw new CustomException("Missing Printer IP, Model or library location. Cannot print images.");
         }
         try {
-            String scriptLocation = resourceLoader.getResource("classpath:shell/print.sh").getFile().getAbsolutePath();
+            String scriptLocation = Path.of(System.getProperty("user.dir"),"scripts","print.sh").toFile().getAbsolutePath();
             log.info("Printer IP provided, proceeding to print images");
             String printerUrl = "tcp://" + settings.getPrinterIp();
             List<String> cmd = List.of(scriptLocation, printerUrl, settings.getPrinterModel(), image.getAbsolutePath());
