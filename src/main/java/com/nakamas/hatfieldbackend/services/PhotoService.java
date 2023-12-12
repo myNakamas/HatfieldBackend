@@ -6,6 +6,7 @@ import com.nakamas.hatfieldbackend.repositories.PhotoRepository;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -21,14 +22,21 @@ import java.nio.file.Paths;
 @RequiredArgsConstructor
 public class PhotoService {
     private final PhotoRepository photoRepository;
-    private final static String chatImagesPath = Path.of(System.getProperty("user.dir"), "..", "output", "images", "chats").toString();
-    private final static String pfpImagesPath = Path.of(System.getProperty("user.dir"), "..", "output", "images", "pfp").toString();
+    @Value(value = "${output-dir}")
+    private String outputDir;
 
+    public String getChatImagesPath() {
+        return Path.of(outputDir, "images", "chats").toString();
+    }
+
+    public String getPfpImagesPath() {
+        return Path.of(outputDir, "images", "pfp").toString();
+    }
 
     public void writeToResponse(HttpServletResponse response, Photo photo) {
         try {
             byte[] bytes = photo.getBytes();
-            if(bytes == null) throw new CustomException("Image is missing");
+            if (bytes == null) throw new CustomException("Image is missing");
             InputStream image = new ByteArrayInputStream(bytes);
             image.transferTo(response.getOutputStream());
         } catch (IOException e) {
@@ -41,15 +49,15 @@ public class PhotoService {
         return photoRepository.findById(photoId).orElseThrow(() -> new CustomException("No such image exists"));
     }
 
-    public Photo saveProfileImage(String username, MultipartFile file){
-        return savePhoto(Paths.get(pfpImagesPath, username), file, file.getOriginalFilename());
+    public Photo saveProfileImage(String username, MultipartFile file) {
+        return savePhoto(Paths.get(getPfpImagesPath(), username), file, file.getOriginalFilename());
     }
 
     public Photo saveChatImage(String fullName, Long ticketId, MultipartFile file) {
         String ticketName = "ticket_%s".formatted(ticketId);
         String fileName = "%s_%s".formatted(fullName, file.getOriginalFilename());
 
-        return savePhoto(Paths.get(chatImagesPath, ticketName), file, fileName);
+        return savePhoto(Paths.get(getChatImagesPath(), ticketName), file, fileName);
     }
 
     private Photo savePhoto(Path path, MultipartFile file, String fileName) {
