@@ -54,6 +54,7 @@ public class DocumentService {
 
     private final ResourceLoader resourceLoader;
     private final InvoiceRepository invoiceRepository;
+
     private final DateTimeFormatter dtf = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM);
     private final DateTimeFormatter shortDtf = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss");
 
@@ -323,8 +324,10 @@ public class DocumentService {
             String printerUrl = "tcp://" + settings.getPrinterIp();
             List<String> cmd = List.of(scriptLocation, printerUrl, settings.getPrinterModel(), image.getAbsolutePath());
             ProcessBuilder builder = new ProcessBuilder(cmd);
+
             builder.redirectOutput(new File(getLogsPath() + "/printOutput.txt"));
             builder.redirectError(new File(getLogsPath() + "/printErrorOutput.txt"));
+
             log.info("Execute '{}'", String.join(" ", cmd));
             Process process = builder.start();
             int exitCode = process.waitFor();
