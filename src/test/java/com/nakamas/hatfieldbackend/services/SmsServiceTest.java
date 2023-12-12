@@ -67,6 +67,7 @@ class SmsServiceTest {
     }
 
     @Test
+    @Transactional
     void sendSms() {
         user.setSmsPermission(true);
         smsService.sendSms(user, "ticketCompletedSuccess.txt", ticketService.getTicketContext(ticket));

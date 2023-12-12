@@ -10,7 +10,6 @@ import com.nakamas.hatfieldbackend.models.views.incoming.CreateUser;
 import com.nakamas.hatfieldbackend.models.views.incoming.filters.UserFilter;
 import com.nakamas.hatfieldbackend.models.views.outgoing.ResponseMessage;
 import com.nakamas.hatfieldbackend.models.views.outgoing.user.UserAndPhone;
-import com.nakamas.hatfieldbackend.repositories.PhotoRepository;
 import com.nakamas.hatfieldbackend.repositories.ShopRepository;
 import com.nakamas.hatfieldbackend.repositories.UserRepository;
 import com.nakamas.hatfieldbackend.util.JwtUtil;
@@ -32,9 +31,6 @@ import org.springframework.web.multipart.MultipartFile;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -44,7 +40,7 @@ import java.util.stream.Collectors;
 public class UserService implements UserDetailsService, UserDetailsPasswordService {
     private final PasswordEncoder passwordEncoder;
     private final UserRepository userRepository;
-    private final PhotoRepository photoRepository;
+    private final PhotoService photoService;
     private final ShopRepository shopRepository;
     private final LoggerService loggerService;
     private final EmailService emailService;
@@ -193,25 +189,15 @@ public class UserService implements UserDetailsService, UserDetailsPasswordServi
     public void getUserImage(UUID id, HttpServletResponse response) {
         User user = getUser(id);
         if (user.getImage() == null) return;
-        try (InputStream userImage = new ByteArrayInputStream(user.getImage().getData())) {
-            userImage.transferTo(response.getOutputStream());
-        } catch (IOException e) {
-            log.info(e.getMessage());
-            throw new CustomException("Could not load profile image");
-        }
+        photoService.writeToResponse(response,user.getImage());
     }
 
     @Transactional
     public void updateUserImage(User user, MultipartFile image) {
-        try {
-            Photo photo = photoRepository.save(new Photo(image.getBytes(), false));
-            user.setImage(photo);
-            loggerService.createLog(new Log(LogType.UPDATED_USER), user.getFullName(), "User updated their photo.");
-            userRepository.save(user);
-        } catch (IOException e) {
-            e.printStackTrace();
-            throw new CustomException("Could not save image to the server.");
-        }
+        Photo photo = photoService.saveProfileImage(user.getUsername(), image);
+        user.setImage(photo);
+        loggerService.createLog(new Log(LogType.UPDATED_USER), user.getFullName(), "User updated their photo.");
+        userRepository.save(user);
     }
 
     private User validateAndSave(User user) {
@@ -229,14 +215,14 @@ public class UserService implements UserDetailsService, UserDetailsPasswordServi
     private void validateUser(User user) {
         if (user.getShop() == null) throw new CustomException("User must be attached to a shop!");
         List<User> existingUsers = userRepository.uniqueUserExists(user.getUsername(), user.getEmail());
-        if (user.isNew() && existingUsers.size() > 0 ||
-            existingUsers.stream().anyMatch(profile -> !Objects.equals(profile.getId(), user.getId())))
+        if (user.isNew() && !existingUsers.isEmpty() ||
+                existingUsers.stream().anyMatch(profile -> !Objects.equals(profile.getId(), user.getId())))
             throw new CustomException("Username or email already taken!");
         validateUniquePhones(user);
     }
 
     private void validateUniquePhones(User user) {
-        if (user.getPhones() == null || user.getPhones().size() == 0) return;
+        if (user.getPhones() == null || user.getPhones().isEmpty()) return;
         List<String> phones = user.getPhones().stream().map(this::extractPhoneNumber).toList();
         List<UserAndPhone> uniquePhones = userRepository.findUniquePhones(phones);
 

@@ -11,7 +11,6 @@ import com.nakamas.hatfieldbackend.models.views.outgoing.PageView;
 import com.nakamas.hatfieldbackend.models.views.outgoing.ticket.ChatMessageView;
 import com.nakamas.hatfieldbackend.models.views.outgoing.ticket.UserChats;
 import com.nakamas.hatfieldbackend.repositories.MessageRepository;
-import com.nakamas.hatfieldbackend.repositories.PhotoRepository;
 import com.nakamas.hatfieldbackend.repositories.TicketRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -24,7 +23,6 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Objects;
@@ -39,7 +37,7 @@ public class MessageService {
     private final MessageRepository messageRepository;
     private final SimpMessagingTemplate messagingTemplate;
     private final TicketRepository ticketRepository;
-    private final PhotoRepository photoRepository;
+    private final PhotoService photoService;
     private final Random random = new Random();
 
     public void createMessage(CreateChatMessage create) {
@@ -116,15 +114,10 @@ public class MessageService {
     }
 
     public void createImageMessage(MultipartFile file, Long ticketId, Boolean publicMessage, User sender) {
-        try {
-            Photo photo = new Photo(file.getBytes(), false);
-            Photo save = photoRepository.save(photo);
-            Ticket ticket = ticketRepository.findById(ticketId).orElseThrow(() -> new CustomException("Could not find ticket with id"));
-            UUID receiverId = Objects.equals(ticket.getClient().getId(), sender.getId()) ? ticket.getCreatedBy().getId() : ticket.getClient().getId();
-            CreateChatMessage chatMessage = new CreateChatMessage("image/" + save.getId(), ZonedDateTime.now(), sender.getId(), receiverId, ticket.getId(), true, publicMessage, random.nextLong());
-            createMessage(chatMessage);
-        } catch (IOException e) {
-            throw new CustomException("Please try again later");
-        }
+        Photo save = photoService.saveChatImage(sender.getFullName(), ticketId, file);
+        Ticket ticket = ticketRepository.findById(ticketId).orElseThrow(() -> new CustomException("Could not find ticket with id"));
+        UUID receiverId = Objects.equals(ticket.getClient().getId(), sender.getId()) ? ticket.getCreatedBy().getId() : ticket.getClient().getId();
+        CreateChatMessage chatMessage = new CreateChatMessage("image/" + save.getId(), ZonedDateTime.now(), sender.getId(), receiverId, ticket.getId(), true, publicMessage, random.nextLong());
+        createMessage(chatMessage);
     }
 }

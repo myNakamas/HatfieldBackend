@@ -49,12 +49,12 @@ import java.util.List;
 public class DocumentService {
     @Value(value = "${fe-host:http://localhost:5173}")
     private String frontendHost;
+    @Value(value = "${output-dir}")
+    private String outputDir;
 
     private final ResourceLoader resourceLoader;
     private final InvoiceRepository invoiceRepository;
 
-    private final String outputPath = Path.of(System.getProperty("user.dir"), "..", "output", "images","documents").toString();
-    private final String printOutputPath = Path.of(System.getProperty("user.dir"), "..", "output", "logs").toString();
     private final DateTimeFormatter dtf = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM);
     private final DateTimeFormatter shortDtf = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss");
 
@@ -67,9 +67,17 @@ public class DocumentService {
         this.fontResource = resourceLoader.getResource("classpath:templates/fonts/arial.ttf");
     }
 
+    public String getLogsPath(){
+        return Path.of(outputDir, "logs").toString();
+    }
+
+    public String getDocumentsPath(){
+        return Path.of(outputDir, "images","documents").toString();
+    }
+
     @Scheduled(cron = "0 0 0 * * *", zone = "Europe/London")
     public void removeUnneededPictures() throws IOException {
-        FileUtils.cleanDirectory(new File(outputPath));
+        FileUtils.cleanDirectory(new File(getDocumentsPath()));
     }
 
     public PdfAndImageDoc createPriceTag(String qrContent, InventoryItem item) {
@@ -316,8 +324,10 @@ public class DocumentService {
             String printerUrl = "tcp://" + settings.getPrinterIp();
             List<String> cmd = List.of(scriptLocation, printerUrl, settings.getPrinterModel(), image.getAbsolutePath());
             ProcessBuilder builder = new ProcessBuilder(cmd);
-            builder.redirectOutput(new File(printOutputPath + "/printOutput.txt"));
-            builder.redirectError(new File(printOutputPath + "/printErrorOutput.txt"));
+
+            builder.redirectOutput(new File(getLogsPath() + "/printOutput.txt"));
+            builder.redirectError(new File(getLogsPath() + "/printErrorOutput.txt"));
+
             log.info("Execute '{}'", String.join(" ", cmd));
             Process process = builder.start();
             int exitCode = process.waitFor();
@@ -335,8 +345,8 @@ public class DocumentService {
 
     private File createFile(String name) throws IOException {
         String filename = name + ZonedDateTime.now().format(shortDtf) + ".png";
-        String filePath = outputPath + "/" + filename;
-        Files.createDirectories(Path.of(outputPath));
+        String filePath = getDocumentsPath() + "/" + filename;
+        Files.createDirectories(Path.of(getDocumentsPath()));
         File file = new File(filePath);
         log.info("Created image to [%s]".formatted(file.getAbsolutePath()));
         return file;
