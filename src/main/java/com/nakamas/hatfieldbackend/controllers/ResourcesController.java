@@ -22,8 +22,4 @@ public class ResourcesController {
         photoService.writeToResponse(response, byId);
     }
 
-//    @DeleteMapping(path = "/{id}")
-//    public void updateUserImage(@AuthenticationPrincipal User user, @RequestBody MultipartFile image) {
-//        userService.updateUserImage(user, image);
-//    }
 }
