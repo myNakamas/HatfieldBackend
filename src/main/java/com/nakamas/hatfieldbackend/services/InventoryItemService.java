@@ -51,7 +51,7 @@ public class InventoryItemService {
         if (inventoryItem.categoryId() != null) {
             category = categoryRepository.findById(inventoryItem.categoryId());
             if (inventoryItem.properties() != null)
-                category.ifPresent(value -> inventoryItem.properties().entrySet().removeIf(property -> !value.getFields().contains(property.getKey())));
+                category.ifPresent(value -> inventoryItem.filterProperties(value.getFields()));
         }
 
         InventoryItem item = new InventoryItem(
@@ -76,7 +76,7 @@ public class InventoryItemService {
         Optional<Shop> shop = Optional.empty();
         if (inventoryItem.categoryId() != null) {
             category = categoryRepository.findById(inventoryItem.categoryId());
-            category.ifPresent(value -> inventoryItem.properties().entrySet().removeIf(property -> !value.getFields().contains(property.getKey())));
+            category.ifPresent(value -> inventoryItem.filterProperties(value.getFields()));
         }
         if (inventoryItem.shopId() != null)
             shop = shopRepository.findById(inventoryItem.shopId());
@@ -243,6 +243,7 @@ public class InventoryItemService {
         categoryRepository.deleteById(id);
     }
 
+    @Transactional
     public CategoryView getCategory(Long categoryId) {
         if (categoryId == null) return null;
         return categoryRepository.findById(categoryId).map(CategoryView::new).orElse(null);

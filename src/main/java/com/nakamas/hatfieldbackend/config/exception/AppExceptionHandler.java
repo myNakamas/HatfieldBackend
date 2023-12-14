@@ -19,7 +19,7 @@ public class AppExceptionHandler {
     @ExceptionHandler(CustomException.class)
     public ErrorResponse handleCustomExceptions(CustomException ex) {
         ErrorResponse.Builder responseBuilder = ErrorResponse.builder(ex, ex.getStatus(), ex.getMessage());
-        log.warn("Error handled:" + ex.getMessage());
+        log.debug("Error handled:" + ex.getMessage());
         return responseBuilder.build();
     }
 
@@ -60,10 +60,11 @@ public class AppExceptionHandler {
     @ExceptionHandler({SMSApiErrorException.class})
     public ErrorResponse handleSMSException(SMSApiErrorException ex) {
         ErrorResponse.Builder responseBuilder = ErrorResponse.builder(ex, HttpStatus.BAD_REQUEST, "Our SMS services are currently down.");
-        if(ex.getDetail().code()!= null)
+        if (ex.getDetail().code() != null)
             log.error("Sms api returned error code `{}` with response `{}`", ex.getDetail().code(), ex.getDetail().message());
         return responseBuilder.build();
     }
+
     @ExceptionHandler({SMSApiValidationErrorException.class})
     public ErrorResponse handleSMSException(SMSApiValidationErrorException ex) {
         ErrorResponse.Builder responseBuilder = ErrorResponse.builder(ex, HttpStatus.BAD_REQUEST, "Our SMS services are currently down.");

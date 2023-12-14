@@ -5,9 +5,9 @@ import com.nakamas.hatfieldbackend.models.enums.ItemType;
 
 import java.util.List;
 
-public record CategoryView(Long id, String name, ItemType itemType, List<String> columns) {
+public record CategoryView(Long id, String name, ItemType itemType, List<CategoryColumnView> columns) {
 
     public CategoryView(Category category) {
-        this(category.getId(), category.getName(), category.getType(), category.getFields());
+        this(category.getId(), category.getName(), category.getType(), category.getFields().stream().map(CategoryColumnView::new).toList());
     }
 }

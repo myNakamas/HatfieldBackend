@@ -1,12 +1,10 @@
-
-
 - [ ] make price bigger where it can (bold)
-- [ ] auto print for device => ask client if with modal is better
+- [x] auto print for device => ask client if with modal is better
 
 - [ ] device can only be one (maybe not needed)
 - [x] add imei to device
 
-- [ ] test printing error
+- [x] test printing error
 
 - [x] websocket notification toast prevention
 
@@ -16,8 +14,8 @@
 
 - [x] limit chat to upload only image formats
 
-- [ ] zapisvane na izobrajeniqta ot chata vuv papka, ne v bazata danni
+- [x] zapisvane na izobrajeniqta ot chata vuv papka, ne v bazata danni
 
 - [x] Notes on Sell invoice => instead of "NULL", display none
 
-- [ ] pravene na db backup peoridically 
+- [x] pravene na db backup peoridically 

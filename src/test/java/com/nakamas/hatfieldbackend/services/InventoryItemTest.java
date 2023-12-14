@@ -11,6 +11,7 @@ import com.nakamas.hatfieldbackend.models.views.incoming.PageRequestView;
 import com.nakamas.hatfieldbackend.models.views.incoming.filters.InventoryItemFilter;
 import com.nakamas.hatfieldbackend.models.views.outgoing.PageView;
 import com.nakamas.hatfieldbackend.models.views.outgoing.inventory.InventoryItemView;
+import com.nakamas.hatfieldbackend.models.views.outgoing.shop.CategoryColumnView;
 import com.nakamas.hatfieldbackend.models.views.outgoing.shop.CategoryView;
 import com.nakamas.hatfieldbackend.models.views.outgoing.shop.ShopSettingsView;
 import com.nakamas.hatfieldbackend.repositories.*;
@@ -27,6 +28,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static com.nakamas.hatfieldbackend.TestData.*;
 import static org.junit.jupiter.api.Assertions.*;
@@ -72,7 +74,7 @@ class InventoryItemTest {
 
     @Test
     public void deleteCategoryWithItem_shouldNotDeleteItems() {
-        Category category = categoryRepository.save(new Category("Category", ItemType.PART, List.of("Field 1", "Field 2")));
+        Category category = categoryRepository.save(new Category("Category", ItemType.PART, List.of(new CategoryColumn("Field 1"), new CategoryColumn("Field 2"))));
         assertNotNull(category.getId());
         InventoryItem item = inventoryItemService.createInventoryItem(getTestInventoryItem(shop, category));
         assertNotNull(item.getId());
@@ -87,7 +89,7 @@ class InventoryItemTest {
 
     @Test
     public void createInventoryItem_shouldCreateItem() {
-        Category category = new Category("Category", ItemType.PART, List.of("Color", "Capacity"));
+        Category category = new Category("Category", ItemType.PART, List.of(new CategoryColumn("Color"), new CategoryColumn("Capacity")));
         categoryRepository.save(category);
         CreateInventoryItem inventoryItem = getTestInventoryItem(shop, category);
         inventoryItem.properties().put("Color", "Blue");
@@ -105,8 +107,8 @@ class InventoryItemTest {
 
     @Test
     public void getAllCategoryViews_shouldReturnAllCategories() {
-        Category category1 = new Category("Category 1", ItemType.PART, List.of("Field 1", "Field 2"));
-        Category category2 = new Category("Category 2", ItemType.PART, List.of("Field 3", "Field 4"));
+        Category category1 = new Category("Category 1", ItemType.PART, List.of(new CategoryColumn("Field 1"), new CategoryColumn("Field 2")));
+        Category category2 = new Category("Category 2", ItemType.PART, List.of(new CategoryColumn("Field 3"), new CategoryColumn("Field 4")));
         categoryRepository.save(category1);
         categoryRepository.save(category2);
 
@@ -115,9 +117,9 @@ class InventoryItemTest {
         Optional<CategoryView> first = result.stream().filter(cat -> cat.name().equals(category1.getName())).findFirst();
         Optional<CategoryView> second = result.stream().filter(cat -> cat.name().equals(category2.getName())).findFirst();
         assertTrue(first.isPresent());
-        assertEquals(List.of("Field 1", "Field 2"), first.get().columns());
+        assertEquals(List.of("Field 1", "Field 2"), first.get().columns().stream().map(CategoryColumnView::name).collect(Collectors.toList()));
         assertTrue(second.isPresent());
-        assertEquals(List.of("Field 3", "Field 4"), second.get().columns());
+        assertEquals(List.of("Field 3", "Field 4"), second.get().columns().stream().map(CategoryColumnView::name).collect(Collectors.toList()));
     }
 
     @Test
@@ -156,7 +158,7 @@ class InventoryItemTest {
         filter.setCategoryId(category.getId());
         filter.setShopId(shop1.getId());
 
-        PageView<InventoryItemView> result = inventoryItemService.getShopInventory(filter, new PageRequestView(10,1));
+        PageView<InventoryItemView> result = inventoryItemService.getShopInventory(filter, new PageRequestView(10, 1));
         assertEquals(2, result.getContent().size());
         assertTrue(result.getContent().stream().anyMatch(item -> item.id().equals(item1.getId())));
         assertTrue(result.getContent().stream().anyMatch(item -> item.id().equals(item2.getId())));
@@ -174,8 +176,9 @@ class InventoryItemTest {
     }
 
     @Test
+    @Transactional
     public void updateCategory_shouldUpdateCategory() {
-        Category category = categoryRepository.save(new Category("Category 1", ItemType.PART, List.of("Field 1", "Field 2")));
+        Category category = categoryRepository.save(new Category("Category 1", ItemType.PART, new ArrayList<>(List.of(new CategoryColumn("Field 1"), new CategoryColumn("Field 2")))));
         CategoryView updatedCategory = new CategoryView(null, "Updated Category", ItemType.CABLES, new ArrayList<>());
 
         CategoryView result = inventoryItemService.updateCategory(updatedCategory, category.getId());
