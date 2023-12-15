@@ -78,6 +78,14 @@ public class DocumentService {
         return Path.of(outputDir, "images", "documents").toString();
     }
 
+    public String getLogsPath(){
+        return Path.of(outputDir, "logs").toString();
+    }
+
+    public String getDocumentsPath(){
+        return Path.of(outputDir, "images","documents").toString();
+    }
+
     @Scheduled(cron = "0 0 0 * * *", zone = "Europe/London")
     public void removeUnneededPictures() throws IOException {
         FileUtils.cleanDirectory(new File(getDocumentsPath()));
