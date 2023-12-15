@@ -27,7 +27,7 @@ public class Category extends AbstractPersistable<Long> {
     @OneToMany(cascade = {CascadeType.DETACH, CascadeType.REMOVE, CascadeType.REFRESH})
     @JoinColumn(name = "category_id")
     private List<InventoryItem> items;
-    @OneToMany(cascade = CascadeType.ALL)
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "category_id")
     private List<CategoryColumn> fields = new ArrayList<>();
 

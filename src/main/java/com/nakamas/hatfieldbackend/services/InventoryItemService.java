@@ -101,7 +101,7 @@ public class InventoryItemService {
             throw new CustomException("Not enough items in inventory!");
         }
         CreateInventoryItem itemView = new CreateInventoryItem(null, item.getName(), "", item.getPurchasePrice(), item.getSellPrice(), null, null, null, null, 0, null, null, new HashMap<>(item.getOtherProperties()));
-        InventoryItem newItem = inventoryItemRepository.findDublicateByShop(item.getBrand(), item.getModel(), item.getCategoryId(), shop).
+        InventoryItem newItem = inventoryItemRepository.findDuplicateByShop(item.getBrand(), item.getModel(), item.getCategoryId(), shop).
                 orElse(new InventoryItem(itemView, item.getBrand(), item.getModel(), shop, categoryRepository.findById(item.getCategoryId()).orElse(null)));
         newItem.setCount(newItem.getCount() + count);
         item.setCount(item.getCount() - count);

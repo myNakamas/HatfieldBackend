@@ -51,8 +51,7 @@ public class PhotoService {
             InputStream image = new ByteArrayInputStream(bytes);
             image.transferTo(response.getOutputStream());
         } catch (IOException e) {
-            log.debug(e.getMessage());
-            throw new CustomException("Could not load profile image");
+            log.debug("Could not load profile image {}", e.getMessage());
         }
     }
 
