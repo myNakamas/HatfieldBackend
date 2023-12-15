@@ -26,5 +26,5 @@ public interface InventoryItemRepository extends JpaRepository<InventoryItem, Lo
 
     @Query("from InventoryItem i " +
             "where i.brand = ?1 and i.model = ?2 and i.categoryId = ?3 and i.shop = ?4")
-    Optional<InventoryItem> findDublicateByShop(Brand brand, Model model, Long categoryId, Shop shopId);
+    Optional<InventoryItem> findDuplicateByShop(Brand brand, Model model, Long categoryId, Shop shopId);
 }

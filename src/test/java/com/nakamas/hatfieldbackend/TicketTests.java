@@ -115,9 +115,8 @@ public class TicketTests {
     @Transactional
     void update_ticket_should_succeed() {
         CreateTicket createTicket = TestData.getTestTicket(client);
-        Long ticketId = ticketService.update(createTicket, ticket.getId());
-        Ticket result = ticketService.getTicket(ticketId);
-        Assertions.assertEquals(ticketId, result.getId());
+        Ticket result = ticketService.update(createTicket, ticket.getId());
+        Assertions.assertEquals(ticket.getId(), result.getId());
         Assertions.assertEquals(user.getShop().getId(), result.getShop().getId());
         Assertions.assertEquals(createTicket.deviceLocation(), result.getDeviceLocation().getLocation());
         Assertions.assertEquals(createTicket.deviceBrand(), result.getDeviceBrandString());
