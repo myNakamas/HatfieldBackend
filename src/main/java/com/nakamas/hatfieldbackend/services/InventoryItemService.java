@@ -46,7 +46,7 @@ public class InventoryItemService {
     public InventoryItem createInventoryItem(CreateInventoryItem inventoryItem) {
         Brand brand = getOrCreateBrand(inventoryItem.brandId(), inventoryItem.brand());
         Model model = getOrCreateModel(inventoryItem.modelId(), inventoryItem.model(), brand);
-        if (!brand.getModels().contains(model)) brand.getModels().add(model);
+        if (brand !=null && !brand.getModels().contains(model)) brand.getModels().add(model);
         Optional<Category> category = Optional.empty();
         if (inventoryItem.categoryId() != null) {
             category = categoryRepository.findById(inventoryItem.categoryId());

@@ -23,8 +23,8 @@ public class TicketController {
     private final TicketService ticketService;
 
     @PostMapping("worker/create")
-    public Long createTicket(@RequestBody CreateTicket ticket, @AuthenticationPrincipal User user) {
-        return ticketService.createTicket(ticket, user).getId();
+    public TicketView createTicket(@RequestBody CreateTicket ticket, @AuthenticationPrincipal User user) {
+        return ticketService.toTicketView(ticketService.createTicket(ticket, user));
     }
 
     @GetMapping("byId")
@@ -33,8 +33,8 @@ public class TicketController {
     }
 
     @PutMapping("worker/update/{id}")
-    public Long updateTicket(@RequestBody CreateTicket ticket, @PathVariable Long id) {
-        return ticketService.update(ticket, id);
+    public TicketView updateTicket(@RequestBody CreateTicket ticket, @PathVariable Long id) {
+        return ticketService.toTicketView(ticketService.update(ticket, id));
     }
 
     @GetMapping("all")
@@ -96,6 +96,11 @@ public class TicketController {
     @PutMapping("worker/deposit")
     public byte[] createDepositInvoice(@AuthenticationPrincipal User user, @RequestParam Long id, @RequestBody CreateInvoice invoice) {
         return ticketService.createDepositInvoice(user, id, invoice);
+    }
+
+    @PutMapping("worker/print")
+    public void printTicketLabels(@RequestParam Long id) {
+        ticketService.printTicketLabels(ticketService.getTicket(id));
     }
 
     @PostMapping("worker/part/use")

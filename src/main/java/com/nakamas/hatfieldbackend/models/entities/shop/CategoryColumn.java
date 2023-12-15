@@ -19,9 +19,9 @@ import org.springframework.data.jpa.domain.AbstractPersistable;
 public class CategoryColumn extends AbstractPersistable<Long> {
     private String name;
     @Column(columnDefinition = "boolean default false")
-    private Boolean showOnDocument;
+    private Boolean showOnDocument = false;
     @Column(columnDefinition = "boolean default false")
-    private Boolean showNameOnDocument;
+    private Boolean showNameOnDocument = false;
 
     public CategoryColumn(String name) {
         this.name = name;
@@ -31,8 +31,8 @@ public class CategoryColumn extends AbstractPersistable<Long> {
 
     public CategoryColumn(CategoryColumnView categoryColumnView) {
         this.name = categoryColumnView.name();
-        this.showOnDocument = categoryColumnView.showOnDocument();
-        this.showNameOnDocument = categoryColumnView.showNameOnDocument();
+        this.showOnDocument = categoryColumnView.isShowOnDocument();
+        this.showNameOnDocument = categoryColumnView.isShowNameOnDocument();
     }
 
     @Override

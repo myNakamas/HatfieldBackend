@@ -108,8 +108,8 @@ public class DocumentService {
             details.add(item.getImei());
         for (CategoryColumnView column : category.columns()) {
             String columnValue = item.getPropertyValue(column.name());
-            if (column.showOnDocument() && columnValue != null && !columnValue.isBlank())
-                details.add(column.showNameOnDocument() ? "%s: %s".formatted(column.name(), columnValue) : columnValue);
+            if (column.isShowOnDocument() && columnValue != null && !columnValue.isBlank())
+                details.add(column.isShowNameOnDocument() ? "%s: %s".formatted(column.name(), columnValue) : columnValue);
         }
         return details;
     }

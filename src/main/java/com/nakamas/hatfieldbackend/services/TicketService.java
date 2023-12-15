@@ -20,6 +20,7 @@ import com.nakamas.hatfieldbackend.models.views.outgoing.PdfAndImageDoc;
 import com.nakamas.hatfieldbackend.models.views.outgoing.ticket.TicketView;
 import com.nakamas.hatfieldbackend.repositories.DeviceLocationRepository;
 import com.nakamas.hatfieldbackend.repositories.TicketRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -66,7 +67,7 @@ public class TicketService {
         if (create.clientId() != null) ticket.setClient(userService.getUser(create.clientId()));
         Ticket save = ticketRepository.save(ticket);
         sendInitialTicketMessage(loggedUser, ticket);
-        printTicketLabels(save);
+//        printTicketLabels(save);
         loggerService.createLog(new Log(save.getId(), LogType.CREATED_TICKET), save.getId());
         return save;
     }
@@ -80,14 +81,14 @@ public class TicketService {
         createMessageForTicket(stringBuilder.toString(), loggedUser, ticket);
     }
 
-    public Long update(CreateTicket ticket, Long id) {
+    public Ticket update(CreateTicket ticket, Long id) {
         Ticket ticketEntity = getTicket(id);
         String updateInfo = loggerService.ticketUpdateCheck(ticketEntity, ticket);
         ticketEntity.update(ticket);
         if (ticket.clientId() != null) ticketEntity.setClient(userService.getUser(ticket.clientId()));
         setOptionalProperties(ticket, ticketEntity);
         loggerService.createLog(new Log(ticketEntity.getId(), LogType.UPDATED_TICKET), Objects.requireNonNull(ticketEntity.getId()).toString(), updateInfo);
-        return ticketRepository.save(ticketEntity).getId();
+        return ticketRepository.save(ticketEntity);
     }
     //endregion
 
@@ -208,6 +209,10 @@ public class TicketService {
     public Ticket getTicket(Long id) {
         return ticketRepository.findById(id).orElseThrow(() -> new CustomException("Cannot find Ticket with selected ID"));
     }
+    @Transactional
+    public TicketView toTicketView(Ticket ticket) {
+        return new TicketView(ticket);
+    }
 
     //endregion
     private void sendEmailOrSms(User client, Ticket ticket, String emailTemplate, String smsTemplate, String title) {
@@ -234,7 +239,7 @@ public class TicketService {
         return context;
     }
 
-    private void printTicketLabels(Ticket ticket) {
+    public void printTicketLabels(Ticket ticket) {
         try {
             printTicket(ticket);
             printTicketTag(ticket);

@@ -8,4 +8,12 @@ public record CategoryColumnView(String name,
     public CategoryColumnView(CategoryColumn column) {
         this(column.getName(), column.getShowOnDocument(), column.getShowNameOnDocument());
     }
+
+    public Boolean isShowOnDocument() {
+        return showOnDocument != null ? showOnDocument : false;
+    }
+
+    public Boolean isShowNameOnDocument() {
+        return showNameOnDocument != null ? showNameOnDocument : false;
+    }
 }
