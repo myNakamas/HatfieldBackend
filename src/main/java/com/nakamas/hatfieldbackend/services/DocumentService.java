@@ -6,7 +6,10 @@ import com.nakamas.hatfieldbackend.models.entities.shop.InventoryItem;
 import com.nakamas.hatfieldbackend.models.entities.shop.ShopSettings;
 import com.nakamas.hatfieldbackend.models.entities.ticket.Invoice;
 import com.nakamas.hatfieldbackend.models.entities.ticket.Ticket;
+import com.nakamas.hatfieldbackend.models.enums.ItemType;
 import com.nakamas.hatfieldbackend.models.views.outgoing.PdfAndImageDoc;
+import com.nakamas.hatfieldbackend.models.views.outgoing.shop.CategoryColumnView;
+import com.nakamas.hatfieldbackend.models.views.outgoing.shop.CategoryView;
 import com.nakamas.hatfieldbackend.repositories.InvoiceRepository;
 import jakarta.transaction.Transactional;
 import lombok.Getter;
@@ -41,38 +44,38 @@ import java.nio.file.Path;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
+import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
 @Service
 @Getter
 public class DocumentService {
+    private final ResourceLoader resourceLoader;
+    private final InvoiceRepository invoiceRepository;
+    private final DateTimeFormatter dtf = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM);
+    private final DateTimeFormatter shortDtf = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss");
+    private final DateTimeFormatter invoiceFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+    private final Resource fontResource;
+    private final InventoryItemService inventoryItemService;
     @Value(value = "${fe-host:http://localhost:5173}")
     private String frontendHost;
     @Value(value = "${output-dir}")
     private String outputDir;
 
-    private final ResourceLoader resourceLoader;
-    private final InvoiceRepository invoiceRepository;
-
-    private final DateTimeFormatter dtf = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM);
-    private final DateTimeFormatter shortDtf = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss");
-
-    private final DateTimeFormatter invoiceFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
-    private final Resource fontResource;
-
-    public DocumentService(ResourceLoader resourceLoader, InvoiceRepository invoiceRepository) {
+    public DocumentService(ResourceLoader resourceLoader, InvoiceRepository invoiceRepository, InventoryItemService inventoryItemService) {
         this.resourceLoader = resourceLoader;
         this.invoiceRepository = invoiceRepository;
         this.fontResource = resourceLoader.getResource("classpath:templates/fonts/arial.ttf");
+        this.inventoryItemService = inventoryItemService;
     }
 
-    public String getLogsPath(){
+    public String getLogsPath() {
         return Path.of(outputDir, "logs").toString();
     }
 
-    public String getDocumentsPath(){
-        return Path.of(outputDir, "images","documents").toString();
+    public String getDocumentsPath() {
+        return Path.of(outputDir, "images", "documents").toString();
     }
 
     @Scheduled(cron = "0 0 0 * * *", zone = "Europe/London")
@@ -81,18 +84,34 @@ public class DocumentService {
     }
 
     public PdfAndImageDoc createPriceTag(String qrContent, InventoryItem item) {
-        InputStream input = getTemplate("/smallTag.pdf");
+        InputStream input = getTemplate("/priceTag.pdf");
         try (PDDocument document = PDDocument.load(input)) {
-            String deviceName = "%s".formatted(item.getName());
-            List<String> details = item.getOtherProperties().entrySet().stream().map(entry -> entry.getKey() + ": " + entry.getValue()).toList();
-            Float price = item.getSellPrice() != null ? item.getSellPrice().floatValue() : 0.00f;
-            fillPriceTagTemplate(qrContent, deviceName, details, price, document);
+            String deviceName = "%s %s".formatted(item.getBrandString(), item.getModelString());
+            List<String> details = getPrintableItemDetails(item);
+            float price = item.getSellPrice() != null ? item.getSellPrice().floatValue() : 0.00f;
+            String priceString = String.format("£%.2f", price);
+            fillPriceTagTemplate(qrContent, deviceName, details, priceString, document);
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             document.save(baos);
             return new PdfAndImageDoc(getImage(document, "priceTag"), baos.toByteArray());
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private List<String> getPrintableItemDetails(InventoryItem item) {
+        CategoryView category = inventoryItemService.getCategory(item.getCategoryId());
+        if (category == null)
+            return item.getOtherProperties().values().stream().toList();
+        List<String> details = new ArrayList<>();
+        if (category.itemType().equals(ItemType.DEVICE) && !item.getImei().isBlank())
+            details.add(item.getImei());
+        for (CategoryColumnView column : category.columns()) {
+            String columnValue = item.getPropertyValue(column.name());
+            if (column.isShowOnDocument() && columnValue != null && !columnValue.isBlank())
+                details.add(column.isShowNameOnDocument() ? "%s: %s".formatted(column.name(), columnValue) : columnValue);
+        }
+        return details;
     }
 
     public PdfAndImageDoc createRepairTag(String qrContent, Ticket ticket) {
@@ -184,7 +203,7 @@ public class DocumentService {
         return result;
     }
 
-    private void fillPriceTagTemplate(String qrContent, String deviceName, List<String> details, Float price, PDDocument document) throws IOException {
+    private void fillPriceTagTemplate(String qrContent, String deviceName, List<String> details, String price, PDDocument document) throws IOException {
         PDFont pdfFont = PDType0Font.load(document, fontResource.getInputStream(), false);
 
         PDAcroForm acroForm = document.getDocumentCatalog().getAcroForm();
@@ -203,7 +222,7 @@ public class DocumentService {
 
         acroForm.getField("title").setValue(deviceName);
         acroForm.getField("details").setValue(detailsString.toString());
-        acroForm.getField("footer").setValue("Price: £" + price.toString());
+        acroForm.getField("price").setValue(price);
 
         acroForm.flatten();
         contents.close();
@@ -357,7 +376,7 @@ public class DocumentService {
             Resource resource = resourceLoader.getResource("classpath:templates" + location);
             return resource.getInputStream();
         } catch (IOException e) {
-            e.printStackTrace();
+            log.error("Failed to get template {}", e.getMessage());
             return null;
         }
     }
@@ -379,12 +398,11 @@ public class DocumentService {
      * Used to test the printing
      */
     public void executeExamplePrint() {
-        InputStream input = getTemplate("/smallTag.pdf");
+        InputStream input = getTemplate("/priceTag.pdf");
         try (PDDocument document = PDDocument.load(input)) {
             String deviceName = "Testing ticket";
             List<String> details = List.of();
-            Float price = 0.00f;
-            fillPriceTagTemplate("Test", deviceName, details, price, document);
+            fillPriceTagTemplate("Test", deviceName, details, "£0.00", document);
             executePrint(getImage(document, "priceTag"));
         } catch (IOException e) {
             throw new RuntimeException(e);

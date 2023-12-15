@@ -3,6 +3,7 @@ package com.nakamas.hatfieldbackend.services;
 import com.nakamas.hatfieldbackend.models.entities.Log;
 import com.nakamas.hatfieldbackend.models.entities.User;
 import com.nakamas.hatfieldbackend.models.entities.shop.Category;
+import com.nakamas.hatfieldbackend.models.entities.shop.CategoryColumn;
 import com.nakamas.hatfieldbackend.models.entities.shop.InventoryItem;
 import com.nakamas.hatfieldbackend.models.entities.shop.Shop;
 import com.nakamas.hatfieldbackend.models.entities.ticket.Ticket;
@@ -13,6 +14,7 @@ import com.nakamas.hatfieldbackend.models.views.incoming.CreateUser;
 import com.nakamas.hatfieldbackend.models.views.incoming.filters.LogFilter;
 import com.nakamas.hatfieldbackend.models.views.outgoing.LogView;
 import com.nakamas.hatfieldbackend.models.views.outgoing.PageView;
+import com.nakamas.hatfieldbackend.models.views.outgoing.shop.CategoryColumnView;
 import com.nakamas.hatfieldbackend.models.views.outgoing.shop.CategoryView;
 import com.nakamas.hatfieldbackend.models.views.outgoing.user.UserProfile;
 import com.nakamas.hatfieldbackend.repositories.LogRepository;
@@ -28,19 +30,20 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class LoggerService {
+    private static final String LOG_SEPARATOR = ";";
     private final LogRepository logRepository;
     private final UserRepository userRepository;
-
     private final DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
-    private static final String LOG_SEPARATOR = ";";
-
 
     private String saveUser(Log logMessage) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -105,11 +108,12 @@ public class LoggerService {
         }
         if (category.getType() != view.itemType())
             updateInfo.append("Type updated from ").append(category.getType()).append(" to ").append(view.itemType()).append(LOG_SEPARATOR);
-        if (category.getFields() != view.columns())
-            updateInfo.append("Fields updated from ").append(String.join(", ", category.getFields())).append(" to ").append(String.join(", ", view.columns())).append(LOG_SEPARATOR);
+        if (areCategoryColumnsDifferent(category.getFields(), view.columns()))
+            updateInfo.append("Fields updated from ").append(category.getFields().stream().map(CategoryColumn::getName).collect(Collectors.joining(", "))).append(" to ").append(view.columns().stream().map(CategoryColumnView::name).collect(Collectors.joining(", "))).append(LOG_SEPARATOR);
 
         return updateInfo.toString();
     }
+
 
     public String shopUpdateCheck(Shop shop, CreateShop view) {
         StringBuilder updateInfo = new StringBuilder(" ");
@@ -164,7 +168,7 @@ public class LoggerService {
             updateInfo.append("Location updated from ").append(ticket.getDeviceLocationString()).append(" to ").append(view.deviceLocation()).append(LOG_SEPARATOR);
         if (view.customerRequest() != null && !Objects.equals(ticket.getCustomerRequest(), view.customerRequest()))
             updateInfo.append("Customer request updated from ").append(ticket.getCustomerRequest()).append(" to ").append(view.customerRequest()).append(LOG_SEPARATOR);
-        if (view.problemExplanation()  != null && !Objects.equals(ticket.getDeviceProblemExplanation(), view.problemExplanation()))
+        if (view.problemExplanation() != null && !Objects.equals(ticket.getDeviceProblemExplanation(), view.problemExplanation()))
             updateInfo.append("Device problem updated from ").append(ticket.getDeviceProblemExplanation()).append(" to ").append(view.problemExplanation()).append(LOG_SEPARATOR);
         if (view.deviceCondition() != null && !Objects.equals(ticket.getDeviceCondition(), view.deviceCondition()))
             updateInfo.append("Device condition updated from ").append(ticket.getDeviceCondition()).append(" to ").append(view.deviceCondition()).append(LOG_SEPARATOR);
@@ -193,14 +197,14 @@ public class LoggerService {
         if (first == null && second == null) return false;
         if (first != null && second != null)
             return first.compareTo(second.withZoneSameInstant(first.getZone())) != 0;
-        return second!=null;
+        return second != null;
 
     }
 
     private boolean isBigDecimalDifferent(BigDecimal first, BigDecimal second) {
         if (first == null && second == null) return false;
         if (first != null && second != null) return first.compareTo(second) != 0;
-        return second!=null;
+        return second != null;
     }
 
     public String userUpdateCheck(User user, CreateUser view) {
@@ -210,7 +214,8 @@ public class LoggerService {
             updateInfo.append("Username updated from ").append(user.getUsername()).append(" to ").append(view.username()).append(LOG_SEPARATOR);
         if (!Objects.equals(user.getFullName(), view.fullName()))
             updateInfo.append("Full name updated from ").append(user.getFullName()).append(" to ").append(view.fullName()).append(LOG_SEPARATOR);
-        if (!Objects.equals(user.getPassword(), view.password())) updateInfo.append("Password updated. ").append(LOG_SEPARATOR);
+        if (!Objects.equals(user.getPassword(), view.password()))
+            updateInfo.append("Password updated. ").append(LOG_SEPARATOR);
         if (!Objects.equals(user.getRole().getRole(), view.role().getRole()))
             updateInfo.append("Role updated from ").append(user.getRole().getRole()).append(" to ").append(view.role().getRole()).append(LOG_SEPARATOR);
         if (!Objects.equals(user.getEmail(), view.email()))
@@ -250,6 +255,11 @@ public class LoggerService {
             updateInfo.append("Count updated from ").append(item.getCount()).append(" to ").append(view.count()).append(LOG_SEPARATOR);
 
         return updateInfo.toString();
+    }
+
+    private boolean areCategoryColumnsDifferent(List<CategoryColumn> fields, List<CategoryColumnView> columns) {
+        Set<CategoryColumn> newColumns = columns.stream().map(CategoryColumn::new).collect(Collectors.toSet());
+        return !newColumns.containsAll(fields) || fields.size() == newColumns.size();
     }
     //endregion
 }

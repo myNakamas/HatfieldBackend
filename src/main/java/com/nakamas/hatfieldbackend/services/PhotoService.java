@@ -25,6 +25,17 @@ public class PhotoService {
     @Value(value = "${output-dir}")
     private String outputDir;
 
+    private static Path saveToDirectory(MultipartFile file, Path categorizedDirectory, String fileName) throws IOException {
+        if (!Files.exists(categorizedDirectory)) {
+            Files.createDirectories(categorizedDirectory);
+        }
+        Path imagePath = Paths.get(categorizedDirectory.toString(), fileName);
+
+        // Save the image to the file system
+        file.transferTo(imagePath.toFile());
+        return imagePath.toAbsolutePath();
+    }
+
     public String getChatImagesPath() {
         return Path.of(outputDir, "images", "chats").toString();
     }
@@ -40,8 +51,7 @@ public class PhotoService {
             InputStream image = new ByteArrayInputStream(bytes);
             image.transferTo(response.getOutputStream());
         } catch (IOException e) {
-            log.error(e.getMessage());
-            throw new CustomException("Could not load profile image");
+            log.debug("Could not load profile image {}", e.getMessage());
         }
     }
 
@@ -73,16 +83,5 @@ public class PhotoService {
             throw new CustomException("Failed to save image");
         }
         return save;
-    }
-
-    private static Path saveToDirectory(MultipartFile file, Path categorizedDirectory, String fileName) throws IOException {
-        if (!Files.exists(categorizedDirectory)) {
-            Files.createDirectories(categorizedDirectory);
-        }
-        Path imagePath = Paths.get(categorizedDirectory.toString(), fileName);
-
-        // Save the image to the file system
-        file.transferTo(imagePath.toFile());
-        return imagePath.toAbsolutePath();
     }
 }
