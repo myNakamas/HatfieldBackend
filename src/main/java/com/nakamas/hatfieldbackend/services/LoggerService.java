@@ -185,9 +185,9 @@ public class LoggerService {
         if (view.status() != null && !Objects.equals(ticket.getStatus(), view.status()))
             updateInfo.append("Status updated from ").append(ticket.getStatus().toString()).append(" to ").append(view.status()).append(LOG_SEPARATOR);
         if (view.totalPrice() != null && isBigDecimalDifferent(ticket.getTotalPrice(), view.totalPrice()))
-            updateInfo.append("Total price updated from ").append(ticket.getTotalPrice().toString()).append(" to ").append(view.totalPrice()).append(LOG_SEPARATOR);
+            updateInfo.append("Total price updated from ").append(formatBigDecimal(ticket.getTotalPrice())).append(" to ").append(formatBigDecimal(view.totalPrice())).append(LOG_SEPARATOR);
         if (view.deposit() != null && isBigDecimalDifferent(ticket.getDeposit(), view.deposit()))
-            updateInfo.append("Deposit updated from ").append(ticket.getDeposit().toString()).append(" to ").append(view.deposit()).append(LOG_SEPARATOR);
+            updateInfo.append("Deposit updated from ").append(formatBigDecimal(ticket.getDeposit())).append(" to ").append(formatBigDecimal(view.deposit())).append(LOG_SEPARATOR);
         if (view.clientId() != null && ticket.getClient() != null && ticket.getClient().getId() != null && !Objects.equals(ticket.getClient().getId(), view.clientId()))
             updateInfo.append("Client updated from ").append(ticket.getClient().getId().toString()).append(" to ").append(view.clientId()).append(LOG_SEPARATOR);
         return updateInfo.toString();
@@ -247,10 +247,10 @@ public class LoggerService {
             updateInfo.append("Brand updated from ").append(item.getBrandString()).append(" to ").append(view.brand()).append(LOG_SEPARATOR);
         if (!Objects.equals(item.getName(), view.name()))
             updateInfo.append("Name updated from ").append(item.getName()).append(" to ").append(view.name()).append(LOG_SEPARATOR);
-        if (!Objects.equals(item.getPurchasePrice().toString(), view.purchasePrice().toString()))
-            updateInfo.append("Purchase price updated from ").append(item.getPurchasePrice().toString()).append(" to ").append(view.purchasePrice()).append(LOG_SEPARATOR);
-        if (!Objects.equals(item.getSellPrice().toString(), view.sellPrice().toString()))
-            updateInfo.append("Sell price updated from ").append(item.getSellPrice().toString()).append(" to ").append(view.sellPrice()).append(LOG_SEPARATOR);
+        if (view.purchasePrice() != null && isBigDecimalDifferent(item.getPurchasePrice(), view.purchasePrice()))
+            updateInfo.append("Purchase price updated from ").append(formatBigDecimal(item.getPurchasePrice())).append(" to ").append(formatBigDecimal(view.purchasePrice())).append(LOG_SEPARATOR);
+        if (view.sellPrice() != null && isBigDecimalDifferent(item.getSellPrice(), view.sellPrice()))
+            updateInfo.append("Sell price updated from ").append(formatBigDecimal(item.getSellPrice())).append(" to ").append(formatBigDecimal(view.sellPrice())).append(LOG_SEPARATOR);
         if (!Objects.equals(item.getCount(), view.count()))
             updateInfo.append("Count updated from ").append(item.getCount()).append(" to ").append(view.count()).append(LOG_SEPARATOR);
 
@@ -260,6 +260,11 @@ public class LoggerService {
     private boolean areCategoryColumnsDifferent(List<CategoryColumn> fields, List<CategoryColumnView> columns) {
         Set<CategoryColumn> newColumns = columns.stream().map(CategoryColumn::new).collect(Collectors.toSet());
         return !newColumns.containsAll(fields) || fields.size() == newColumns.size();
+    }
+
+    private String formatBigDecimal(BigDecimal value){
+        if(value == null) return String.format("£%.2f", 0f);
+        return String.format("£%.2f", value);
     }
     //endregion
 }
