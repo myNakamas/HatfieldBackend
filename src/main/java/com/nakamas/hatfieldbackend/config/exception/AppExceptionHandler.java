@@ -19,7 +19,7 @@ public class AppExceptionHandler {
     @ExceptionHandler(CustomException.class)
     public ErrorResponse handleCustomExceptions(CustomException ex) {
         ErrorResponse.Builder responseBuilder = ErrorResponse.builder(ex, ex.getStatus(), ex.getMessage());
-        log.debug("Error handled:" + ex.getMessage());
+        log.info("Error handled:" + ex.getMessage());
         return responseBuilder.build();
     }
 

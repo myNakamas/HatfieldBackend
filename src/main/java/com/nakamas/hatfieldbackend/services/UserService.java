@@ -189,7 +189,7 @@ public class UserService implements UserDetailsService, UserDetailsPasswordServi
     public void getUserImage(UUID id, HttpServletResponse response) {
         User user = getUser(id);
         if (user.getImage() == null) return;
-        photoService.writeToResponse(response,user.getImage());
+        photoService.writeToResponse(response, user.getImage());
     }
 
     @Transactional
@@ -247,7 +247,7 @@ public class UserService implements UserDetailsService, UserDetailsPasswordServi
         User user = userRepository.findUser(userInfo).orElseThrow(() -> new CustomException("There is no user with such username, email or phone!"));
         final String NO_REQUEST_SENT_TO_USER_ERROR = "Your account or our shop do not allow email or sms communication. Please contact us on %s or %s or come visit us in person at %s".formatted(user.getShop().getEmail(), user.getShop().getPhone(), user.getShop().getAddress());
         try {
-            if (user.isEmailEnabled()) {
+            if (emailService.isEmailEnabled(user)) {
                 String messageBody = templateEngine.process("email/forgotPassword", getUserForgotPasswordContext(user));
                 emailService.sendMail(user, messageBody, "Forgot password");
                 return new ResponseMessage("email");

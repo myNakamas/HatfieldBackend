@@ -8,6 +8,7 @@ import com.nakamas.hatfieldbackend.models.enums.TicketStatus;
 import com.nakamas.hatfieldbackend.models.views.incoming.CreateTicket;
 import jakarta.persistence.*;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.data.jpa.domain.AbstractPersistable;
 
@@ -20,6 +21,7 @@ import java.util.List;
 @Setter
 @Table
 @Entity
+@NoArgsConstructor
 public class Ticket extends AbstractPersistable<Long> {
     @ManyToOne
     private Model deviceModel;
@@ -36,7 +38,6 @@ public class Ticket extends AbstractPersistable<Long> {
     private String serialNumberOrImei;
     private String accessories;
     private ZonedDateTime timestamp;
-    //    manually set
     private ZonedDateTime deadline;
     @Column(columnDefinition = "text")
     private String notes;
@@ -76,12 +77,7 @@ public class Ticket extends AbstractPersistable<Long> {
     @JoinColumn(name = "ticket_id")
     private List<ChatMessage> chatMessages = new ArrayList<>();
 
-    public Ticket() {
-        this.timestamp = ZonedDateTime.now();
-    }
-
     public Ticket(CreateTicket create, User user) {
-        this();
         this.customerRequest = create.customerRequest();
         this.deviceProblemExplanation = create.problemExplanation();
         this.deviceCondition = create.deviceCondition();
@@ -89,6 +85,7 @@ public class Ticket extends AbstractPersistable<Long> {
         this.serialNumberOrImei = create.serialNumberOrImei();
         this.accessories = create.accessories();
         this.deadline = create.deadline();
+        this.timestamp = create.timestamp();
         this.notes = create.notes();
         this.totalPrice = create.totalPrice();
         this.deposit = create.deposit();
