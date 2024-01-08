@@ -35,11 +35,10 @@ public class SmsService {
         if (isSmsEnabled(client) && !client.getPhones().isEmpty()) {
             String phone = client.getPhones().get(0);
             String smsApiKey = client.getShop().getSettings().getSmsApiKey();
-            postSendSmsMessage(phone,messageBody,prepareBearerToken(smsApiKey));
+            postSendSmsMessage(phone, messageBody, prepareBearerToken(smsApiKey));
             log.info("Sending an SMS to client '{}' with phone num: '{}'", client.getFullName(), phone);
             return true;
-        }
-        else return false;
+        } else return false;
     }
 
     public String createMessageBody(String template, Context context) {
@@ -48,12 +47,13 @@ public class SmsService {
 
     @Async
     protected void postSendSmsMessage(String phone, String messageBody, String smsApiKey) {
-        SmsMessage message= new SmsMessage(List.of(phone),messageBody);
+        SmsMessage message = new SmsMessage(List.of(phone), messageBody);
         SmsApiResponse smsApiResponse = smsClient.sendMessage(new SmsRequestBody(List.of(message)), smsApiKey);
-        log.info("Response from SMS api: "+ smsApiResponse);
+        log.info("Response from SMS api: " + smsApiResponse);
     }
 
     public boolean isSmsEnabled(User user) {
+        if (user == null) return false;
         return user.isSMSEnabled() && user.getShop().getSettings().isSmsEnabled();
     }
 

@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.math.BigDecimal;
+import java.time.ZonedDateTime;
 import java.util.UUID;
 
 @AllArgsConstructor
@@ -22,6 +23,7 @@ public class CreateInvoice {
     private String deviceName;
     private String serialNumber;
     private Integer count;
+    private ZonedDateTime timestamp;
 
     private Long ticketId;
     private Long itemId;

@@ -28,18 +28,18 @@ public class EmailService {
             mimeMessageHelper.setText(msgBody, true);
             mimeMessageHelper.setSubject(title);
             mimeMessageHelper.setTo(user.getEmail());
-            send(user.getShop().getSettings().getGmail(),user.getShop().getSettings().getGmailPassword(), mimeMessage);
+            send(user.getShop().getSettings().getGmail(), user.getShop().getSettings().getGmailPassword(), mimeMessage);
             log.info("Email '" + title + "' was sent to: " + user.getEmail());
         } catch (MessagingException e) {
             log.error("Email could not be sent to '%s'. Printing stack trace:".formatted(user.getEmail()));
             e.printStackTrace();
-        } catch (MailAuthenticationException e){
+        } catch (MailAuthenticationException e) {
             log.error("Email sending is turned on, but gmail credentials are incorrect! To fix this issue change the credentials to the correct ones. Gmail returned `{}`", e.getMessage());
         }
     }
 
     private void send(String shopMail, String shopPass, MimeMessage message) {
-        JavaMailSenderImpl jMailSender = (JavaMailSenderImpl)javaMailSender;
+        JavaMailSenderImpl jMailSender = (JavaMailSenderImpl) javaMailSender;
 
         jMailSender.setUsername(shopMail);
         jMailSender.setPassword(shopPass);
@@ -47,6 +47,7 @@ public class EmailService {
     }
 
     public boolean isEmailEnabled(User user) {
+        if (user == null) return false;
         return user.getEmailPermission() && user.getShop().getSettings().isEmailEnabled();
     }
 }

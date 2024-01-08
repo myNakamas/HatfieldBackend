@@ -16,10 +16,10 @@ public record CreateTicket(String deviceModel,
                            String serialNumberOrImei,
                            String accessories,
                            ZonedDateTime deadline,
+                           ZonedDateTime timestamp,
                            String notes,
                            TicketStatus status,
                            BigDecimal totalPrice,
                            BigDecimal deposit,
                            UUID clientId) {
-
 }

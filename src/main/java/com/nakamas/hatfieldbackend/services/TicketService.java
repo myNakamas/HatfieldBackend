@@ -209,6 +209,7 @@ public class TicketService {
     public Ticket getTicket(Long id) {
         return ticketRepository.findById(id).orElseThrow(() -> new CustomException("Cannot find Ticket with selected ID"));
     }
+
     @Transactional
     public TicketView toTicketView(Ticket ticket) {
         return new TicketView(ticket);
@@ -216,6 +217,7 @@ public class TicketService {
 
     //endregion
     private void sendEmailOrSms(User client, Ticket ticket, String emailTemplate, String smsTemplate, String title) {
+        if (client == null) return;
         if (emailService.isEmailEnabled(client)) {
             String messageBody = templateEngine.process(emailTemplate, getTicketContext(ticket));
             emailService.sendMail(client, messageBody, title);

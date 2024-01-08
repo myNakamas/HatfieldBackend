@@ -42,13 +42,12 @@ public class Invoice extends AbstractPersistable<Long> {
     private Boolean valid;
 
     public Invoice() {
-        this.timestamp = ZonedDateTime.now();
         this.valid = true;
-
     }
 
     public Invoice(CreateInvoice invoiceView, User creator, User client) {
         this();
+        this.timestamp = invoiceView.getTimestamp();
         if (invoiceView.getType() != null) this.type = invoiceView.getType();
         if (invoiceView.getDeviceName() != null) this.deviceName = invoiceView.getDeviceName();
         if (invoiceView.getSerialNumber() != null && !invoiceView.getSerialNumber().isBlank())
@@ -80,7 +79,6 @@ public class Invoice extends AbstractPersistable<Long> {
         this.client = ticket.getClient();
         this.createdBy = creator;
         this.count = 1;
-//        What is the payment method if its just deposit?> Always cash?no. make it like the rest.
     }
 
     public boolean isValid() {
