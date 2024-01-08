@@ -54,7 +54,7 @@ public class JwtUtil {
         JWT jwt = new JWT().setIssuer("hatfield.com")
                 .setIssuedAt(ZonedDateTime.now(ZoneOffset.UTC))
                 .setSubject(user.getId().toString())
-                .setExpiration(ZonedDateTime.now(ZoneOffset.UTC).plusHours(2));
+                .setExpiration(ZonedDateTime.now(ZoneOffset.UTC).plusDays(1));
 
         // Sign and encode the JWT to a JSON string representation
         return JWT.getEncoder().encode(jwt, signer);

@@ -1,10 +1,13 @@
 package com.nakamas.hatfieldbackend.models.views.incoming.filters;
 
+import com.nakamas.hatfieldbackend.config.exception.CustomException;
 import com.nakamas.hatfieldbackend.models.entities.User;
 import com.nakamas.hatfieldbackend.models.entities.ticket.Ticket;
 import com.nakamas.hatfieldbackend.models.enums.TicketStatus;
 import jakarta.persistence.criteria.*;
 import lombok.*;
+import org.hibernate.query.SemanticException;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.time.LocalDate;
@@ -30,6 +33,9 @@ public class TicketFilter implements Specification<Ticket> {
     private LocalDate deadlineBefore;
     private LocalDate deadlineAfter;
     private List<TicketStatus> ticketStatuses;
+
+    private String sortField;
+    private Sort.Direction sortDirection;
 
     @Override
     public Predicate toPredicate(@NonNull Root<Ticket> ticket, @NonNull CriteriaQuery<?> query, @NonNull CriteriaBuilder builder) {
@@ -62,8 +68,18 @@ public class TicketFilter implements Specification<Ticket> {
             Expression<String> concat = builder.concat(builder.concat(clientInfo, ticket.get("serialNumberOrImei")), ticket.get("deviceProblemExplanation"));
             predicates.add(builder.or(builder.like(concat, "%" + searchBy.toLowerCase() + "%"), builder.isMember(searchBy, join.get("phones"))));
         }
+        try {
+            Order sort = (sortField != null && !sortField.isBlank() && sortDirection != null) ?
+                    getOrder(ticket.get(sortField), builder) : builder.desc(ticket.get("id"));
+            query.orderBy(sort);
+            return builder.and(predicates.toArray(Predicate[]::new));
+        } catch (SemanticException e) {
+            throw new CustomException("Could not find field " + sortField + " in Ticket");
+        }
 
-        query.orderBy(builder.asc(ticket.get("deadline")));
-        return builder.and(predicates.toArray(Predicate[]::new));
+    }
+
+    private Order getOrder(Path<Ticket> path, CriteriaBuilder builder) {
+        return sortDirection.isAscending() ? builder.asc(path) : builder.desc(path);
     }
 }

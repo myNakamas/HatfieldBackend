@@ -1,7 +1,6 @@
 package com.nakamas.hatfieldbackend.controllers;
 
 import com.nakamas.hatfieldbackend.models.entities.User;
-import com.nakamas.hatfieldbackend.models.enums.UserRole;
 import com.nakamas.hatfieldbackend.models.views.incoming.CreateInvoice;
 import com.nakamas.hatfieldbackend.models.views.incoming.CreateTicket;
 import com.nakamas.hatfieldbackend.models.views.incoming.CreateUsedItem;
@@ -38,8 +37,7 @@ public class TicketController {
     }
 
     @GetMapping("all")
-    public PageView<TicketView> getAllTickets(@AuthenticationPrincipal User user, TicketFilter ticketFilter, PageRequestView pageRequestView) {
-        if (!user.getRole().equals(UserRole.ADMIN)) ticketFilter.setShopId(user.getShop().getId());
+    public PageView<TicketView> getAllTickets(TicketFilter ticketFilter, PageRequestView pageRequestView) {
         return ticketService.findAll(ticketFilter, pageRequestView);
     }
 
@@ -106,5 +104,9 @@ public class TicketController {
     @PostMapping("worker/part/use")
     public TicketView useItem(@RequestBody CreateUsedItem usedItem) {
         return new TicketView(ticketService.usePartFromInventory(usedItem.ticketId(), usedItem.itemId(), usedItem.count()));
+    }
+    @GetMapping("worker/report")
+    public void getReport(@RequestBody CreateUsedItem usedItem) {
+        //todo create report
     }
 }

@@ -164,7 +164,8 @@ public class DocumentService {
     }
 
     public PdfAndImageDoc createTicket(Ticket ticket) {
-        String qr = "%s/tickets?ticketId=%s&username=%s&password=%s".formatted(frontendHost, ticket.getId(), ticket.getClient().getUsername(), ticket.getClient().getFirstPassword());
+        String qr = "%s/tickets?ticketId=%s".formatted(frontendHost, ticket.getId());
+        if (ticket.getClient() != null) qr = qr + "&username=%s&password=%s".formatted(ticket.getClient().getUsername(), ticket.getClient().getFirstPassword());
         return this.createTicket(qr, ticket);
     }
 
