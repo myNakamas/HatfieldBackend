@@ -47,7 +47,7 @@ public class Invoice extends AbstractPersistable<Long> {
 
     public Invoice(CreateInvoice invoiceView, User creator, User client) {
         this();
-        this.timestamp = invoiceView.getTimestamp();
+        this.timestamp = invoiceView.getTimestamp() != null ? invoiceView.getTimestamp() : ZonedDateTime.now();
         if (invoiceView.getType() != null) this.type = invoiceView.getType();
         if (invoiceView.getDeviceName() != null) this.deviceName = invoiceView.getDeviceName();
         if (invoiceView.getSerialNumber() != null && !invoiceView.getSerialNumber().isBlank())

@@ -85,7 +85,7 @@ public class Ticket extends AbstractPersistable<Long> {
         this.serialNumberOrImei = create.serialNumberOrImei();
         this.accessories = create.accessories();
         this.deadline = create.deadline();
-        this.timestamp = create.timestamp();
+        this.timestamp = create.timestamp() != null ? create.timestamp() : ZonedDateTime.now();
         this.notes = create.notes();
         this.totalPrice = create.totalPrice();
         this.deposit = create.deposit();
