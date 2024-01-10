@@ -1,5 +1,6 @@
 package com.nakamas.hatfieldbackend.models.entities;
 
+import com.nakamas.hatfieldbackend.config.AttributeEncryptor;
 import com.nakamas.hatfieldbackend.models.entities.shop.Shop;
 import com.nakamas.hatfieldbackend.models.entities.ticket.ChatMessage;
 import com.nakamas.hatfieldbackend.models.entities.ticket.Invoice;
@@ -26,18 +27,21 @@ import java.util.UUID;
 @Entity
 public class User extends AbstractPersistable<UUID> implements UserDetails {
 
+    @Convert(converter = AttributeEncryptor.class)
     private String username;
+    @Convert(converter = AttributeEncryptor.class)
     private String fullName;
     private String password;
 
+    @Convert(converter = AttributeEncryptor.class)
     private String firstPassword;
 
+    @Convert(converter = AttributeEncryptor.class)
     private String email;
-    @ElementCollection
-    @CollectionTable( name = "user_phones",
-            uniqueConstraints= @UniqueConstraint(columnNames={"phones"})
-    )
-    private List<String> phones;
+
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<UserPhone> phones;
+
     private UserRole role;
     private Boolean isActive;
     private Boolean isBanned;
@@ -68,7 +72,7 @@ public class User extends AbstractPersistable<UUID> implements UserDetails {
         this.fullName = user.fullName();
         this.password = user.password();
         this.email = user.email();
-        this.phones = user.phones();
+        this.phones = user.phones().stream().map(UserPhone::new).toList();
         this.role = user.role();
         this.isActive = true;
         this.isBanned = false;
@@ -80,7 +84,10 @@ public class User extends AbstractPersistable<UUID> implements UserDetails {
         if (user.username() != null) this.username = user.username();
         if (user.fullName() != null) this.fullName = user.fullName();
         if (user.email() != null) this.email = user.email();
-        if (user.phones() != null) this.phones = user.phones();
+        if (user.phones() != null) {
+            this.phones.clear();
+            this.phones.addAll(user.phones().stream().map(UserPhone::new).toList());
+        }
         if (user.smsPermission() != null) this.smsPermission = user.smsPermission();
         if (user.emailPermission() != null) this.emailPermission = user.emailPermission();
     }
@@ -92,6 +99,7 @@ public class User extends AbstractPersistable<UUID> implements UserDetails {
         this.shop = shop;
         update(user);
     }
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of(new SimpleGrantedAuthority(role.getRole()));
@@ -118,9 +126,15 @@ public class User extends AbstractPersistable<UUID> implements UserDetails {
     }
 
     public boolean isEmailEnabled() {
-        return this.emailPermission && this.email!=null && !this.email.isBlank();
+        return this.emailPermission && this.email != null && !this.email.isBlank();
     }
+
     public boolean isSMSEnabled() {
-        return this.smsPermission && this.phones.size()>0;
+        return this.smsPermission && !this.phones.isEmpty();
     }
+
+    public List<String> getPhonesString() {
+        return phones.stream().map(UserPhone::getPhoneWithCode).toList();
+    }
+
 }

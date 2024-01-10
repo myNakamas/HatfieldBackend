@@ -67,7 +67,7 @@ class TestUserAccount {
     void load_user_by_phones_should_succeed() {
         User existingUser = userService.createUser(new CreateUser(null, "new Username", "new user",
                 correctPassword, UserRole.ENGINEER, "newemail@email.com", List.of("+359-898575932"), registeredUser.getShop().getId()));
-        String userPhone = existingUser.getPhones().get(0);
+        String userPhone = existingUser.getPhones().get(0).getPhoneWithCode();
         String phoneNum = userPhone.substring(userPhone.indexOf("-") + 1);
         assertEquals(userService.loadUserByUsername(userPhone), existingUser);
         assertEquals(userService.loadUserByUsername("0" + phoneNum), existingUser);
@@ -95,7 +95,7 @@ class TestUserAccount {
     void create_user_existing_phones_should_fail() {
         User existingUser = userService.createUser(new CreateUser(null, "new Username", "new user",
                 correctPassword, UserRole.ENGINEER, "newemail@email.com", List.of("+359-898575932"), registeredUser.getShop().getId()));
-        List<String> phones = new ArrayList<>(existingUser.getPhones());
+        List<String> phones = new ArrayList<>(existingUser.getPhonesString());
         assertThrows(CustomException.class,
                 () -> userService.createUser(new CreateUser(null, "new Username", "new user",
                         correctPassword, UserRole.ENGINEER, "newemail@email.com", phones, existingUser.getShop().getId())));
@@ -108,7 +108,7 @@ class TestUserAccount {
     void create_user_existing_phones_different_format_should_fail() {
         User existingUser = userService.createUser(new CreateUser(null, "new Username", "new user",
                 correctPassword, UserRole.ENGINEER, "newemail@email.com", List.of("+359-898575932"), registeredUser.getShop().getId()));
-        List<String> phones = new ArrayList<>(existingUser.getPhones().stream().map(s -> 0 + s.substring(s.indexOf("-") + 1)).toList());
+        List<String> phones = new ArrayList<>(existingUser.getPhonesString().stream().map(s -> 0 + s.substring(s.indexOf("-") + 1)).toList());
         assertThrows(CustomException.class,
                 () -> userService.createUser(new CreateUser(null, "new Username", "new user",
                         correctPassword, UserRole.ENGINEER, "newemail@email.com", phones, existingUser.getShop().getId())));
@@ -192,7 +192,6 @@ class TestUserAccount {
     void get_workers_should_fail() {
         createClient("new username", "newEmail@gmail.com");
         UserFilter filter = new UserFilter();
-        filter.setSearchBy("new username");
         assertEquals(0, userService.getAllWorkers(filter).size());
     }
 
@@ -201,7 +200,6 @@ class TestUserAccount {
         createClient("new username", "newEmail@gmail.com");
         createSecondUser("new username 2", "newEmail2@gmail.com");
         UserFilter filter = new UserFilter();
-        filter.setSearchBy("username");
 
         assertEquals(1, userService.getAllWorkers(filter).size());
     }
@@ -268,7 +266,7 @@ class TestUserAccount {
 
     private User createSecondUser(String username, String email) {
         return userService.createUser(new CreateUser(null, username, "new user",
-                correctPassword, UserRole.ENGINEER, email, null, registeredUser.getShop().getId()));
+                correctPassword, UserRole.ENGINEER, email, new ArrayList<>(), registeredUser.getShop().getId()));
     }
 
     private User createClient(String username, String email) {

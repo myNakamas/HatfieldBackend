@@ -165,7 +165,8 @@ public class DocumentService {
 
     public PdfAndImageDoc createTicket(Ticket ticket) {
         String qr = "%s/tickets?ticketId=%s".formatted(frontendHost, ticket.getId());
-        if (ticket.getClient() != null) qr = qr + "&username=%s&password=%s".formatted(ticket.getClient().getUsername(), ticket.getClient().getFirstPassword());
+        if (ticket.getClient() != null)
+            qr = qr + "&username=%s&password=%s".formatted(ticket.getClient().getUsername(), ticket.getClient().getFirstPassword());
         return this.createTicket(qr, ticket);
     }
 
@@ -241,7 +242,7 @@ public class DocumentService {
         contents.drawImage(qrCode, 0, -2);
 
         StringBuilder details = new StringBuilder(ticket.getClient().getFullName() + "\n");
-        List<String> phones = ticket.getClient().getPhones();
+        List<String> phones = ticket.getClient().getPhonesString();
         for (int i = 0; i < phones.size(); i++) {
             String phone = phones.get(i);
             details.append("Phone #").append(i).append(" ").append(phone).append("\n");

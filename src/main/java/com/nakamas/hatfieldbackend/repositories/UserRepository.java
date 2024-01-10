@@ -26,9 +26,7 @@ public interface UserRepository extends JpaRepository<User, UUID>, JpaSpecificat
              select u
              from User u
              join u.phones p
-             where p like ?1
-             or SUBSTRING(p,LOCATE("-",p)+1) like ?1
-             or CONCAT(SUBSTRING(p,0,LOCATE("-",p)),SUBSTRING(p,LOCATE("-",p)+1)) like ?1
+             where p.phone like ?1
             """)
     Optional<User> findUserByPhone(String phone);
 
@@ -47,7 +45,7 @@ public interface UserRepository extends JpaRepository<User, UUID>, JpaSpecificat
             select new com.nakamas.hatfieldbackend.models.views.outgoing.user.UserAndPhone(u,p)
             from User u
             join u.phones p
-            where p in ?1 or SUBSTRING(p,LOCATE("-",p)+1) in ?1
+            where p.phone in ?1
             """)
     List<UserAndPhone> findUniquePhones(List<String> phones);
 }
