@@ -7,6 +7,7 @@ import com.nakamas.hatfieldbackend.models.views.incoming.CreateUsedItem;
 import com.nakamas.hatfieldbackend.models.views.incoming.PageRequestView;
 import com.nakamas.hatfieldbackend.models.views.incoming.filters.TicketFilter;
 import com.nakamas.hatfieldbackend.models.views.outgoing.PageView;
+import com.nakamas.hatfieldbackend.models.views.outgoing.reports.TicketReport;
 import com.nakamas.hatfieldbackend.models.views.outgoing.ticket.TicketView;
 import com.nakamas.hatfieldbackend.services.TicketService;
 import lombok.RequiredArgsConstructor;
@@ -106,7 +107,7 @@ public class TicketController {
         return new TicketView(ticketService.usePartFromInventory(usedItem.ticketId(), usedItem.itemId(), usedItem.count()));
     }
     @GetMapping("worker/report")
-    public void getReport(@RequestBody CreateUsedItem usedItem) {
-        //todo create report
+    public TicketReport getReport(TicketFilter filter) {
+       return ticketService.getTicketReport(filter);
     }
 }
