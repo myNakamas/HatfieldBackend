@@ -104,7 +104,7 @@ public class DocumentService {
         if (category == null)
             return item.getOtherProperties().values().stream().toList();
         List<String> details = new ArrayList<>();
-        if (category.itemType().equals(ItemType.DEVICE) && !item.getImei().isBlank())
+        if (category.itemType().equals(ItemType.DEVICE) && item.getImei() != null && !item.getImei().isBlank())
             details.add(item.getImei());
         for (CategoryColumnView column : category.columns()) {
             String columnValue = item.getPropertyValue(column.name());
