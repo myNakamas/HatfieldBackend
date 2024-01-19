@@ -86,7 +86,7 @@ public class DocumentService {
     public PdfAndImageDoc createPriceTag(String qrContent, InventoryItem item) {
         InputStream input = getTemplate("/priceTag.pdf");
         try (PDDocument document = PDDocument.load(input)) {
-            String deviceName = "%s %s".formatted(item.getBrandString(), item.getModelString());
+            String deviceName = "#%s %s %s".formatted(item.getId(), item.getBrandString(), item.getModelString());
             List<String> details = getPrintableItemDetails(item);
             float price = item.getSellPrice() != null ? item.getSellPrice().floatValue() : 0.00f;
             String priceString = String.format("£%.2f", price);
