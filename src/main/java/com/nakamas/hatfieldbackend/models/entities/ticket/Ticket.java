@@ -16,6 +16,7 @@ import java.math.BigDecimal;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Getter
 @Setter
@@ -106,5 +107,9 @@ public class Ticket extends AbstractPersistable<Long> {
         if (ticket.totalPrice() != null) this.totalPrice = ticket.totalPrice();
         if (ticket.deposit() != null) this.deposit = ticket.deposit();
         if (ticket.status() != null) this.status = ticket.status();
+    }
+
+    public Optional<Invoice> getFirstInvoice() {
+        return getInvoices().stream().filter(Invoice::isTicketInvoice).findFirst();
     }
 }

@@ -15,6 +15,7 @@ import java.util.Map;
 @NoArgsConstructor
 @AllArgsConstructor
 public class InventoryItemFilter implements Specification<InventoryItem> {
+    private Long id;
     private String searchBy;
     private Long modelId;
     private Long brandId;
@@ -28,6 +29,8 @@ public class InventoryItemFilter implements Specification<InventoryItem> {
     @Override
     public Predicate toPredicate(@NonNull Root<InventoryItem> item, @NonNull CriteriaQuery<?> query, @NonNull CriteriaBuilder criteriaBuilder) {
         List<Predicate> predicates = new ArrayList<>();
+        if (id != null)
+            return criteriaBuilder.equal(item.get("id"), id);
         if (modelId != null)
             predicates.add(criteriaBuilder.equal(item.get("model").get("id"), modelId));
         if (brandId != null)

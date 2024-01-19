@@ -17,6 +17,8 @@ import com.nakamas.hatfieldbackend.models.views.incoming.PageRequestView;
 import com.nakamas.hatfieldbackend.models.views.incoming.filters.TicketFilter;
 import com.nakamas.hatfieldbackend.models.views.outgoing.PageView;
 import com.nakamas.hatfieldbackend.models.views.outgoing.PdfAndImageDoc;
+import com.nakamas.hatfieldbackend.models.views.outgoing.reports.TicketDailyReport;
+import com.nakamas.hatfieldbackend.models.views.outgoing.reports.TicketReport;
 import com.nakamas.hatfieldbackend.models.views.outgoing.ticket.TicketView;
 import com.nakamas.hatfieldbackend.repositories.DeviceLocationRepository;
 import com.nakamas.hatfieldbackend.repositories.TicketRepository;
@@ -29,12 +31,10 @@ import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
+import java.time.LocalDate;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 @Slf4j
 @Service
@@ -232,7 +232,7 @@ public class TicketService {
         Context context = new Context();
         context.setVariable("ticket", ticket);
         context.setVariable("client", ticket.getClient());
-        Optional<Invoice> ticketInvoiceOptional = ticket.getInvoices().stream().filter(Invoice::isTicketInvoice).findFirst();
+        Optional<Invoice> ticketInvoiceOptional = ticket.getFirstInvoice();
         if (ticketInvoiceOptional.isPresent()) {
             Invoice invoice = ticketInvoiceOptional.get();
             context.setVariable("invoice", invoice);
@@ -277,5 +277,29 @@ public class TicketService {
         Invoice result = invoiceService.create(invoice, user);
 //        todo: Invalidate all previous Deposit invoices for the selected ticket
         return invoiceService.getAsBlob(result);
+    }
+
+    public TicketReport getTicketReport(TicketFilter filter) {
+        List<Ticket> all = ticketRepository.findAll(filter);
+        Map<LocalDate, TicketDailyReport> dailyReportsByDate = new HashMap<>();
+
+        for (Ticket ticket : all) {
+            LocalDate dateCreated = ticket.getTimestamp().toLocalDate();
+            Optional<LocalDate> dateCompleted = ticket.getFirstInvoice().map(invoice -> invoice.getTimestamp().toLocalDate());
+
+            TicketDailyReport createdReport = dailyReportsByDate.computeIfAbsent(dateCreated,
+                    key -> new TicketDailyReport(dateCreated, 0, 0));
+            createdReport = new TicketDailyReport(dateCreated, createdReport.created() + 1, createdReport.completed());
+            dailyReportsByDate.put(dateCreated, createdReport);
+
+            if (dateCompleted.isPresent()) {
+                TicketDailyReport completedReport = dailyReportsByDate.computeIfAbsent(dateCompleted.get(),
+                        key -> new TicketDailyReport(dateCompleted.get(), 0, 0));
+                completedReport = new TicketDailyReport(dateCreated, completedReport.created(), createdReport.completed() + 1);
+                dailyReportsByDate.put(dateCreated, completedReport);
+            }
+        }
+        List<TicketDailyReport> dailyReports = new ArrayList<>(dailyReportsByDate.values());
+        return new TicketReport(all.size(), dailyReports);
     }
 }
