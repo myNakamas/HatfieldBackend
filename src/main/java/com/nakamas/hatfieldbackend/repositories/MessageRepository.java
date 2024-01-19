@@ -17,6 +17,7 @@ public interface MessageRepository extends JpaRepository<ChatMessage, Long> {
 
     @Query("from ChatMessage c where (c.receiver.id = ?1 and c.sender.id = ?2) or (c.receiver.id = ?2 and c.sender.id = ?1) order by c.timestamp desc")
     List<ChatMessage> findAllByUsers(UUID to, UUID from);
+
     @Query("from ChatMessage c where c.ticketId = ?1 order by c.timestamp desc")
     Page<ChatMessage> findAllByTicket(Long ticketId, PageRequest pageRequest);
 
@@ -32,4 +33,9 @@ public interface MessageRepository extends JpaRepository<ChatMessage, Long> {
     @Modifying
     @Query("update ChatMessage set readByReceiver = ?3 where receiver.id = ?2 and sender.id = ?1")
     void markReadByUser(UUID senderId, UUID receiverId, ZonedDateTime seenTime);
+
+    @Query("select count(m.text) from ChatMessage m where m.receiver.id = ?1 and m.ticketId = ?2 and readByReceiver is null")
+    int getMissedMessagesCountForTicket(UUID userId, Long ticketId);
+    @Query("select count(m.text) from ChatMessage m where m.ticketId = ?1 and m.receiver is not null and readByReceiver is null")
+    int getMissedMessagesCountForTicket(Long ticketId);
 }

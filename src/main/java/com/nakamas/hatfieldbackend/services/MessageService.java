@@ -3,31 +3,31 @@ package com.nakamas.hatfieldbackend.services;
 import com.nakamas.hatfieldbackend.config.exception.CustomException;
 import com.nakamas.hatfieldbackend.models.entities.Photo;
 import com.nakamas.hatfieldbackend.models.entities.User;
+import com.nakamas.hatfieldbackend.models.entities.shop.Shop;
 import com.nakamas.hatfieldbackend.models.entities.ticket.ChatMessage;
 import com.nakamas.hatfieldbackend.models.entities.ticket.Ticket;
 import com.nakamas.hatfieldbackend.models.enums.UserRole;
 import com.nakamas.hatfieldbackend.models.views.incoming.CreateChatMessage;
+import com.nakamas.hatfieldbackend.models.views.incoming.filters.UserFilter;
 import com.nakamas.hatfieldbackend.models.views.outgoing.PageView;
 import com.nakamas.hatfieldbackend.models.views.outgoing.ticket.ChatMessageView;
-import com.nakamas.hatfieldbackend.models.views.outgoing.ticket.UserChats;
+import com.nakamas.hatfieldbackend.models.views.outgoing.ticket.MissedMessages;
 import com.nakamas.hatfieldbackend.repositories.MessageRepository;
 import com.nakamas.hatfieldbackend.repositories.TicketRepository;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.SimpMessageType;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.ZonedDateTime;
-import java.util.List;
-import java.util.Objects;
-import java.util.Random;
-import java.util.UUID;
+import java.util.*;
 
 @Slf4j
 @Service
@@ -49,28 +49,47 @@ public class MessageService {
         ChatMessage save = messageRepository.save(message);
         ChatMessageView response = new ChatMessageView(save);
 
-        if (save.getSender().getRole().equals(UserRole.CLIENT)) {
-            sendChatMessageToUser(ticket.getCreatedBy().getId().toString(), response);
+//        sender is client  && receiver is not null => da se prati na shopa
+//        sender is not client  && receiver is null => da se prati na shopa
+
+//        sender is client && receiver is null => false => da ne se prashta
+//        sender is not client && receiver is not null => false => da se prati na klienta
+
+        if (save.getSender().getRole().equals(UserRole.CLIENT) ^ save.getReceiver() == null) {
+            sendChatMessageToShop(ticket.getShop(), response);
         } else if (save.getReceiver() != null) {
             sendChatMessageToUser(save.getReceiver().getId().toString(), response);
         }
-
     }
 
-    @Transactional
-    public void markMessageAsSeen(Long messageId) {
-        ChatMessage byId = messageRepository.findById(messageId).orElseThrow(() -> new CustomException("Cannot find message with id"));
-        byId.setReadByReceiver(ZonedDateTime.now());
-        ChatMessage save = messageRepository.save(byId);
-        sendMessageSeenToUser(Objects.requireNonNull(save.getSender().getId()).toString(), new ChatMessageView(save));
+    @Transactional()
+    public void markMessageAsSeen(ChatMessage chatMessage) {
+        chatMessage.setReadByReceiver(ZonedDateTime.now());
+        messageRepository.save(chatMessage);
     }
+
+    private void markMessagesAsSeen(UUID userId, Page<ChatMessage> allByTicket) {
+        for (ChatMessage chatMessage : allByTicket.getContent()) {
+            if (chatMessage.getReceiver() != null &&
+                    userId.equals(chatMessage.getReceiver().getId()) &&
+                    chatMessage.getReadByReceiver() == null)
+                markMessageAsSeen(chatMessage);
+        }
+    }
+
 
     public void sendChatMessageToUser(String userId, ChatMessageView message) {
         messagingTemplate.convertAndSendToUser(userId, "/chat", message, createHeaders(userId));
     }
 
-    public void sendMessageSeenToUser(String userId, ChatMessageView message) {
-        messagingTemplate.convertAndSendToUser(userId, "/seen", message, createHeaders(userId));
+    public void sendChatMessageToShop(Shop shop, ChatMessageView message) {
+        UserFilter filter = new UserFilter();
+        filter.setShopId(shop.getId());
+        filter.setRoles(List.of(UserRole.ENGINEER, UserRole.SALESMAN, UserRole.ADMIN));
+        List<User> users = userService.getAll(filter);
+        for (User user : users) {
+            sendChatMessageToUser(user.getId().toString(), message);
+        }
     }
 
     private MessageHeaders createHeaders(String sessionId) {
@@ -80,15 +99,6 @@ public class MessageService {
         return headerAccessor.getMessageHeaders();
     }
 
-    public UserChats findAllByIds(UUID id, UUID userId) {
-        List<ChatMessageView> sent = messageRepository.findAllSentToUser(id, userId).stream().map(ChatMessageView::new).toList();
-        List<ChatMessageView> received = messageRepository.findAllReceivedFromUser(id, userId).stream().map(ChatMessageView::new).toList();
-        return new UserChats(sent, received, userId);
-    }
-
-    public List<ChatMessageView> getChatMessages(UUID id, UUID userId) {
-        return messageRepository.findAllByUsers(id, userId).stream().map(ChatMessageView::new).toList();
-    }
 
     /**
      * Allows the WORKERS of the shop to contact each other.
@@ -98,8 +108,10 @@ public class MessageService {
      * @return A list containing the outgoing chat message view
      * @see ChatMessageView
      */
-    public PageView<ChatMessageView> getChatMessagesByTicketId(Long ticketId, PageRequest pageRequest) {
-        return new PageView<>(messageRepository.findAllByTicket(ticketId, pageRequest).map(ChatMessageView::new));
+    public PageView<ChatMessageView> getChatMessagesByTicketId(User user, Long ticketId, PageRequest pageRequest) {
+        Page<ChatMessage> allByTicket = messageRepository.findAllByTicket(ticketId, pageRequest);
+        markMessagesAsSeen(user.getId(), allByTicket);
+        return new PageView<>(allByTicket.map(ChatMessageView::new));
     }
 
     /**
@@ -110,7 +122,9 @@ public class MessageService {
      * @see ChatMessageView
      */
     public PageView<ChatMessageView> getChatMessagesForClientByTicket(UUID userId, Long ticketId, PageRequest pageRequest) {
-        return new PageView<>(messageRepository.findAllForClient(userId, ticketId, pageRequest).map(ChatMessageView::new));
+        Page<ChatMessage> allForClient = messageRepository.findAllForClient(userId, ticketId, pageRequest);
+        markMessagesAsSeen(userId, allForClient);
+        return new PageView<>(allForClient.map(ChatMessageView::new));
     }
 
     public void createImageMessage(MultipartFile file, Long ticketId, Boolean publicMessage, User sender) {
@@ -119,5 +133,19 @@ public class MessageService {
         UUID receiverId = Objects.equals(ticket.getClient().getId(), sender.getId()) ? ticket.getCreatedBy().getId() : ticket.getClient().getId();
         CreateChatMessage chatMessage = new CreateChatMessage("image/" + save.getId(), ZonedDateTime.now(), sender.getId(), receiverId, ticket.getId(), true, publicMessage, random.nextLong());
         createMessage(chatMessage);
+    }
+
+    @Transactional(readOnly = true)
+    public MissedMessages getNumberOfMissedMessages(User user) {
+        int totalCount = 0;
+        Map<Long, Integer> missedMessages = new HashMap<>();
+
+        List<Ticket> tickets = user.getRole().equals(UserRole.CLIENT) ? ticketRepository.findAllForClient(user.getId()) : ticketRepository.findAllForShop(user.getShop().getId());
+        for (Ticket clientTicket : tickets) {
+            int count = user.getRole().equals(UserRole.CLIENT) ? messageRepository.getMissedMessagesCountForTicket(user.getId(), clientTicket.getId()) : messageRepository.getMissedMessagesCountForTicket(clientTicket.getId());
+            missedMessages.put(clientTicket.getId(), count);
+            totalCount += count;
+        }
+        return new MissedMessages(missedMessages, totalCount);
     }
 }

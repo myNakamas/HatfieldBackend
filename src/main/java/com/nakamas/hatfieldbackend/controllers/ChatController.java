@@ -4,6 +4,7 @@ import com.nakamas.hatfieldbackend.models.entities.User;
 import com.nakamas.hatfieldbackend.models.views.incoming.PageRequestView;
 import com.nakamas.hatfieldbackend.models.views.outgoing.PageView;
 import com.nakamas.hatfieldbackend.models.views.outgoing.ticket.ChatMessageView;
+import com.nakamas.hatfieldbackend.models.views.outgoing.ticket.MissedMessages;
 import com.nakamas.hatfieldbackend.services.MessageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
@@ -18,8 +19,12 @@ public class ChatController {
     private final MessageService messageService;
 
     @GetMapping("all")
-    public PageView<ChatMessageView> getAllMessagesForTicket(@RequestParam Long ticketId, PageRequestView pageRequestView) {
-        return messageService.getChatMessagesByTicketId(ticketId, pageRequestView.getPageRequest());
+    public PageView<ChatMessageView> getAllMessagesForTicket(@AuthenticationPrincipal User user, @RequestParam Long ticketId, PageRequestView pageRequestView) {
+        return messageService.getChatMessagesByTicketId(user, ticketId, pageRequestView.getPageRequest());
+    }
+    @GetMapping("missed")
+    public MissedMessages getNumberOfMissedMessages(@AuthenticationPrincipal User user){
+        return messageService.getNumberOfMissedMessages(user);
     }
 
     @GetMapping("client/all")
