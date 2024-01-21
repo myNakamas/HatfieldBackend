@@ -6,7 +6,6 @@ import com.nakamas.hatfieldbackend.models.entities.shop.InventoryItem;
 import com.nakamas.hatfieldbackend.models.entities.shop.ShopSettings;
 import com.nakamas.hatfieldbackend.models.entities.ticket.Invoice;
 import com.nakamas.hatfieldbackend.models.entities.ticket.Ticket;
-import com.nakamas.hatfieldbackend.models.enums.ItemType;
 import com.nakamas.hatfieldbackend.models.views.outgoing.PdfAndImageDoc;
 import com.nakamas.hatfieldbackend.models.views.outgoing.shop.CategoryColumnView;
 import com.nakamas.hatfieldbackend.models.views.outgoing.shop.CategoryView;
@@ -86,11 +85,11 @@ public class DocumentService {
     public PdfAndImageDoc createPriceTag(String qrContent, InventoryItem item) {
         InputStream input = getTemplate("/priceTag.pdf");
         try (PDDocument document = PDDocument.load(input)) {
-            String deviceName = "#%s %s %s".formatted(item.getId(), item.getBrandString(), item.getModelString());
+            String deviceName = "%s %s".formatted(item.getBrandString(), item.getModelString());
             List<String> details = getPrintableItemDetails(item);
             float price = item.getSellPrice() != null ? item.getSellPrice().floatValue() : 0.00f;
             String priceString = String.format("£%.2f", price);
-            fillPriceTagTemplate(qrContent, deviceName, details, priceString, document);
+            fillPriceTagTemplate(qrContent, deviceName, item.getId(), details, priceString, document);
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             document.save(baos);
             return new PdfAndImageDoc(getImage(document, "priceTag"), baos.toByteArray());
@@ -104,7 +103,7 @@ public class DocumentService {
         if (category == null)
             return item.getOtherProperties().values().stream().toList();
         List<String> details = new ArrayList<>();
-        if (category.itemType().equals(ItemType.DEVICE) && item.getImei() != null && !item.getImei().isBlank())
+        if (item.getImei() != null && !item.getImei().isBlank())
             details.add(item.getImei());
         for (CategoryColumnView column : category.columns()) {
             String columnValue = item.getPropertyValue(column.name());
@@ -165,7 +164,8 @@ public class DocumentService {
 
     public PdfAndImageDoc createTicket(Ticket ticket) {
         String qr = "%s/tickets?ticketId=%s".formatted(frontendHost, ticket.getId());
-        if (ticket.getClient() != null) qr = qr + "&username=%s&password=%s".formatted(ticket.getClient().getUsername(), ticket.getClient().getFirstPassword());
+        if (ticket.getClient() != null)
+            qr = qr + "&username=%s&password=%s".formatted(ticket.getClient().getUsername(), ticket.getClient().getFirstPassword());
         return this.createTicket(qr, ticket);
     }
 
@@ -204,7 +204,7 @@ public class DocumentService {
         return result;
     }
 
-    private void fillPriceTagTemplate(String qrContent, String deviceName, List<String> details, String price, PDDocument document) throws IOException {
+    private void fillPriceTagTemplate(String qrContent, String deviceName, Long id, List<String> details, String price, PDDocument document) throws IOException {
         PDFont pdfFont = PDType0Font.load(document, fontResource.getInputStream(), false);
 
         PDAcroForm acroForm = document.getDocumentCatalog().getAcroForm();
@@ -223,6 +223,7 @@ public class DocumentService {
 
         acroForm.getField("title").setValue(deviceName);
         acroForm.getField("details").setValue(detailsString.toString());
+        acroForm.getField("id").setValue(String.format("ID: #%05d", id));
         acroForm.getField("price").setValue(price);
 
         acroForm.flatten();
@@ -403,7 +404,7 @@ public class DocumentService {
         try (PDDocument document = PDDocument.load(input)) {
             String deviceName = "Testing ticket";
             List<String> details = List.of();
-            fillPriceTagTemplate("Test", deviceName, details, "£0.00", document);
+            fillPriceTagTemplate("Test", deviceName, 1L, details, "£0.00", document);
             executePrint(getImage(document, "priceTag"));
         } catch (IOException e) {
             throw new RuntimeException(e);

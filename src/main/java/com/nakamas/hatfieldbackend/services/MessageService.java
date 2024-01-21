@@ -48,13 +48,6 @@ public class MessageService {
             message.setReceiver(userService.getUser(create.receiver()));
         ChatMessage save = messageRepository.save(message);
         ChatMessageView response = new ChatMessageView(save);
-
-//        sender is client  && receiver is not null => da se prati na shopa
-//        sender is not client  && receiver is null => da se prati na shopa
-
-//        sender is client && receiver is null => false => da ne se prashta
-//        sender is not client && receiver is not null => false => da se prati na klienta
-
         if (save.getSender().getRole().equals(UserRole.CLIENT) ^ save.getReceiver() == null) {
             sendChatMessageToShop(ticket.getShop(), response);
         } else if (save.getReceiver() != null) {
