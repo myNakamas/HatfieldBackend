@@ -36,6 +36,12 @@ public interface MessageRepository extends JpaRepository<ChatMessage, Long> {
 
     @Query("select count(m.text) from ChatMessage m where m.receiver.id = ?1 and m.ticketId = ?2 and readByReceiver is null")
     int getMissedMessagesCountForTicket(UUID userId, Long ticketId);
-    @Query("select count(m.text) from ChatMessage m where m.ticketId = ?1 and m.receiver is not null and readByReceiver is null")
+
+    @Query("""
+            select count(m.text) from ChatMessage m where
+            m.ticketId = ?1 and
+            m.receiver is not null and
+            m.readByReceiver is null and
+            m.sender.role = 3""")
     int getMissedMessagesCountForTicket(Long ticketId);
 }
