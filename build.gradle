@@ -37,7 +37,12 @@ dependencies {
 	implementation 'org.apache.pdfbox:pdfbox:2.0.27'
 	implementation 'com.github.kenglxn.QRGen:javase:3.0.1'
 
+//	Observability
 	implementation 'org.springframework.boot:spring-boot-starter-actuator'
+	implementation 'org.springframework.boot:spring-boot-starter-aop'
+	implementation 'com.github.loki4j:loki-logback-appender:1.4.1'
+	implementation 'io.micrometer:micrometer-registry-prometheus'
+
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
 	compileOnly 'org.projectlombok:lombok'
 	// https://mvnrepository.com/artifact/com.google.code.findbugs/jsr305

@@ -13,6 +13,7 @@ import com.nakamas.hatfieldbackend.models.views.outgoing.user.UserAndPhone;
 import com.nakamas.hatfieldbackend.repositories.ShopRepository;
 import com.nakamas.hatfieldbackend.repositories.UserRepository;
 import com.nakamas.hatfieldbackend.util.JwtUtil;
+import io.micrometer.observation.annotation.Observed;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -82,6 +83,7 @@ public class UserService implements UserDetailsService, UserDetailsPasswordServi
         updatePassword(user, passwordEncoder.encode(newPassword));
     }
 
+    @Observed(name = "changePassword")
     public void changePassword(User user, String oldPassword, String newPassword) {
         if (!passwordEncoder.matches(oldPassword, user.getPassword()))
             throw new CustomException("Incorrect old password!");
@@ -92,6 +94,7 @@ public class UserService implements UserDetailsService, UserDetailsPasswordServi
 
     // admin changing the settings of other users
     @Transactional
+    @Observed(name = "updateUserBan")
     public void updateUserBan(UUID id, Boolean status) {
         if (status) {
             loggerService.createLog(new Log(LogType.BANNED_USER), id.toString());
@@ -116,6 +119,7 @@ public class UserService implements UserDetailsService, UserDetailsPasswordServi
         userRepository.save(user);
     }
 
+    @Observed(name = "createUser")
     public User createUser(CreateUser userInfo) {
         User user = new User(userInfo, shopRepository.findById(userInfo.shopId()).orElse(null));
         if (Objects.equals(userInfo.role(), UserRole.CLIENT)) {
@@ -128,7 +132,7 @@ public class UserService implements UserDetailsService, UserDetailsPasswordServi
             return validateAndSave(user);
         }
     }
-
+    @Observed(name = "createUserClient")
     public User createClient(CreateUser userInfo) {
         User user = new User(userInfo, shopRepository.findById(userInfo.shopId()).orElse(null));
         user.setRole(UserRole.CLIENT);
