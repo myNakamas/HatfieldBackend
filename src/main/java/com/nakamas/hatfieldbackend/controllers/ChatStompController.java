@@ -15,9 +15,5 @@ public class ChatStompController {
     public void createMessage(CreateChatMessage message) {
         messageService.createMessage(message);
     }
-    @MessageMapping("/chat/seen")
-    public void createMessage(Long messageId) {
-        messageService.markMessageAsSeen(messageId);
-    }
 
 }
