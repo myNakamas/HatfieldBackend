@@ -33,7 +33,7 @@ public class SmsService {
     public boolean sendSms(User client, String template, Context context) {
         String messageBody = createMessageBody(template, context);
         if (isSmsEnabled(client) && !client.getPhones().isEmpty()) {
-            String phone = client.getPhones().get(0);
+            String phone = client.getPhones().get(0).getPhoneWithCode();
             String smsApiKey = client.getShop().getSettings().getSmsApiKey();
             postSendSmsMessage(phone, messageBody, prepareBearerToken(smsApiKey));
             log.info("Sending an SMS to client '{}' with phone num: '{}'", client.getFullName(), phone);
