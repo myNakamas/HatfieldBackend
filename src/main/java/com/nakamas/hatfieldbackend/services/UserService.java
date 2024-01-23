@@ -159,9 +159,10 @@ public class UserService implements UserDetailsService, UserDetailsPasswordServi
      */
     public User updateUser(User user, CreateUser update) {
         String updateInfo = loggerService.userUpdateCheck(user, update);
-        user.update(update);
-        User endUser = validateAndSave(user);
-        loggerService.createLog(new Log(LogType.UPDATED_USER), user.getFullName(), updateInfo);
+        User userById = getUser(user.getId());
+        userById.update(update);
+        User endUser = validateAndSave(userById);
+        loggerService.createLog(new Log(LogType.UPDATED_USER), userById.getFullName(), updateInfo);
         return endUser;
     }
 

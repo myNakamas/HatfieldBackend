@@ -33,13 +33,13 @@ public class User extends AbstractPersistable<UUID> implements UserDetails {
     private String fullName;
     private String password;
 
-    @Convert(converter = AttributeEncryptor.class)
     private String firstPassword;
 
     @Convert(converter = AttributeEncryptor.class)
     private String email;
 
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "user_id")
     private List<UserPhone> phones;
 
     private UserRole role;
