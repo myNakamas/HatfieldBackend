@@ -242,7 +242,7 @@ public class DocumentService {
         contents.drawImage(qrCode, 0, -2);
 
         StringBuilder details = new StringBuilder(ticket.getClient().getFullName() + "\n");
-        List<String> phones = ticket.getClient().getPhones();
+        List<String> phones = ticket.getClient().getPhonesString();
         for (int i = 0; i < phones.size(); i++) {
             String phone = phones.get(i);
             details.append("Phone #").append(i).append(" ").append(phone).append("\n");

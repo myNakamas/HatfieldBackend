@@ -1,9 +1,11 @@
 package com.nakamas.hatfieldbackend.services;
 
+import com.nakamas.hatfieldbackend.config.AttributeEncryptor;
 import com.nakamas.hatfieldbackend.config.exception.CustomException;
 import com.nakamas.hatfieldbackend.models.entities.Log;
 import com.nakamas.hatfieldbackend.models.entities.Photo;
 import com.nakamas.hatfieldbackend.models.entities.User;
+import com.nakamas.hatfieldbackend.models.entities.UserPhone;
 import com.nakamas.hatfieldbackend.models.enums.LogType;
 import com.nakamas.hatfieldbackend.models.enums.UserRole;
 import com.nakamas.hatfieldbackend.models.views.incoming.CreateUser;
@@ -38,6 +40,7 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class UserService implements UserDetailsService, UserDetailsPasswordService {
+    private final AttributeEncryptor encryptor;
     private final PasswordEncoder passwordEncoder;
     private final UserRepository userRepository;
     private final PhotoService photoService;
@@ -59,15 +62,11 @@ public class UserService implements UserDetailsService, UserDetailsPasswordServi
         Optional<User> userByUsernameOrEmail = userRepository.findUser(username);
         if (userByUsernameOrEmail.isPresent())
             return userByUsernameOrEmail.get();
-        String phone = extractPhoneNumber(username);
+
+        String phone = UserPhone.extractPhoneNumber(username);
         return userRepository.findUserByPhone(phone).orElseThrow(() -> new UsernameNotFoundException("User does not exist"));
     }
 
-    private String extractPhoneNumber(String phone) {
-        if (phone.contains("-")) return phone.substring(phone.indexOf('-') + 1);
-        if (phone.startsWith("0")) return phone.substring(1);
-        return phone;
-    }
 
     @Override
     public UserDetails updatePassword(UserDetails userDetails, String newPassword) {
@@ -160,9 +159,10 @@ public class UserService implements UserDetailsService, UserDetailsPasswordServi
      */
     public User updateUser(User user, CreateUser update) {
         String updateInfo = loggerService.userUpdateCheck(user, update);
-        user.update(update);
-        User endUser = validateAndSave(user);
-        loggerService.createLog(new Log(LogType.UPDATED_USER), user.getFullName(), updateInfo);
+        User userById = getUser(user.getId());
+        userById.update(update);
+        User endUser = validateAndSave(userById);
+        loggerService.createLog(new Log(LogType.UPDATED_USER), userById.getFullName(), updateInfo);
         return endUser;
     }
 
@@ -185,7 +185,6 @@ public class UserService implements UserDetailsService, UserDetailsPasswordServi
         return userRepository.findAll(filter);
     }
 
-    @Transactional
     public void getUserImage(UUID id, HttpServletResponse response) {
         User user = getUser(id);
         if (user.getImage() == null) return;
@@ -223,7 +222,7 @@ public class UserService implements UserDetailsService, UserDetailsPasswordServi
 
     private void validateUniquePhones(User user) {
         if (user.getPhones() == null || user.getPhones().isEmpty()) return;
-        List<String> phones = user.getPhones().stream().map(this::extractPhoneNumber).toList();
+        List<String> phones = user.getPhones().stream().map((UserPhone phone) -> UserPhone.extractPhoneNumber(phone.getPhoneWithCode())).toList();
         List<UserAndPhone> uniquePhones = userRepository.findUniquePhones(phones);
 
         String message = "Phone numbers already exist on a different user:" + uniquePhones.stream().map(UserAndPhone::phone).collect(Collectors.joining(","));

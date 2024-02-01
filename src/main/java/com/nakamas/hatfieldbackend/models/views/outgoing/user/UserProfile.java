@@ -22,7 +22,7 @@ public record UserProfile(UUID userId,
 ) {
 
     public UserProfile(User user){
-        this(user.getId(), user.getUsername(), user.getFirstPassword(), user.getFullName(), user.getRole(), user.getEmail(), user.getPhones(), user.getShop().getId(), user.getShop().getShopName(),
+        this(user.getId(), user.getUsername(), user.getFirstPassword(), user.getFullName(), user.getRole(), user.getEmail(), user.getPhonesString(), user.getShop().getId(), user.getShop().getShopName(),
         user.getIsActive(),user.getIsBanned(),user.getSmsPermission(),user.getEmailPermission());
     }
 }
