@@ -1,7 +1,6 @@
 package com.nakamas.hatfieldbackend.models.views.incoming.filters;
 
 import com.nakamas.hatfieldbackend.config.exception.CustomException;
-import com.nakamas.hatfieldbackend.models.entities.User;
 import com.nakamas.hatfieldbackend.models.entities.ticket.Ticket;
 import com.nakamas.hatfieldbackend.models.enums.TicketStatus;
 import jakarta.persistence.criteria.*;
@@ -63,10 +62,8 @@ public class TicketFilter implements Specification<Ticket> {
         if (ticketStatuses != null && !ticketStatuses.isEmpty())
             predicates.add((ticket.get("status").in(ticketStatuses)));
         if (searchBy != null && !searchBy.isBlank()) {
-            Join<Ticket, User> join = ticket.join("client");
-            Expression<String> clientInfo = builder.concat(builder.concat(join.get("username"), join.get("fullName")), join.get("email"));
-            Expression<String> concat = builder.concat(builder.concat(clientInfo, ticket.get("serialNumberOrImei")), ticket.get("deviceProblemExplanation"));
-            predicates.add(builder.or(builder.like(concat, "%" + searchBy.toLowerCase() + "%"), builder.isMember(searchBy, join.get("phones"))));
+            Expression<String> concat = builder.concat(ticket.get("serialNumberOrImei"), ticket.get("deviceProblemExplanation"));
+            predicates.add(builder.like(concat, "%" + searchBy.toLowerCase() + "%"));
         }
         try {
             Order sort = (sortField != null && !sortField.isBlank() && sortDirection != null) ?
