@@ -21,6 +21,8 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.jdbc.EmbeddedDatabaseConnection;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
@@ -72,8 +74,11 @@ public class TicketTests {
     private Ticket ticket;
     private List<InventoryItem> items;
 
+    Logger log = LoggerFactory.getLogger(TicketTests.class);
+
     @BeforeEach
     void setUp() {
+        log.info("### Test setup initiated ###");
         doNothing().when(emailService).sendMail(any(), any(), any());
         when(smsClient.sendMessage(any(),any())).thenReturn(new SmsApiResponse("1234","accepted", LocalDateTime.now()));
         when(smsService.sendSms(any(),any(),any())).thenReturn(true);
@@ -87,10 +92,12 @@ public class TicketTests {
         for (int i = 0; i < 3; i++)
             inventoryItemService.createInventoryItem(TestData.getTestInventoryItem(shop, category));
         items = inventoryItemRepository.findAll();
+        log.info("### Test setup completed ###");
 }
 
     @AfterEach
     void tearDown() {
+        log.info("### Test teardown initiated ###");
         ticketRepository.deleteAll();
         userRepository.deleteAll();
         inventoryItemRepository.deleteAll();
@@ -98,6 +105,7 @@ public class TicketTests {
         modelRepository.deleteAll();
         brandRepository.deleteAll();
         shopRepository.deleteAll();
+        log.info("### Test teardown completed ###");
     }
 
     @Test
@@ -108,6 +116,15 @@ public class TicketTests {
         Assertions.assertEquals(user.getShop().getId(), ticket.getShop().getId());
         Assertions.assertEquals(createTicket.deviceLocation(), ticket.getDeviceLocation().getLocation());
         Assertions.assertEquals(createTicket.deviceBrand(), ticket.getDeviceBrandString());
+    }
+    @Test
+    @Transactional
+    void search_ticket() {
+        CreateTicket createTicket = TestData.getTestTicket(client);
+        TicketFilter ticketFilter = new TicketFilter();
+        ticketFilter.setSearchBy(createTicket.problemExplanation());
+        PageView<TicketView> all = ticketService.findAll(ticketFilter, new PageRequestView(10, 1));
+        Assertions.assertEquals(1, all.getTotalCount());
     }
 
 
