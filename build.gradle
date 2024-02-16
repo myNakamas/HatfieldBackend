@@ -51,6 +51,7 @@ dependencies {
 
 //	Tests
 	testRuntimeOnly 'com.h2database:h2'
+	testImplementation 'com.github.gavlyukovskiy:datasource-proxy-spring-boot-starter:1.9.0'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'org.springframework.security:spring-security-test'
 
