@@ -59,19 +59,19 @@ public class WebSecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                .csrf().disable()
-                .cors().configurationSource(corsConfigurationSource()).and()
-                .formLogin()
-                .failureHandler(this::loginFailureHandler)
-                .successHandler(this::loginSuccessHandler)
-                .loginProcessingUrl("/api/login").and()
-                .logout().logoutUrl("/api/logout").and()
+                .csrf(csrf -> csrf.disable())
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .formLogin(login -> login
+                        .failureHandler(this::loginFailureHandler)
+                        .successHandler(this::loginSuccessHandler)
+                        .loginProcessingUrl("/api/login"))
+                .logout(logout -> logout.logoutUrl("/api/logout"))
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
                 .authenticationProvider(authenticationProvider())
                 .authorizeHttpRequests((authorize) -> authorize
                         .requestMatchers(adminUrlMatchers).hasAuthority(UserRole.ADMIN_VALUE)
                         .requestMatchers(workerUrlMatchers).hasAnyAuthority(UserRole.WORKER_VALUE, UserRole.ADMIN_VALUE)
-                        .requestMatchers(clientUrlMatchers).hasAnyAuthority(UserRole.CLIENT_VALUE,UserRole.WORKER_VALUE, UserRole.ADMIN_VALUE)
+                        .requestMatchers(clientUrlMatchers).hasAnyAuthority(UserRole.CLIENT_VALUE, UserRole.WORKER_VALUE, UserRole.ADMIN_VALUE)
                         .requestMatchers("/api/public/**", "/ws").permitAll()
                         .anyRequest().authenticated().and())
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and()

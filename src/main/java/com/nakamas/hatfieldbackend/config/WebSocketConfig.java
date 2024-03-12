@@ -5,7 +5,6 @@ import com.nakamas.hatfieldbackend.services.UserService;
 import com.nakamas.hatfieldbackend.util.JwtUtil;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -21,7 +20,6 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 
 import java.util.UUID;
 
-@Slf4j
 @Configuration
 @RequiredArgsConstructor
 @EnableWebSocketMessageBroker

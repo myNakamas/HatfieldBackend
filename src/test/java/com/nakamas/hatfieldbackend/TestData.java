@@ -1,6 +1,7 @@
 package com.nakamas.hatfieldbackend;
 
 import com.nakamas.hatfieldbackend.models.entities.User;
+import com.nakamas.hatfieldbackend.models.entities.UserPhone;
 import com.nakamas.hatfieldbackend.models.entities.shop.Category;
 import com.nakamas.hatfieldbackend.models.entities.shop.Shop;
 import com.nakamas.hatfieldbackend.models.entities.shop.ShopSettings;
@@ -25,7 +26,8 @@ public final class TestData {
     private static final Random random = new Random();
 
     public static ShopSettings getTestShopSettings() {
-        return new ShopSettings("#eec550", "#1a2634", false, "gmail", "password", false, "printerIp", "QL-500N", false, "smsApiKey", null, null);
+        return new ShopSettings("#eec550", "#1a2634", false, "gmail", "password", false, "printerIp", "QL-500N", false,
+                "smsApiKey", null, null);
     }
 
     public static Shop getTestShop() {
@@ -33,11 +35,13 @@ public final class TestData {
     }
 
     public static CreateUser getTestUser(Shop shop) {
-        return new CreateUser(null, correctUsername, "Adam John", correctPassword, UserRole.ADMIN, "email@email.com", new ArrayList<>(), shop.getId());
+        return new CreateUser(null, correctUsername, "Adam John", correctPassword, UserRole.ADMIN, "email@email.com",
+                new ArrayList<>(), shop.getId());
     }
 
     public static CreateUser getTestUser(String username, String email, UserRole role, Shop shop) {
-        return new CreateUser(null, username, "Adam John", correctPassword, role, email, List.of("+359-898575932" + phoneCount++), shop.getId());
+        return new CreateUser(null, username, "Adam John", correctPassword, role, email,
+                List.of("+359-898575932" + phoneCount++), shop.getId());
     }
 
     public static Category getCategory() {
@@ -45,7 +49,9 @@ public final class TestData {
     }
 
     public static CreateInventoryItem getTestInventoryItem(Shop shop, Category category) {
-        return new CreateInventoryItem(null, "phone Samsung s4", "", BigDecimal.TEN, BigDecimal.TEN, "Brand" + random.nextInt(), null, "Model" + random.nextInt(), null, 10, shop.getId(), category.getId(), new HashMap<>());
+        return new CreateInventoryItem(null, "phone Samsung s4", "", BigDecimal.TEN, BigDecimal.TEN,
+                "Brand" + random.nextInt(), null, "Model" + random.nextInt(), null, 10, shop.getId(), category.getId(),
+                new HashMap<>());
     }
 
     public static CreateTicket getTestTicket(User client) {
@@ -64,6 +70,9 @@ public final class TestData {
                 TicketStatus.PENDING,
                 BigDecimal.valueOf(random.nextDouble()),
                 BigDecimal.ZERO,
-                client.getId());
+                new CreateUser(client.getId(), client.getUsername(), client.getUsername(), client.getPassword(),
+                        UserRole.CLIENT, client.getEmail(),
+                        client.getPhones().stream().map(UserPhone::getPhoneWithCode).toList(),
+                        client.getShop().getId()));
     }
 }

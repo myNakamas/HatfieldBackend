@@ -13,6 +13,7 @@ import com.nakamas.hatfieldbackend.models.enums.TicketStatus;
 import com.nakamas.hatfieldbackend.models.views.incoming.CreateChatMessage;
 import com.nakamas.hatfieldbackend.models.views.incoming.CreateInvoice;
 import com.nakamas.hatfieldbackend.models.views.incoming.CreateTicket;
+import com.nakamas.hatfieldbackend.models.views.incoming.CreateUser;
 import com.nakamas.hatfieldbackend.models.views.incoming.PageRequestView;
 import com.nakamas.hatfieldbackend.models.views.incoming.filters.TicketFilter;
 import com.nakamas.hatfieldbackend.models.views.outgoing.PageView;
@@ -60,37 +61,50 @@ public class TicketService {
 
     private final DocumentService documentService;
 
-    //region Main
+    // region Main
     public Ticket createTicket(CreateTicket create, User loggedUser) {
         Ticket ticket = new Ticket(create, loggedUser);
+
+        if (create.client() != null) {
+            User client = getOrCreateTicketClient(create.client(), loggedUser);
+            ticket.setClient(client);
+        }
         setOptionalProperties(create, ticket);
-        if (create.clientId() != null) ticket.setClient(userService.getUser(create.clientId()));
         Ticket save = ticketRepository.save(ticket);
         sendInitialTicketMessage(loggedUser, ticket);
-//        printTicketLabels(save);
+        // printTicketLabels(save);
         loggerService.createLog(new Log(save.getId(), LogType.CREATED_TICKET), save.getId());
         return save;
     }
 
+    private User getOrCreateTicketClient(CreateUser create, User loggedUser) {
+        User client = create.userId() == null ? userService.createClient(create, loggedUser)
+                : userService.getUser(create.userId());
+        return client;
+    }
+
     private void sendInitialTicketMessage(User loggedUser, Ticket ticket) {
-        StringBuilder stringBuilder = new StringBuilder("Hello! We created Ticket#%s for you. \n".formatted(ticket.getId()));
-        if (!ticket.getDeviceProblemExplanation().isBlank())
+        StringBuilder stringBuilder = new StringBuilder(
+                "Hello! We created Ticket#%s for you. \n".formatted(ticket.getId()));
+        if (ticket.getDeviceProblemExplanation()!=null && !ticket.getDeviceProblemExplanation().isBlank())
             stringBuilder.append("\nTicket description:").append(ticket.getDeviceProblemExplanation());
-        if (!ticket.getCustomerRequest().isBlank())
+        if (ticket.getCustomerRequest()!=null && !ticket.getCustomerRequest().isBlank())
             stringBuilder.append("\nAdditional request:").append(ticket.getDeviceProblemExplanation());
         createMessageForTicket(stringBuilder.toString(), loggedUser, ticket);
     }
 
-    public Ticket update(CreateTicket ticket, Long id) {
+    public Ticket update(CreateTicket ticket, Long id, User loggedUser) {
         Ticket ticketEntity = getTicket(id);
         String updateInfo = loggerService.ticketUpdateCheck(ticketEntity, ticket);
         ticketEntity.update(ticket);
-        if (ticket.clientId() != null) ticketEntity.setClient(userService.getUser(ticket.clientId()));
+        if (ticket.client() != null && ticket.client().userId() != null)
+            ticketEntity.setClient(getOrCreateTicketClient(ticket.client(), loggedUser));
         setOptionalProperties(ticket, ticketEntity);
-        loggerService.createLog(new Log(ticketEntity.getId(), LogType.UPDATED_TICKET), Objects.requireNonNull(ticketEntity.getId()).toString(), updateInfo);
+        loggerService.createLog(new Log(ticketEntity.getId(), LogType.UPDATED_TICKET),
+                Objects.requireNonNull(ticketEntity.getId()).toString(), updateInfo);
         return ticketRepository.save(ticketEntity);
     }
-    //endregion
+    // endregion
 
     //region Ticket population
     private void setOptionalProperties(CreateTicket create, Ticket ticket) {

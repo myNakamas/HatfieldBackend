@@ -196,6 +196,15 @@ class TestUserAccount {
     }
 
     @Test
+    @Transactional
+    void get_clients_with_filter() {
+        createClient("new username", "newEmail@gmail.com");
+        UserFilter filter = new UserFilter();
+        filter.setEmail("newEmail@gmail.com");
+        assertEquals(1, userService.getFilteredClients(filter).size());
+    }
+
+    @Test
     void get_workers_should_succeed() {
         createClient("new username", "newEmail@gmail.com");
         createSecondUser("new username 2", "newEmail2@gmail.com");

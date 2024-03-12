@@ -33,8 +33,8 @@ public class TicketController {
     }
 
     @PutMapping("worker/update/{id}")
-    public TicketView updateTicket(@RequestBody CreateTicket ticket, @PathVariable Long id) {
-        return ticketService.toTicketView(ticketService.update(ticket, id));
+    public TicketView updateTicket(@RequestBody CreateTicket ticket, @PathVariable Long id, @AuthenticationPrincipal User user) {
+        return ticketService.toTicketView(ticketService.update(ticket, id, user));
     }
 
     @GetMapping("all")

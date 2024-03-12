@@ -7,14 +7,12 @@ import com.nakamas.hatfieldbackend.models.views.outgoing.shop.ShopView;
 import com.nakamas.hatfieldbackend.models.views.outgoing.shop.WorkerShopView;
 import com.nakamas.hatfieldbackend.services.ShopService;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Slf4j
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("api/shop")

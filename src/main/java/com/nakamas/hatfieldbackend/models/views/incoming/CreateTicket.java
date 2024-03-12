@@ -4,7 +4,6 @@ import com.nakamas.hatfieldbackend.models.enums.TicketStatus;
 
 import java.math.BigDecimal;
 import java.time.ZonedDateTime;
-import java.util.UUID;
 
 public record CreateTicket(String deviceModel,
                            String deviceBrand,
@@ -21,5 +20,5 @@ public record CreateTicket(String deviceModel,
                            TicketStatus status,
                            BigDecimal totalPrice,
                            BigDecimal deposit,
-                           UUID clientId) {
+                           CreateUser client) {
 }

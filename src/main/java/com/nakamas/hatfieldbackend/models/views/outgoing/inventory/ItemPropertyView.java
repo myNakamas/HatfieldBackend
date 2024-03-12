@@ -1,7 +1,6 @@
 package com.nakamas.hatfieldbackend.models.views.outgoing.inventory;
 
 import com.nakamas.hatfieldbackend.models.entities.shop.DeviceLocation;
-import com.nakamas.hatfieldbackend.models.entities.ticket.Brand;
 import com.nakamas.hatfieldbackend.models.entities.ticket.Model;
 
 public record ItemPropertyView(Long id, String value) {
