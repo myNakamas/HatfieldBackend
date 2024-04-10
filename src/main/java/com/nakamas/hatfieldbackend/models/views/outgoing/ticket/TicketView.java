@@ -4,6 +4,7 @@ import com.nakamas.hatfieldbackend.models.entities.ticket.Invoice;
 import com.nakamas.hatfieldbackend.models.entities.ticket.Ticket;
 import com.nakamas.hatfieldbackend.models.enums.TicketStatus;
 import com.nakamas.hatfieldbackend.models.views.outgoing.user.UserLogin;
+import com.nakamas.hatfieldbackend.models.views.outgoing.user.UserProfile;
 
 import java.math.BigDecimal;
 import java.time.ZonedDateTime;
@@ -26,8 +27,8 @@ public record TicketView(
         TicketStatus status,
         BigDecimal totalPrice,
         BigDecimal deposit,
-        UserLogin createdBy,
-        UserLogin client,
+        UserProfile createdBy,
+        UserProfile client,
         List<UsedPartView> usedParts,
         InvoiceView invoice
 ) {
@@ -48,8 +49,8 @@ public record TicketView(
                 ticket.getStatus(),
                 ticket.getTotalPrice(),
                 ticket.getDeposit(),
-                new UserLogin(ticket.getCreatedBy()),
-                (ticket.getClient() != null) ? new UserLogin(ticket.getClient()) : null,
+                new UserProfile(ticket.getCreatedBy()),
+                (ticket.getClient() != null) ? new UserProfile(ticket.getClient()) : null,
                 ticket.getUsedParts().stream().map(UsedPartView::new).toList(),
                 ticket.getInvoices().stream().filter(Invoice::isTicketInvoice).findFirst().map(InvoiceView::new).orElse(null));
     }
