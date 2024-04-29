@@ -15,6 +15,7 @@ import org.springframework.data.jpa.domain.AbstractPersistable;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
 import java.util.List;
@@ -132,7 +133,6 @@ public class User extends AbstractPersistable<UUID> implements UserDetails {
     public boolean isSMSEnabled() {
         return this.smsPermission && !this.phones.isEmpty();
     }
-
     public List<String> getPhonesString() {
         return phones.stream().map(UserPhone::getPhoneWithCode).toList();
     }

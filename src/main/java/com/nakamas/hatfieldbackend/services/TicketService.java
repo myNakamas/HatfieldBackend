@@ -224,9 +224,11 @@ public class TicketService {
         return ticketRepository.findById(id).orElseThrow(() -> new CustomException("Cannot find Ticket with selected ID"));
     }
 
-    @Transactional
-    public TicketView toTicketView(Ticket ticket) {
-        return new TicketView(ticket);
+    public TicketView getTicketView(Long id) {
+        return ticketRepository.getTicketView(id);
+    }
+    public TicketView getTicketView(Ticket ticket) {
+        return getTicketView(ticket.getId());
     }
 
     //endregion

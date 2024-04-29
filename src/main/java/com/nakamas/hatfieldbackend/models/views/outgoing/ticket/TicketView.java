@@ -1,5 +1,6 @@
 package com.nakamas.hatfieldbackend.models.views.outgoing.ticket;
 
+import com.nakamas.hatfieldbackend.models.entities.User;
 import com.nakamas.hatfieldbackend.models.entities.ticket.Invoice;
 import com.nakamas.hatfieldbackend.models.entities.ticket.Ticket;
 import com.nakamas.hatfieldbackend.models.enums.TicketStatus;
@@ -9,6 +10,8 @@ import com.nakamas.hatfieldbackend.models.views.outgoing.user.UserProfile;
 import java.math.BigDecimal;
 import java.time.ZonedDateTime;
 import java.util.List;
+
+import org.springframework.transaction.annotation.Transactional;
 
 public record TicketView(
         Long id,
@@ -51,6 +54,28 @@ public record TicketView(
                 ticket.getDeposit(),
                 new UserProfile(ticket.getCreatedBy()),
                 (ticket.getClient() != null) ? new UserProfile(ticket.getClient()) : null,
+                ticket.getUsedParts().stream().map(UsedPartView::new).toList(),
+                ticket.getInvoices().stream().filter(Invoice::isTicketInvoice).findFirst().map(InvoiceView::new).orElse(null));
+    }
+    public TicketView(Ticket ticket, User client, User creator) {
+        this(ticket.getId(),
+                ticket.getDeviceModel() != null ? ticket.getDeviceModel().getModel() : null,
+                ticket.getDeviceBrand() != null ? ticket.getDeviceBrand().getBrand() : null,
+                ticket.getDeviceLocation() != null ? ticket.getDeviceLocation().getLocation() : null,
+                ticket.getCustomerRequest(),
+                ticket.getDeviceProblemExplanation(),
+                ticket.getDeviceCondition(),
+                ticket.getDevicePassword(),
+                ticket.getSerialNumberOrImei(),
+                ticket.getAccessories(),
+                ticket.getTimestamp(),
+                ticket.getDeadline(),
+                ticket.getNotes(),
+                ticket.getStatus(),
+                ticket.getTotalPrice(),
+                ticket.getDeposit(),
+                new UserProfile(creator),
+                (client != null) ? new UserProfile(client) : null,
                 ticket.getUsedParts().stream().map(UsedPartView::new).toList(),
                 ticket.getInvoices().stream().filter(Invoice::isTicketInvoice).findFirst().map(InvoiceView::new).orElse(null));
     }

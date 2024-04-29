@@ -24,17 +24,17 @@ public class TicketController {
 
     @PostMapping("worker/create")
     public TicketView createTicket(@RequestBody CreateTicket ticket, @AuthenticationPrincipal User user) {
-        return ticketService.toTicketView(ticketService.createTicket(ticket, user));
+        return ticketService.getTicketView(ticketService.createTicket(ticket, user));
     }
 
     @GetMapping("byId")
     public TicketView getAllTickets(@RequestParam Long id) {
-        return new TicketView(ticketService.getTicket(id));
+        return ticketService.getTicketView(id);
     }
 
     @PutMapping("worker/update/{id}")
     public TicketView updateTicket(@RequestBody CreateTicket ticket, @PathVariable Long id, @AuthenticationPrincipal User user) {
-        return ticketService.toTicketView(ticketService.update(ticket, id, user));
+        return ticketService.getTicketView(ticketService.update(ticket, id, user));
     }
 
     @GetMapping("all")
