@@ -241,12 +241,19 @@ public class DocumentService {
         PDImageXObject qrCode = PDImageXObject.createFromFileByContent(code, document);
         contents.drawImage(qrCode, 0, -2);
 
-        StringBuilder details = new StringBuilder(ticket.getClient().getFullName() + "\n");
-        List<String> phones = ticket.getClient().getPhonesString();
-        for (int i = 0; i < phones.size(); i++) {
-            String phone = phones.get(i);
-            details.append("Phone #").append(i).append(" ").append(phone).append("\n");
+
+        StringBuilder details = new StringBuilder();
+        if (ticket.getClient() != null) {
+
+            details.append(ticket.getClient().getFullName()).append("\n");
+            List<String> phones = ticket.getClient().getPhonesString();
+            if (!phones.isEmpty())
+                details.append("Phones:");
+            for (String phone : phones) {
+                details.append(phone).append("\n");
+            }
         }
+
 
         acroForm.getField("title").setValue("Ticket ID:" + ticket.getId());
         acroForm.getField("details").setValue(details.toString());

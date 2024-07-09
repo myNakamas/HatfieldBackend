@@ -136,8 +136,12 @@ public class TicketTests {
         CreateTicket createTicket = TestData.getTestTicket(client);
         TicketFilter ticketFilter = new TicketFilter();
         ticketFilter.setSearchBy(createTicket.problemExplanation());
-        PageView<TicketView> all = ticketService.findAll(ticketFilter, new PageRequestView(10, 1));
-        Assertions.assertEquals(1, all.getTotalCount());
+        PageView<TicketView> filtered = ticketService.findAll(ticketFilter, new PageRequestView(10, 1));
+        Assertions.assertEquals(1, filtered.getTotalCount());
+
+        ticketFilter.setSearchBy(createTicket.serialNumberOrImei());
+        filtered = ticketService.findAll(ticketFilter, new PageRequestView(10, 1));
+        Assertions.assertEquals(1, filtered.getTotalCount());
     }
 
 
