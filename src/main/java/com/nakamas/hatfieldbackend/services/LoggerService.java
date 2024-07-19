@@ -20,7 +20,6 @@ import com.nakamas.hatfieldbackend.models.views.outgoing.user.UserProfile;
 import com.nakamas.hatfieldbackend.repositories.LogRepository;
 import com.nakamas.hatfieldbackend.repositories.UserRepository;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.security.core.Authentication;
@@ -36,7 +35,6 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-@Slf4j
 @Service
 @RequiredArgsConstructor
 public class LoggerService {
@@ -188,8 +186,8 @@ public class LoggerService {
             updateInfo.append("Total price updated from ").append(formatBigDecimal(ticket.getTotalPrice())).append(" to ").append(formatBigDecimal(view.totalPrice())).append(LOG_SEPARATOR);
         if (view.deposit() != null && isBigDecimalDifferent(ticket.getDeposit(), view.deposit()))
             updateInfo.append("Deposit updated from ").append(formatBigDecimal(ticket.getDeposit())).append(" to ").append(formatBigDecimal(view.deposit())).append(LOG_SEPARATOR);
-        if (view.clientId() != null && ticket.getClient() != null && ticket.getClient().getId() != null && !Objects.equals(ticket.getClient().getId(), view.clientId()))
-            updateInfo.append("Client updated from ").append(ticket.getClient().getId().toString()).append(" to ").append(view.clientId()).append(LOG_SEPARATOR);
+        if (view.client().userId() != null && ticket.getClient() != null && ticket.getClient().getId() != null && !Objects.equals(ticket.getClient().getId(), view.client().userId()))
+            updateInfo.append("Client updated from ").append(ticket.getClient().getId().toString()).append(" to ").append(view.client().userId()).append(LOG_SEPARATOR);
         return updateInfo.toString();
     }
 

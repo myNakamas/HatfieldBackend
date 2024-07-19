@@ -33,6 +33,28 @@ public interface UserRepository extends JpaRepository<User, UUID>, JpaSpecificat
     @Query("""
              select u
              from User u
+             join u.phones p
+             where p.phone like concat("%",?1,"%")
+            """)
+    List<User> findAllUsersByPhone(String phone);
+
+    @Query("""
+             select u
+             from User u
+             where u.email like concat("%",?1,"%")
+            """)
+    List<User> findAllUsersByEmail(String email);
+
+    @Query("""
+             select u
+             from User u
+             where u.fullName like concat("%",?1,"%")
+            """)
+    List<User> findAllUsersByFullName(String fullName);
+
+    @Query("""
+             select u
+             from User u
              where u.username = ?1 or (u.email = ?2 and u.email not like '')
             """)
     List<User> uniqueUserExists(String username, String email);

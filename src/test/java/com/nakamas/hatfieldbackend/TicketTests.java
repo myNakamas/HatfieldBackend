@@ -1,5 +1,6 @@
 package com.nakamas.hatfieldbackend;
 
+import com.nakamas.hatfieldbackend.controllers.TicketController;
 import com.nakamas.hatfieldbackend.models.entities.User;
 import com.nakamas.hatfieldbackend.models.entities.shop.Category;
 import com.nakamas.hatfieldbackend.models.entities.shop.InventoryItem;
@@ -53,6 +54,8 @@ public class TicketTests {
     private BrandRepository brandRepository;
     @Autowired
     private TicketRepository ticketRepository;
+    @Autowired
+    private TicketController ticketController;
     @Autowired
     private UserRepository userRepository;
     @Autowired
@@ -117,14 +120,28 @@ public class TicketTests {
         Assertions.assertEquals(createTicket.deviceLocation(), ticket.getDeviceLocation().getLocation());
         Assertions.assertEquals(createTicket.deviceBrand(), ticket.getDeviceBrandString());
     }
+
+
+    @Test
+    void createTicketAndCreateView() {
+
+            CreateTicket createTicket = TestData.getTestTicket(client);
+            TicketView ticketView = ticketController.createTicket(createTicket, user);
+            Assertions.assertEquals(createTicket.serialNumberOrImei(), ticketView.serialNumberOrImei());
+    }
+
     @Test
     @Transactional
     void search_ticket() {
         CreateTicket createTicket = TestData.getTestTicket(client);
         TicketFilter ticketFilter = new TicketFilter();
         ticketFilter.setSearchBy(createTicket.problemExplanation());
-        PageView<TicketView> all = ticketService.findAll(ticketFilter, new PageRequestView(10, 1));
-        Assertions.assertEquals(1, all.getTotalCount());
+        PageView<TicketView> filtered = ticketService.findAll(ticketFilter, new PageRequestView(10, 1));
+        Assertions.assertEquals(1, filtered.getTotalCount());
+
+        ticketFilter.setSearchBy(createTicket.serialNumberOrImei());
+        filtered = ticketService.findAll(ticketFilter, new PageRequestView(10, 1));
+        Assertions.assertEquals(1, filtered.getTotalCount());
     }
 
 
@@ -132,7 +149,7 @@ public class TicketTests {
     @Transactional
     void update_ticket_should_succeed() {
         CreateTicket createTicket = TestData.getTestTicket(client);
-        Ticket result = ticketService.update(createTicket, ticket.getId());
+        Ticket result = ticketService.update(createTicket, ticket.getId(), user);
         Assertions.assertEquals(ticket.getId(), result.getId());
         Assertions.assertEquals(user.getShop().getId(), result.getShop().getId());
         Assertions.assertEquals(createTicket.deviceLocation(), result.getDeviceLocation().getLocation());
@@ -180,5 +197,6 @@ public class TicketTests {
         ticketService.completeRepair(user, ticket.getId(), true);
         Assertions.assertEquals(ticketService.getTicket(ticket.getId()).getStatus(), TicketStatus.FINISHED);
     }
+
 
 }

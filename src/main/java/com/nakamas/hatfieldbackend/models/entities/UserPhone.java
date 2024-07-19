@@ -32,12 +32,13 @@ public class UserPhone extends AbstractPersistable<Long> {
     }
 
     public UserPhone(String phone) {
-        if (phone.contains("-")) {
-            String[] phoneSplit = phone.split("-");
+        String[] phoneSplit = phone.split("-");
+        if (phoneSplit.length  == 2) {
             this.code = phoneSplit[0];
             this.phone = phoneSplit[1];
         } else if (phone.startsWith("0")) {
             this.phone = phone.substring(1);
+            this.code = "+44";
         } else {
             this.phone = phone;
         }
@@ -45,5 +46,12 @@ public class UserPhone extends AbstractPersistable<Long> {
 
     public static String extractPhoneNumber(String phone) {
         return new UserPhone(phone).getPhone();
+    }
+
+    public String getComparableString() {
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append(getCode());
+        stringBuilder.append(getPhone());
+        return stringBuilder.toString().replace("+", "");
     }
 }

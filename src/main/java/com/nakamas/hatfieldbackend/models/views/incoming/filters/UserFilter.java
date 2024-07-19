@@ -22,6 +22,9 @@ public class UserFilter implements Specification<User> {
     private Boolean active;
     private Boolean banned;
     private List<UserRole> roles;
+    private String fullName;
+    private String email;
+    private String phone;
 
     @Override
     public Predicate toPredicate(@NonNull Root<User> user, @NonNull CriteriaQuery<?> query, @NonNull CriteriaBuilder builder) {

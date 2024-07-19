@@ -1,6 +1,5 @@
 package com.nakamas.hatfieldbackend.services;
 
-import com.nakamas.hatfieldbackend.config.AttributeEncryptor;
 import com.nakamas.hatfieldbackend.config.exception.CustomException;
 import com.nakamas.hatfieldbackend.models.entities.Log;
 import com.nakamas.hatfieldbackend.models.entities.Photo;
@@ -19,6 +18,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -34,13 +34,13 @@ import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
 import java.util.*;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class UserService implements UserDetailsService, UserDetailsPasswordService {
-    private final AttributeEncryptor encryptor;
     private final PasswordEncoder passwordEncoder;
     private final UserRepository userRepository;
     private final PhotoService photoService;
@@ -128,6 +128,10 @@ public class UserService implements UserDetailsService, UserDetailsPasswordServi
         }
     }
 
+    public User createClient(CreateUser client, User loggedUser) {
+        CreateUser newUser = new CreateUser(client.fullName(),UserRole.CLIENT,client.email(),client.phones(), loggedUser.getShop().getId());
+        return createClient(newUser);
+    }
     public User createClient(CreateUser userInfo) {
         User user = new User(userInfo, shopRepository.findById(userInfo.shopId()).orElse(null));
         user.setRole(UserRole.CLIENT);
@@ -145,7 +149,7 @@ public class UserService implements UserDetailsService, UserDetailsPasswordServi
         User user = getUser(userInfo.userId());
         String updateInfo = loggerService.userUpdateCheck(user, userInfo);
         user.updateAsAdmin(userInfo, shopRepository.findById(userInfo.shopId()).orElse(user.getShop()));
-        if (!userInfo.password().isBlank()) {
+        if (userInfo.password() != null && !userInfo.password().isBlank()) {
             validatePassword(userInfo.password());
             user.setPassword(passwordEncoder.encode(userInfo.password()));
         }
@@ -183,6 +187,36 @@ public class UserService implements UserDetailsService, UserDetailsPasswordServi
     public List<User> getAllWorkers(UserFilter filter) {
         filter.setRoles(List.of(UserRole.ENGINEER, UserRole.SALESMAN));
         return userRepository.findAll(filter);
+    }
+
+    public List<User> getFilteredClients(UserFilter filter) {
+        List<User> users = userRepository.findAll(filter);
+
+        return users.stream().filter((user) -> filterByValue(filter.getFullName(), user.getFullName()))
+                .filter((user) -> filterByValue(filter.getEmail(), user.getEmail()))
+                .filter((user) -> user.getPhones().stream()
+                        .anyMatch((phone) -> filterPhoneByValue(filter.getPhone(), phone)))
+                .toList();
+    }
+
+    public static boolean filterPhoneByValue(String phoneFilter, UserPhone phone) {
+        if (phoneFilter == null || phoneFilter.isEmpty())
+            return true;
+        if (phone == null || phone.getPhone() == null || phone.getPhone().isEmpty())
+            return false;
+        
+        String formattedFilter = new UserPhone(phoneFilter).getComparableString();
+        return filterByValue(formattedFilter, phone.getComparableString());
+    }
+
+    public static boolean filterByValue(String filterValue, String field) {
+        if (filterValue == null || filterValue.isEmpty())
+            return true;
+        if (field == null || field.isEmpty())
+            return false;
+
+        Pattern mypattern = Pattern.compile(filterValue, Pattern.CASE_INSENSITIVE);
+        return mypattern.matcher(field).find();
     }
 
     public void getUserImage(UUID id, HttpServletResponse response) {

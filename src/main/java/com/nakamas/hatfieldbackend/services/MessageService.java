@@ -15,7 +15,6 @@ import com.nakamas.hatfieldbackend.models.views.outgoing.ticket.MissedMessages;
 import com.nakamas.hatfieldbackend.repositories.MessageRepository;
 import com.nakamas.hatfieldbackend.repositories.TicketRepository;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.messaging.MessageHeaders;
@@ -29,7 +28,6 @@ import org.springframework.web.multipart.MultipartFile;
 import java.time.ZonedDateTime;
 import java.util.*;
 
-@Slf4j
 @Service
 @RequiredArgsConstructor
 public class MessageService {
@@ -81,7 +79,8 @@ public class MessageService {
         filter.setRoles(List.of(UserRole.ENGINEER, UserRole.SALESMAN, UserRole.ADMIN));
         List<User> users = userService.getAll(filter);
         for (User user : users) {
-            sendChatMessageToUser(user.getId().toString(), message);
+            if(!message.sender().equals(user.getId()))
+                sendChatMessageToUser(user.getId().toString(), message);
         }
     }
 

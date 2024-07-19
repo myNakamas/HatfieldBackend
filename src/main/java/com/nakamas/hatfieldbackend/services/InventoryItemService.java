@@ -237,8 +237,8 @@ public class InventoryItemService {
     }
 
     public void deleteCategory(Long id) {
-        inventoryItemRepository.setItemsToNullCategory(id);
         Category category = categoryRepository.findById(id).orElseThrow(() -> new CustomException("No such category exists"));
+        inventoryItemRepository.setItemsToNullCategory(id);
         loggerService.createLog(new Log(LogType.DELETED_CATEGORY), category.getName());
         categoryRepository.deleteById(id);
     }

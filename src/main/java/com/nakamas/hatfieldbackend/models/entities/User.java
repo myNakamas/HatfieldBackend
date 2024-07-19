@@ -16,6 +16,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
@@ -72,7 +73,10 @@ public class User extends AbstractPersistable<UUID> implements UserDetails {
         this.fullName = user.fullName();
         this.password = user.password();
         this.email = user.email();
-        this.phones = user.phones().stream().map(UserPhone::new).toList();
+        if (user.phones() != null)
+            this.phones = user.phones().stream().map(UserPhone::new).toList();
+        else
+            this.phones = new ArrayList<>();
         this.role = user.role();
         this.isActive = true;
         this.isBanned = false;
@@ -132,7 +136,6 @@ public class User extends AbstractPersistable<UUID> implements UserDetails {
     public boolean isSMSEnabled() {
         return this.smsPermission && !this.phones.isEmpty();
     }
-
     public List<String> getPhonesString() {
         return phones.stream().map(UserPhone::getPhoneWithCode).toList();
     }

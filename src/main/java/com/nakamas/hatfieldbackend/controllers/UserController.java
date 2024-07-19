@@ -13,7 +13,6 @@ import com.nakamas.hatfieldbackend.services.UserService;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -23,7 +22,6 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 import java.util.UUID;
 
-@Slf4j
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("api/user")
@@ -77,6 +75,12 @@ public class UserController {
     public List<UserProfile> getAllClients(@AuthenticationPrincipal User user, UserFilter filter) {
         filter.setShopId(user.getShop().getId());
         return userService.getAllClients(filter).stream().map(UserProfile::new).toList();
+    }
+
+    @GetMapping("worker/filtered/clients")
+    public List<UserProfile> getFilteredClients(@AuthenticationPrincipal User user, UserFilter filter) {
+        filter.setShopId(user.getShop().getId());
+        return userService.getFilteredClients(filter).stream().map(UserProfile::new).toList();
     }
 
     @GetMapping("worker/all/clientsPages")

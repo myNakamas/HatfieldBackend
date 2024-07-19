@@ -20,6 +20,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 public class TicketFilter implements Specification<Ticket> {
+    private Long ticketId;
     private String searchBy;
     private Long modelId;
     private Long brandId;
@@ -39,8 +40,10 @@ public class TicketFilter implements Specification<Ticket> {
     @Override
     public Predicate toPredicate(@NonNull Root<Ticket> ticket, @NonNull CriteriaQuery<?> query, @NonNull CriteriaBuilder builder) {
         List<Predicate> predicates = new ArrayList<>();
+        if (ticketId != null)
+            return builder.equal(ticket.get("id"), ticketId);
         if (modelId != null)
-            predicates.add(builder.equal(ticket.get("deviceModel").get("id"), modelId));
+                predicates.add(builder.equal(ticket.get("deviceModel").get("id"), modelId));
         if (brandId != null)
             predicates.add(builder.equal(ticket.get("deviceBrand").get("id"), brandId));
         if (deviceLocation != null)

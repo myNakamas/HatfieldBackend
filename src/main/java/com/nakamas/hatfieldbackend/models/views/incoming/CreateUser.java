@@ -29,4 +29,13 @@ public record CreateUser(UUID userId,
                       Long shopId) {
         this(userId, username, fullName, password, role, email, phones, shopId, null, null, true, true);
     }
+    
+    public CreateUser(String fullName,
+            UserRole role,
+            String email,
+            List<String> phones,
+            Long shopId) {
+        this(null, "", fullName, "", role, email, phones, shopId, true, false, phones!=null && !phones.isEmpty(), email!= null && !email.isBlank());
+    }
+
 }

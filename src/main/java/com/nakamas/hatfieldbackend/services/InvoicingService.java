@@ -122,6 +122,7 @@ public class InvoicingService {
         switch (invoice.getType()){
             case BUY -> inventoryItemService.buyItem(invoice.getItemId(),invoice.getCount());
             case SELL,ACCESSORIES -> inventoryItemService.sellItem(invoice.getItemId(), invoice.getCount());
+            default -> {}
         }
 
     }
