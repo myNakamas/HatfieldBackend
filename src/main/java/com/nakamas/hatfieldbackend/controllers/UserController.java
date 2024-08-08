@@ -14,6 +14,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -66,6 +67,11 @@ public class UserController {
         return userService.getAll(filter).stream().map(UserProfile::new).toList();
     }
 
+    @GetMapping("worker/page")
+    public Page<UserProfile> getAllUsers(UserFilter filter, PageRequestView pageRequestView) {
+        return userService.getFilteredUsers(filter, pageRequestView.getPageRequest()).map(UserProfile::new);
+    }
+
     @GetMapping("worker/all/workers")
     public List<UserProfile> getAllWorkers(UserFilter filter) {
         return userService.getAllWorkers(filter).stream().map(UserProfile::new).toList();
@@ -80,12 +86,12 @@ public class UserController {
     @GetMapping("worker/filtered/clients")
     public List<UserProfile> getFilteredClients(@AuthenticationPrincipal User user, UserFilter filter) {
         filter.setShopId(user.getShop().getId());
-        return userService.getFilteredClients(filter).stream().map(UserProfile::new).toList();
+        return userService.getFilteredUsers(filter).stream().map(UserProfile::new).toList();
     }
 
     @GetMapping("worker/all/clientsPages")
     public PageView<UserProfile> getAllClientsPages(@AuthenticationPrincipal User user, UserFilter filter, PageRequestView pageRequestView) {
-        if(!user.getRole().equals(UserRole.ADMIN)) filter.setShopId(user.getShop().getId());
+        if (!user.getRole().equals(UserRole.ADMIN)) filter.setShopId(user.getShop().getId());
         return new PageView<>(userService.getAllClients(filter, pageRequestView.getPageRequest()).map(UserProfile::new));
     }
 
@@ -95,9 +101,10 @@ public class UserController {
         User fromDb = userService.getUser(user.getId());
         return new UserProfile(fromDb);
     }
+
     @DeleteMapping("profile")
-    public void deleteProfile(@AuthenticationPrincipal User user){
-        userService.updateUserBan(user.getId(),true);
+    public void deleteProfile(@AuthenticationPrincipal User user) {
+        userService.updateUserBan(user.getId(), true);
     }
 
     @PutMapping("profile/edit")
@@ -114,9 +121,10 @@ public class UserController {
     public void editPassword(@AuthenticationPrincipal User user, @RequestBody ChangePasswordView changePassword) {
         userService.changePassword(user, changePassword.oldPassword(), changePassword.newPassword());
     }
+
     @PutMapping("profile/reset/password")
     public void clientUpdatePassword(@AuthenticationPrincipal User user, @RequestBody ChangePasswordView password) {
-        userService.clientUpdatePassword(user,password.newPassword());
+        userService.clientUpdatePassword(user, password.newPassword());
     }
 
     @GetMapping(path = "profile/image", produces = {MediaType.IMAGE_JPEG_VALUE})

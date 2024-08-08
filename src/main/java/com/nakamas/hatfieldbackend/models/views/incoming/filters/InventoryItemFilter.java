@@ -77,7 +77,7 @@ public class InventoryItemFilter implements Specification<InventoryItem> {
         String[] pairs = text.split(" ");
         for (String pair : pairs) {
             String[] keyValue = pair.split(":");
-            if (keyValue.length == 2) {
+            if (keyValue.length == 2 && !keyValue[1].isBlank()) {
                 String key = keyValue[0];
                 String value = keyValue[1];
                 keyValuePairs.put(key, value);

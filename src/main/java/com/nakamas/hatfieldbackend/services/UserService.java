@@ -18,9 +18,9 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.mail.MailAuthenticationException;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -129,7 +129,7 @@ public class UserService implements UserDetailsService, UserDetailsPasswordServi
     }
 
     public User createClient(CreateUser client, User loggedUser) {
-        CreateUser newUser = new CreateUser(client.fullName(),UserRole.CLIENT,client.email(),client.phones(), loggedUser.getShop().getId());
+        CreateUser newUser = new CreateUser(client.fullName(), UserRole.CLIENT, client.email(), client.phones(), loggedUser.getShop().getId());
         return createClient(newUser);
     }
     public User createClient(CreateUser userInfo) {
@@ -181,7 +181,7 @@ public class UserService implements UserDetailsService, UserDetailsPasswordServi
 
     public Page<User> getAllClients(UserFilter filter, PageRequest pageRequest) {
         filter.setRoles(List.of(UserRole.CLIENT));
-        return userRepository.findAll(filter, pageRequest);
+        return getFilteredUsers(filter, pageRequest);
     }
 
     public List<User> getAllWorkers(UserFilter filter) {
@@ -189,7 +189,7 @@ public class UserService implements UserDetailsService, UserDetailsPasswordServi
         return userRepository.findAll(filter);
     }
 
-    public List<User> getFilteredClients(UserFilter filter) {
+    public List<User> getFilteredUsers(UserFilter filter) {
         List<User> users = userRepository.findAll(filter);
 
         return users.stream().filter((user) -> filterByValue(filter.getFullName(), user.getFullName()))
@@ -198,13 +198,19 @@ public class UserService implements UserDetailsService, UserDetailsPasswordServi
                         .anyMatch((phone) -> filterPhoneByValue(filter.getPhone(), phone)))
                 .toList();
     }
+    public Page<User> getFilteredUsers(UserFilter filter, PageRequest pageRequest) {
+        List<User> users = getFilteredUsers(filter);
+        final int start = (int) pageRequest.getOffset();
+        final int end = Math.min((start + pageRequest.getPageSize()), users.size());
+        return new PageImpl<>(users.subList(start, end), pageRequest, users.size());
+    }
 
     public static boolean filterPhoneByValue(String phoneFilter, UserPhone phone) {
         if (phoneFilter == null || phoneFilter.isEmpty())
             return true;
         if (phone == null || phone.getPhone() == null || phone.getPhone().isEmpty())
             return false;
-        
+
         String formattedFilter = new UserPhone(phoneFilter).getComparableString();
         return filterByValue(formattedFilter, phone.getComparableString());
     }
@@ -246,12 +252,15 @@ public class UserService implements UserDetailsService, UserDetailsPasswordServi
     }
 
     private void validateUser(User user) {
+        if (user.getFullName().isEmpty() && user.getEmail().isEmpty() && user.getPhones().isEmpty() && UserRole.CLIENT.equals(user.getRole()))
+            throw new CustomException("At least one value is required Name/Email/Phone");
         if (user.getShop() == null) throw new CustomException("User must be attached to a shop!");
         List<User> existingUsers = userRepository.uniqueUserExists(user.getUsername(), user.getEmail());
         if (user.isNew() && !existingUsers.isEmpty() ||
                 existingUsers.stream().anyMatch(profile -> !Objects.equals(profile.getId(), user.getId())))
             throw new CustomException("Username or email already taken!");
         validateUniquePhones(user);
+
     }
 
     private void validateUniquePhones(User user) {

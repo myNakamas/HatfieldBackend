@@ -201,7 +201,7 @@ class TestUserAccount {
         createClient("new username", "newEmail@gmail.com");
         UserFilter filter = new UserFilter();
         filter.setEmail("newEmail@gmail.com");
-        assertEquals(1, userService.getFilteredClients(filter).size());
+        assertEquals(1, userService.getFilteredUsers(filter).size());
     }
 
     @Test
