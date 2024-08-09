@@ -186,7 +186,7 @@ public class LoggerService {
             updateInfo.append("Total price updated from ").append(formatBigDecimal(ticket.getTotalPrice())).append(" to ").append(formatBigDecimal(view.totalPrice())).append(LOG_SEPARATOR);
         if (view.deposit() != null && isBigDecimalDifferent(ticket.getDeposit(), view.deposit()))
             updateInfo.append("Deposit updated from ").append(formatBigDecimal(ticket.getDeposit())).append(" to ").append(formatBigDecimal(view.deposit())).append(LOG_SEPARATOR);
-        if (view.client() !=null && view.client().userId() != null && ticket.getClient() != null && ticket.getClient().getId() != null && !Objects.equals(ticket.getClient().getId(), view.client().userId()))
+        if (view.client() !=null && view.client().userId() != null && ticket.getClient() != null && view.withClient() != null && view.withClient() && ticket.getClient().getId() != null && !Objects.equals(ticket.getClient().getId(), view.client().userId()))
             updateInfo.append("Client updated from ").append(ticket.getClient().getId().toString()).append(" to ").append(view.client().userId()).append(LOG_SEPARATOR);
         return updateInfo.toString();
     }

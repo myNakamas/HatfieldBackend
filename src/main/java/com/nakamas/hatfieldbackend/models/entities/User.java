@@ -136,8 +136,14 @@ public class User extends AbstractPersistable<UUID> implements UserDetails {
     public boolean isSMSEnabled() {
         return this.smsPermission && !this.phones.isEmpty();
     }
+
     public List<String> getPhonesString() {
         return phones.stream().map(UserPhone::getPhoneWithCode).toList();
     }
 
+    public boolean isClientUniqueInfoEmpty() {
+        return (fullName == null || fullName.isEmpty()) &&
+                (email == null || email.isEmpty()) &&
+                (phones == null || phones.isEmpty());
+    }
 }

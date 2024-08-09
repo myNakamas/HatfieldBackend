@@ -252,8 +252,8 @@ public class UserService implements UserDetailsService, UserDetailsPasswordServi
     }
 
     private void validateUser(User user) {
-        if (user.getFullName().isEmpty() && user.getEmail().isEmpty() && user.getPhones().isEmpty() && UserRole.CLIENT.equals(user.getRole()))
-            throw new CustomException("At least one value is required Name/Email/Phone");
+        if (user.isNew() && user.isClientUniqueInfoEmpty() && UserRole.CLIENT.equals(user.getRole()))
+            throw new CustomException("At least one value is required to create a client: Name/Email/Phone");
         if (user.getShop() == null) throw new CustomException("User must be attached to a shop!");
         List<User> existingUsers = userRepository.uniqueUserExists(user.getUsername(), user.getEmail());
         if (user.isNew() && !existingUsers.isEmpty() ||

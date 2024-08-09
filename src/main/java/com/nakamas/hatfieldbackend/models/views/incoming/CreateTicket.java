@@ -20,5 +20,6 @@ public record CreateTicket(String deviceModel,
                            TicketStatus status,
                            BigDecimal totalPrice,
                            BigDecimal deposit,
+                           Boolean withClient,
                            CreateUser client) {
 }
