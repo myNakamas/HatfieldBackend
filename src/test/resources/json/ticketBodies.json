@@ -12,6 +12,7 @@
     "deadline": "2023-05-20T05:51:42.505Z",
     "notes": "string",
     "status": "PENDING",
+    "withClient": "false",
     "totalPrice": 25,
     "deposit": 5
   },
@@ -28,6 +29,7 @@
     "deadline": "2023-05-21T05:51:42.505Z",
     "notes": "string2",
     "status": "PENDING",
+    "withClient": "false",
     "totalPrice": 40,
     "deposit": 10
   }

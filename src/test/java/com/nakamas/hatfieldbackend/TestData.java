@@ -69,7 +69,7 @@ public final class TestData {
                 "",
                 TicketStatus.PENDING,
                 BigDecimal.valueOf(random.nextDouble()),
-                BigDecimal.ZERO,
+                BigDecimal.ZERO,true,
                 new CreateUser(client.getId(), client.getUsername(), client.getUsername(), client.getPassword(),
                         UserRole.CLIENT, client.getEmail(),
                         client.getPhones().stream().map(UserPhone::getPhoneWithCode).toList(),
