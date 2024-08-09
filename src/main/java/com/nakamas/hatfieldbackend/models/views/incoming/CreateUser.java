@@ -38,4 +38,9 @@ public record CreateUser(UUID userId,
         this(null, "", fullName, "", role, email, phones, shopId, true, false, phones!=null && !phones.isEmpty(), email!= null && !email.isBlank());
     }
 
+    public boolean isClientUniqueInfoEmpty() {
+        return (fullName == null || fullName.isEmpty()) &&
+                (email == null || email.isEmpty()) &&
+                (phones == null || phones.isEmpty());
+    }
 }

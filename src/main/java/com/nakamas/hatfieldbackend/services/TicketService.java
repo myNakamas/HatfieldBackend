@@ -69,7 +69,7 @@ public class TicketService {
     }
 
     private User getOrCreateTicketClient(CreateUser create, User loggedUser) {
-        if(create == null) return null;
+        if(create == null || create.isClientUniqueInfoEmpty()) return null;
         return create.userId() == null ? userService.createClient(create, loggedUser)
                 : userService.getUser(create.userId());
     }
