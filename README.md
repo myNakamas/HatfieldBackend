@@ -32,10 +32,10 @@ Install JDK 17 or above from [here](https://jdk.java.net/).
 
 The following environment variables need to be set prior to running:
 
-- `db-url` : The postgres db url (example :``)
+- `db-url` : The postgres db url (example :`jdbc:postgresql://localhost:5432/hatfield`)
 - `db-username` : The username of the user for the database
 - `db-password` : The password of the user for the database
 - `jwtSecret` : a random (32 or 64 characters long) key needed for the jwt encryption
 - `encryptorSecret` : a random (32 or 64 characters long) key needed for the user details encryption
-- `fe-host` : The url, this website is hosted (example :`http://websitename`)
+- `fe-host` : The url, this website is hosted (example :`http://localhost:9000`)
 - `output-dir` : The folder which the service will save and read files from
