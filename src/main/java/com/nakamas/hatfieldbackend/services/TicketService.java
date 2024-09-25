@@ -69,7 +69,7 @@ public class TicketService {
     }
 
     private User getOrCreateTicketClient(CreateUser create, User loggedUser) {
-        if(create == null || create.isClientUniqueInfoEmpty()) return null;
+        if (create == null || create.isClientUniqueInfoEmpty()) return null;
         return create.userId() == null ? userService.createClient(create, loggedUser)
                 : userService.getUser(create.userId());
     }
@@ -97,12 +97,15 @@ public class TicketService {
 
     //region Ticket population
     private void setOptionalProperties(CreateTicket create, Ticket ticket, User loggedUser) {
-        if (create.withClient()) {
+        if (create.withClient() != null) {
+            if (create.withClient()) {
                 User client = getOrCreateTicketClient(create.client(), loggedUser);
                 ticket.setClient(client);
-        } else {
-            ticket.setClient(null);
+            } else {
+                ticket.setClient(null);
+            }
         }
+
         if (create.deviceBrand() != null)
             ticket.setDeviceBrand(inventoryService.getOrCreateBrand(create.deviceBrand()));
         if (create.deviceModel() != null)
