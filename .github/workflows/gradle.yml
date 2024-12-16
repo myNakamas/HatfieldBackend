@@ -29,9 +29,9 @@ jobs:
     - name: Make Gradlew Executable
       run: chmod +x ./gradlew
       
-    - name: Run tests
+    - name: Run tests and build
       run: |
-        ./gradlew check
+        ./gradlew build
         
     - name: Publish Test Results
       uses: EnricoMi/publish-unit-test-result-action@v2.2.0
