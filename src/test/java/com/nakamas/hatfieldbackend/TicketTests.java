@@ -37,6 +37,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 
+@Transactional
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.ANY, connection = EmbeddedDatabaseConnection.H2)
 public class TicketTests {
@@ -112,7 +113,6 @@ public class TicketTests {
     }
 
     @Test
-    @Transactional
     void create_ticket() {
         CreateTicket createTicket = TestData.getTestTicket(client);
         Ticket ticket = ticketService.createTicket(createTicket, user);
