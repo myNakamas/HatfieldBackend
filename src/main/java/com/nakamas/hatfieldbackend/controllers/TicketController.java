@@ -27,6 +27,11 @@ public class TicketController {
         return ticketService.getTicketView(ticketService.createTicket(ticket, user));
     }
 
+    @GetMapping("worker/autocomplete")
+    public List<String> getUsedTicketTasks(@AuthenticationPrincipal User user) {
+        return ticketService.getUsedTicketTasks(user);
+    }
+
     @GetMapping("byId")
     public TicketView getAllTickets(@RequestParam Long id) {
         return ticketService.getTicketView(id);

@@ -50,7 +50,8 @@ public class InvoiceController {
     }
 
     @GetMapping("all")
-    public Page<InvoiceView> getAllInvoices(InvoiceFilter invoiceFilter, PageRequestView pageRequestView) {
+    public Page<InvoiceView> getAllInvoices(InvoiceFilter invoiceFilter, PageRequestView pageRequestView, @AuthenticationPrincipal User loggedUser) {
+        if(!loggedUser.isAdmin()) invoiceFilter.setShopId(loggedUser.getShop().getId());
         return invoiceService.getAll(invoiceFilter, pageRequestView).map(InvoiceView::new);
     }
 

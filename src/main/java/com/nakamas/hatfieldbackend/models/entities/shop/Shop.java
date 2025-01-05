@@ -30,6 +30,8 @@ public class Shop extends AbstractPersistable<Long> {
     private String vatNumber;
     private String regNumber;
 
+    private String logoPath;
+
     @Embedded
     private ShopSettings settings;
     @Embedded
@@ -40,11 +42,6 @@ public class Shop extends AbstractPersistable<Long> {
 
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "shop")
     private List<Ticket> tickets = new ArrayList<>();
-
-//    @OneToMany(cascade = CascadeType.ALL,orphanRemoval = true)
-//    @JoinColumn(name="shop_id")
-//    private List<Sales> sales;
-
 
     public Shop(String shopName, String address, String phone, String email, ShopSettings settings) {
         this.shopName = shopName;

@@ -165,7 +165,7 @@ public class InventoryItemService {
         Long brandId = brand.getId();
         Model existingByName = modelRepository.findByName(modelValue, brandId);
         if (existingByName != null) {
-            if (!brand.getModels().contains(existingByName))
+            if (brand.getModels().stream().noneMatch((model)-> Objects.equals(model.getId(), existingByName.getId())))
                 brand.getModels().add(new Model(existingByName.getModel(), brandId));
             return existingByName;
         }

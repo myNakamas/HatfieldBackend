@@ -67,6 +67,9 @@ public class TicketService {
         loggerService.createLog(new Log(save.getId(), LogType.CREATED_TICKET), save.getId());
         return save;
     }
+    public List<String> getUsedTicketTasks(User loggedUser){
+        return ticketRepository.findAllTicketTasks(loggedUser.getShop().getId());
+    }
 
     private User getOrCreateTicketClient(CreateUser create, User loggedUser) {
         if (create == null || create.isClientUniqueInfoEmpty()) return null;

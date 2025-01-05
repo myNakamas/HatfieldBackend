@@ -23,4 +23,7 @@ public interface TicketRepository extends JpaRepository<Ticket, Long>, JpaSpecif
     join User creator on t.createdBy = creator
     where t.id = ?1""")
     TicketView getTicketView(Long id);
+
+    @Query("select DISTINCT t.deviceProblemExplanation from Ticket t where t.shop.id = ?1 and t.deviceProblemExplanation!=null and deviceProblemExplanation!=\"\"")
+    List<String> findAllTicketTasks(Long id);
 }

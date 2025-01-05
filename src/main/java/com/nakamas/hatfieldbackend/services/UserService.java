@@ -9,8 +9,10 @@ import com.nakamas.hatfieldbackend.models.enums.LogType;
 import com.nakamas.hatfieldbackend.models.enums.UserRole;
 import com.nakamas.hatfieldbackend.models.views.incoming.CreateUser;
 import com.nakamas.hatfieldbackend.models.views.incoming.filters.UserFilter;
+import com.nakamas.hatfieldbackend.models.views.outgoing.PageView;
 import com.nakamas.hatfieldbackend.models.views.outgoing.ResponseMessage;
 import com.nakamas.hatfieldbackend.models.views.outgoing.user.UserAndPhone;
+import com.nakamas.hatfieldbackend.models.views.outgoing.user.UserProfile;
 import com.nakamas.hatfieldbackend.repositories.ShopRepository;
 import com.nakamas.hatfieldbackend.repositories.UserRepository;
 import com.nakamas.hatfieldbackend.util.JwtUtil;
@@ -179,7 +181,7 @@ public class UserService implements UserDetailsService, UserDetailsPasswordServi
         return userRepository.findAll(filter);
     }
 
-    public Page<User> getAllClients(UserFilter filter, PageRequest pageRequest) {
+    public PageView<UserProfile> getAllClients(UserFilter filter, PageRequest pageRequest) {
         filter.setRoles(List.of(UserRole.CLIENT));
         return getFilteredUsers(filter, pageRequest);
     }
@@ -198,11 +200,13 @@ public class UserService implements UserDetailsService, UserDetailsPasswordServi
                         .anyMatch((phone) -> filterPhoneByValue(filter.getPhone(), phone)))
                 .toList();
     }
-    public Page<User> getFilteredUsers(UserFilter filter, PageRequest pageRequest) {
+    public PageView<UserProfile> getFilteredUsers(UserFilter filter, PageRequest pageRequest) {
         List<User> users = getFilteredUsers(filter);
         final int start = (int) pageRequest.getOffset();
         final int end = Math.min((start + pageRequest.getPageSize()), users.size());
-        return new PageImpl<>(users.subList(start, end), pageRequest, users.size());
+        Page<UserProfile> page = new PageImpl<>(users.subList(start, end), pageRequest, users.size()).map(UserProfile::new);
+
+        return new PageView<>(page);
     }
 
     public static boolean filterPhoneByValue(String phoneFilter, UserPhone phone) {

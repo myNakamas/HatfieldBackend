@@ -14,7 +14,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -68,8 +67,8 @@ public class UserController {
     }
 
     @GetMapping("worker/page")
-    public Page<UserProfile> getAllUsers(UserFilter filter, PageRequestView pageRequestView) {
-        return userService.getFilteredUsers(filter, pageRequestView.getPageRequest()).map(UserProfile::new);
+    public PageView<UserProfile> getAllUsers(UserFilter filter, PageRequestView pageRequestView) {
+        return userService.getFilteredUsers(filter, pageRequestView.getPageRequest());
     }
 
     @GetMapping("worker/all/workers")
@@ -92,7 +91,7 @@ public class UserController {
     @GetMapping("worker/all/clientsPages")
     public PageView<UserProfile> getAllClientsPages(@AuthenticationPrincipal User user, UserFilter filter, PageRequestView pageRequestView) {
         if (!user.getRole().equals(UserRole.ADMIN)) filter.setShopId(user.getShop().getId());
-        return new PageView<>(userService.getAllClients(filter, pageRequestView.getPageRequest()).map(UserProfile::new));
+        return userService.getAllClients(filter, pageRequestView.getPageRequest());
     }
 
     //do tuk :D

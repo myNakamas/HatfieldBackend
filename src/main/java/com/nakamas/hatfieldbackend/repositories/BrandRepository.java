@@ -13,6 +13,6 @@ public interface BrandRepository extends JpaRepository<Brand, Long> {
     @Query("select new com.nakamas.hatfieldbackend.models.views.outgoing.inventory.BrandView(b) from Brand b")
     List<BrandView> findAllBrands();
 
-    @Query("from Brand b where b.brand = ?1")
+    @Query("from Brand b where LOWER(b.brand) = LOWER(?1)")
     Brand findByName(String brandValue);
 }

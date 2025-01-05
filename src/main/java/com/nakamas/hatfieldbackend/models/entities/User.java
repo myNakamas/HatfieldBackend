@@ -146,4 +146,8 @@ public class User extends AbstractPersistable<UUID> implements UserDetails {
                 (email == null || email.isEmpty()) &&
                 (phones == null || phones.isEmpty());
     }
+
+    public boolean isAdmin() {
+        return this.role.equals(UserRole.ADMIN);
+    }
 }
