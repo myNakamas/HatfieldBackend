@@ -10,6 +10,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.springframework.data.jpa.domain.AbstractPersistable;
 
 import java.math.BigDecimal;
 import java.time.ZonedDateTime;
@@ -22,11 +23,7 @@ import java.util.Optional;
 @Table
 @Entity
 @NoArgsConstructor
-public class Ticket {
-    @Id
-    @SequenceGenerator(name = "ticket_sequence", sequenceName = "ticket_sequence", allocationSize = 1)
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "ticket_sequence" )
-    Long id;
+public class Ticket extends AbstractPersistable<Long> {
     @ManyToOne
     private Model deviceModel;
     @ManyToOne
