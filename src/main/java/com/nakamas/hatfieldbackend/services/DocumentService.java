@@ -321,7 +321,7 @@ public class DocumentService {
         contents.setFont(pdfFont, 11);
         contents.setFont(pdfFont, 11);
 
-        String id = String.format("%019d", invoice.getId());
+        String id = String.format("%010d", invoice.getId());
 
         drawText(contents, "Scan to verify", pageSize.getUpperRightX() - 150, pageSize.getUpperRightY() - 190);
         acroForm.getField("invoice_id").setValue(id);
