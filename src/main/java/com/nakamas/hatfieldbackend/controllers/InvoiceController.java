@@ -7,12 +7,12 @@ import com.nakamas.hatfieldbackend.models.enums.UserRole;
 import com.nakamas.hatfieldbackend.models.views.incoming.CreateInvoice;
 import com.nakamas.hatfieldbackend.models.views.incoming.PageRequestView;
 import com.nakamas.hatfieldbackend.models.views.incoming.filters.InvoiceFilter;
+import com.nakamas.hatfieldbackend.models.views.outgoing.PageView;
 import com.nakamas.hatfieldbackend.models.views.outgoing.reports.InvoiceReport;
 import com.nakamas.hatfieldbackend.models.views.outgoing.reports.SellReport;
 import com.nakamas.hatfieldbackend.models.views.outgoing.ticket.InvoiceView;
 import com.nakamas.hatfieldbackend.services.InvoicingService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -50,9 +50,9 @@ public class InvoiceController {
     }
 
     @GetMapping("all")
-    public Page<InvoiceView> getAllInvoices(InvoiceFilter invoiceFilter, PageRequestView pageRequestView, @AuthenticationPrincipal User loggedUser) {
+    public PageView<InvoiceView> getAllInvoices(InvoiceFilter invoiceFilter, PageRequestView pageRequestView, @AuthenticationPrincipal User loggedUser) {
         if(!loggedUser.isAdmin()) invoiceFilter.setShopId(loggedUser.getShop().getId());
-        return invoiceService.getAll(invoiceFilter, pageRequestView).map(InvoiceView::new);
+        return new PageView<>(invoiceService.getAll(invoiceFilter, pageRequestView).map(InvoiceView::new));
     }
 
     @GetMapping("report")
