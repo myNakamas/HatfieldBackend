@@ -1,5 +1,6 @@
 package com.nakamas.hatfieldbackend.models.entities.shop;
 
+import com.nakamas.hatfieldbackend.models.entities.Photo;
 import com.nakamas.hatfieldbackend.models.entities.User;
 import com.nakamas.hatfieldbackend.models.entities.ticket.Ticket;
 import com.nakamas.hatfieldbackend.models.views.incoming.CreateShop;
@@ -30,12 +31,13 @@ public class Shop extends AbstractPersistable<Long> {
     private String vatNumber;
     private String regNumber;
 
-    private String logoPath;
-
     @Embedded
     private ShopSettings settings;
     @Embedded
     private ShopPageTemplates templates;
+
+    @OneToOne(orphanRemoval = true, fetch = FetchType.LAZY)
+    private Photo image;
 
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "shop")
     private List<User> users = new ArrayList<>();
@@ -64,13 +66,21 @@ public class Shop extends AbstractPersistable<Long> {
     }
 
     public void update(CreateShop updateView) {
-        if (updateView.shopName() != null) this.shopName = updateView.shopName();
-        if (updateView.address() != null) this.address = updateView.address();
-        if (updateView.phone() != null) this.phone = updateView.phone();
-        if (updateView.email() != null) this.email = updateView.email();
-        if (updateView.vatNumber() != null) this.vatNumber = updateView.vatNumber();
-        if (updateView.regNumber() != null) this.regNumber = updateView.regNumber();
-        if (updateView.shopSettingsView() != null) this.settings.update(updateView.shopSettingsView());
-        if (updateView.templates() != null) this.templates.update(updateView.templates());
+        if (updateView.shopName() != null)
+            this.shopName = updateView.shopName();
+        if (updateView.address() != null)
+            this.address = updateView.address();
+        if (updateView.phone() != null)
+            this.phone = updateView.phone();
+        if (updateView.email() != null)
+            this.email = updateView.email();
+        if (updateView.vatNumber() != null)
+            this.vatNumber = updateView.vatNumber();
+        if (updateView.regNumber() != null)
+            this.regNumber = updateView.regNumber();
+        if (updateView.shopSettingsView() != null)
+            this.settings.update(updateView.shopSettingsView());
+        if (updateView.templates() != null)
+            this.templates.update(updateView.templates());
     }
 }

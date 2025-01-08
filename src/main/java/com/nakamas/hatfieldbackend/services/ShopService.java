@@ -2,6 +2,7 @@ package com.nakamas.hatfieldbackend.services;
 
 import com.nakamas.hatfieldbackend.config.exception.CustomException;
 import com.nakamas.hatfieldbackend.models.entities.Log;
+import com.nakamas.hatfieldbackend.models.entities.Photo;
 import com.nakamas.hatfieldbackend.models.entities.shop.Shop;
 import com.nakamas.hatfieldbackend.models.enums.LogType;
 import com.nakamas.hatfieldbackend.models.views.incoming.CreateShop;
@@ -9,12 +10,14 @@ import com.nakamas.hatfieldbackend.models.views.outgoing.shop.ShopSettingsView;
 import com.nakamas.hatfieldbackend.models.views.outgoing.shop.ShopView;
 import com.nakamas.hatfieldbackend.models.views.outgoing.shop.WorkerShopView;
 import com.nakamas.hatfieldbackend.repositories.ShopRepository;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -22,14 +25,19 @@ public class ShopService {
     private final ShopRepository shopRepository;
 
     private final LoggerService loggerService;
+    private final PhotoService photoService;
 
     public List<Shop> getAllShops() {
         return shopRepository.findAll();
     }
 
     public ShopSettingsView getShopSettings(Long shopId) {
-        Shop shop = shopRepository.findById(shopId).orElseThrow(() -> new CustomException("Cannot find settings"));
+        Shop shop = getShop(shopId);
         return new ShopSettingsView(shop.getSettings());
+    }
+
+    private Shop getShop(Long shopId) {
+        return shopRepository.findById(shopId).orElseThrow(() -> new CustomException("Cannot find shop"));
     }
 
     public ShopView getShopById(Long id) {
@@ -43,8 +51,7 @@ public class ShopService {
     }
 
     public Shop update(CreateShop updateView) {
-        Optional<Shop> byId = shopRepository.findById(updateView.id());
-        Shop shop = byId.orElseThrow(() -> new CustomException("Could not find shop with id '%s'".formatted(updateView.id())));
+        Shop shop = getShop(updateView.id());
         String updateInfo = loggerService.shopUpdateCheck(shop, updateView);
         shop.update(updateView);
         loggerService.createLog(new Log(LogType.UPDATED_SHOP), shop.getShopName(), updateInfo);
@@ -60,5 +67,18 @@ public class ShopService {
         return allWorkerShops;
     }
 
+    public void fillShopImageToResponse(Long shopId, HttpServletResponse response) {
+        Shop shop = getShop(shopId);
+        if(shop.getImage() == null ) return;
+        photoService.writeToResponse(response, shop.getImage());
+    }
 
+    @Transactional
+    public void updateShopImage(Long shopId, MultipartFile image) {
+        Shop shop = getShop(shopId);
+        Photo photo = photoService.saveShopImage(shopId, image);
+        shop.setImage(photo);
+        loggerService.createLog(new Log(LogType.UPDATED_SHOP), shop.getShopName(), "The shop photo was changed.");
+        shopRepository.save(shop);
+    }
 }

@@ -3,6 +3,7 @@ package com.nakamas.hatfieldbackend.services;
 import com.nakamas.hatfieldbackend.config.exception.CustomException;
 import com.nakamas.hatfieldbackend.models.entities.User;
 import com.nakamas.hatfieldbackend.models.entities.shop.InventoryItem;
+import com.nakamas.hatfieldbackend.models.entities.shop.Shop;
 import com.nakamas.hatfieldbackend.models.entities.shop.ShopSettings;
 import com.nakamas.hatfieldbackend.models.entities.ticket.Invoice;
 import com.nakamas.hatfieldbackend.models.entities.ticket.Ticket;
@@ -10,6 +11,7 @@ import com.nakamas.hatfieldbackend.models.views.outgoing.PdfAndImageDoc;
 import com.nakamas.hatfieldbackend.models.views.outgoing.shop.CategoryColumnView;
 import com.nakamas.hatfieldbackend.models.views.outgoing.shop.CategoryView;
 import com.nakamas.hatfieldbackend.repositories.InvoiceRepository;
+import com.nakamas.hatfieldbackend.repositories.ShopRepository;
 import jakarta.transaction.Transactional;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -20,6 +22,7 @@ import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.PDResources;
+import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.font.PDFont;
 import org.apache.pdfbox.pdmodel.font.PDType0Font;
 import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
@@ -45,6 +48,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -52,6 +56,7 @@ import java.util.List;
 public class DocumentService {
     private final ResourceLoader resourceLoader;
     private final InvoiceRepository invoiceRepository;
+    private final ShopRepository shopRepository;
     private final DateTimeFormatter dtf = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM);
     private final DateTimeFormatter shortDtf = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss");
     private final DateTimeFormatter invoiceFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
@@ -62,10 +67,11 @@ public class DocumentService {
     @Value(value = "${output-dir}")
     private String outputDir;
 
-    public DocumentService(ResourceLoader resourceLoader, InvoiceRepository invoiceRepository, InventoryItemService inventoryItemService) {
+    public DocumentService(ResourceLoader resourceLoader, InvoiceRepository invoiceRepository, ShopRepository shopRepository, InventoryItemService inventoryItemService) {
         this.resourceLoader = resourceLoader;
         this.invoiceRepository = invoiceRepository;
         this.fontResource = resourceLoader.getResource("classpath:templates/fonts/arial.ttf");
+        this.shopRepository = shopRepository;
         this.inventoryItemService = inventoryItemService;
     }
 
@@ -292,29 +298,41 @@ public class DocumentService {
 
     private void fillInvoiceTemplate(String qrContent, Invoice invoice, PDDocument document) throws IOException {
         PDFont pdfFont = PDType0Font.load(document, fontResource.getInputStream(), false);
+        Shop shop = invoice.getCreatedBy().getShop();
 
         PDAcroForm acroForm = document.getDocumentCatalog().getAcroForm();
         setUTF8Font(acroForm, pdfFont);
 
         PDPage page = document.getPage(0);
-        File code = QRCode.from(qrContent).withSize(170, 170).file();
-        PDImageXObject qrCode = PDImageXObject.createFromFileByContent(code, document);
+        PDRectangle pageSize = page.getMediaBox();
         PDPageContentStream contents = new PDPageContentStream(document, page, PDPageContentStream.AppendMode.APPEND, true, true);
-        contents.drawImage(qrCode, 360, 470, 170, 170);
+        File code = QRCode.from(qrContent).withSize(100,100).file();
+        PDImageXObject qrCode = PDImageXObject.createFromFileByContent(code, document);
+        contents.drawImage(qrCode, pageSize.getUpperRightX() - 200, pageSize.getUpperRightY() - 200, 170, 170);
+        Optional<String> shopImage = shopRepository.findShopImagePath(shop.getId());
+        if (shopImage.isPresent()) {
+            File image = Path.of(shopImage.get()).toFile();
+            PDImageXObject logo = PDImageXObject.createFromFileByContent(image, document);
+            contents.drawImage(logo, pageSize.getLowerLeftX() + 50, pageSize.getUpperRightY() - 150, 350, 100);
+        } else {
+            acroForm.getField("shop_name").setValue(shop.getShopName());
+        }
         contents.setLeading(6);
         contents.setFont(pdfFont, 11);
         contents.setFont(pdfFont, 11);
 
         String id = String.format("%019d", invoice.getId());
+
+        drawText(contents, "Scan to verify", pageSize.getUpperRightX() - 150, pageSize.getUpperRightY() - 190);
         acroForm.getField("invoice_id").setValue(id);
         acroForm.getField("invoice_date_time").setValue(invoiceFormatter.format(invoice.getTimestamp()));
         acroForm.getField("invoice_type").setValue(invoice.getType().toString());
         acroForm.getField("invoice_creator_name").setValue(invoice.getCreatedBy().getFullName());
 
-        acroForm.getField("shop_phone").setValue(invoice.getCreatedBy().getShop().getPhone());
-        acroForm.getField("shop_vat").setValue(invoice.getCreatedBy().getShop().getVatNumber());
-        acroForm.getField("shop_reg").setValue(invoice.getCreatedBy().getShop().getRegNumber());
-        acroForm.getField("shop_locations").setValue(invoice.getCreatedBy().getShop().getAddress());
+        acroForm.getField("shop_phone").setValue(shop.getPhone());
+        acroForm.getField("shop_vat").setValue(shop.getVatNumber());
+        acroForm.getField("shop_reg").setValue(shop.getRegNumber());
+        acroForm.getField("shop_locations").setValue(shop.getAddress());
 
         acroForm.getField("invoice_device_brand_model_name").setValue(invoice.getDeviceName());
         acroForm.getField("device_num_or_imei").setValue(invoice.getSerialNumber());
@@ -329,6 +347,14 @@ public class DocumentService {
         acroForm.getField("invoice_warranty").setValue(invoice.getWarrantyPeriod().toString());
 
         acroForm.flatten();
+        contents.close();
+    }
+
+    private void drawText(PDPageContentStream contents, String text, float x, float y) throws IOException {
+        contents.beginText();
+        contents.newLineAtOffset(x, y);
+        contents.showText(text);
+        contents.endText();
         contents.close();
     }
 

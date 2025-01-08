@@ -25,7 +25,8 @@ public class PhotoService {
     @Value(value = "${output-dir}")
     private String outputDir;
 
-    private static Path saveToDirectory(MultipartFile file, Path categorizedDirectory, String fileName) throws IOException {
+    private static Path saveToDirectory(MultipartFile file, Path categorizedDirectory, String fileName)
+            throws IOException {
         if (!Files.exists(categorizedDirectory)) {
             Files.createDirectories(categorizedDirectory);
         }
@@ -44,10 +45,15 @@ public class PhotoService {
         return Path.of(outputDir, "images", "pfp").toString();
     }
 
+    public String getShopImagesPath() {
+        return Path.of(outputDir, "images", "shop").toString();
+    }
+
     public void writeToResponse(HttpServletResponse response, Photo photo) {
         try {
             byte[] bytes = photo.getBytes();
-            if (bytes == null) throw new CustomException("Image is missing");
+            if (bytes == null)
+                throw new CustomException("Image is missing");
             InputStream image = new ByteArrayInputStream(bytes);
             image.transferTo(response.getOutputStream());
         } catch (IOException e) {
@@ -61,6 +67,10 @@ public class PhotoService {
 
     public Photo saveProfileImage(String username, MultipartFile file) {
         return savePhoto(Paths.get(getPfpImagesPath(), username), file, file.getOriginalFilename());
+    }
+
+    public Photo saveShopImage(Long shopId, MultipartFile file) {
+        return savePhoto(Paths.get(getShopImagesPath(), shopId.toString()), file, file.getOriginalFilename());
     }
 
     public Photo saveChatImage(String fullName, Long ticketId, MultipartFile file) {

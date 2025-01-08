@@ -6,9 +6,13 @@ import com.nakamas.hatfieldbackend.models.views.outgoing.shop.ShopSettingsView;
 import com.nakamas.hatfieldbackend.models.views.outgoing.shop.ShopView;
 import com.nakamas.hatfieldbackend.models.views.outgoing.shop.WorkerShopView;
 import com.nakamas.hatfieldbackend.services.ShopService;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -32,6 +36,16 @@ public class ShopController {
         return shopView;
     }
 
+    @GetMapping(path = "/image", produces = { MediaType.IMAGE_JPEG_VALUE })
+    public void getShopImage(@RequestParam Long shopId, @Autowired HttpServletResponse response) {
+        shopService.fillShopImageToResponse(shopId, response);
+    }
+
+    @PutMapping("/admin/image")
+    public void updateShopImage(@RequestParam Long shopId, @RequestBody MultipartFile image) {
+        shopService.updateShopImage(shopId, image);
+    }
+
     @GetMapping("admin/all")
     public List<ShopView> getAllShops() {
         return shopService.getAllShops().stream().map(ShopView::new).collect(Collectors.toList());
@@ -46,6 +60,7 @@ public class ShopController {
     public ShopView getShopsById(@RequestParam Long shopId) {
         return shopService.getShopById(shopId);
     }
+
     @PostMapping("admin/create")
     public ShopView createNewShop(@RequestBody CreateShop createView) {
         return new ShopView(shopService.create(createView));
