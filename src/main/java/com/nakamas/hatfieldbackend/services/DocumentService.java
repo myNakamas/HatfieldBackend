@@ -308,12 +308,12 @@ public class DocumentService {
         PDPageContentStream contents = new PDPageContentStream(document, page, PDPageContentStream.AppendMode.APPEND, true, true);
         File code = QRCode.from(qrContent).withSize(100,100).file();
         PDImageXObject qrCode = PDImageXObject.createFromFileByContent(code, document);
-        contents.drawImage(qrCode, pageSize.getUpperRightX() - 200, pageSize.getUpperRightY() - 200, 170, 170);
+        contents.drawImage(qrCode, pageSize.getUpperRightX() - 200, pageSize.getUpperRightY() - 175, 170, 170);
         Optional<String> shopImage = shopRepository.findShopImagePath(shop.getId());
         if (shopImage.isPresent()) {
             File image = Path.of(shopImage.get()).toFile();
             PDImageXObject logo = PDImageXObject.createFromFileByContent(image, document);
-            contents.drawImage(logo, pageSize.getLowerLeftX() + 50, pageSize.getUpperRightY() - 150, 350, 100);
+            contents.drawImage(logo, pageSize.getLowerLeftX() + 50, pageSize.getUpperRightY() - 125, 350, 100);
         } else {
             acroForm.getField("shop_name").setValue(shop.getShopName());
         }
@@ -323,7 +323,7 @@ public class DocumentService {
 
         String id = String.format("%010d", invoice.getId());
 
-        drawText(contents, "Scan to verify", pageSize.getUpperRightX() - 150, pageSize.getUpperRightY() - 190);
+        drawText(contents, "Scan to verify", pageSize.getUpperRightX() - 150, pageSize.getUpperRightY() - 155);
         acroForm.getField("invoice_id").setValue(id);
         acroForm.getField("invoice_date_time").setValue(invoiceFormatter.format(invoice.getTimestamp()));
         acroForm.getField("invoice_type").setValue(invoice.getType().toString());
@@ -338,7 +338,7 @@ public class DocumentService {
         acroForm.getField("device_num_or_imei").setValue(invoice.getSerialNumber());
         acroForm.getField("device_count").setValue(invoice.getCount().toString());
         acroForm.getField("device_price").setValue(invoice.getTotalPrice().toString());
-        acroForm.getField("invoice_note").setValue("Notes : " + (invoice.getNotes() != null ? invoice.getNotes() : "None"));
+        acroForm.getField("invoice_note").setValue(invoice.getNotes() != null ? invoice.getNotes() : "None");
 
         acroForm.getField("invoice_payment_method").setValue(invoice.getPaymentMethod().toString());
         acroForm.getField("invoice_80").setValue(String.format("%.2f", (invoice.getTotalPrice().doubleValue() / 100) * 80));
