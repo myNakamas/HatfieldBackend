@@ -43,7 +43,7 @@ public class TicketFilter implements Specification<Ticket> {
         if (ticketId != null)
             return builder.equal(ticket.get("id"), ticketId);
         if (modelId != null)
-                predicates.add(builder.equal(ticket.get("deviceModel").get("id"), modelId));
+            predicates.add(builder.equal(ticket.get("deviceModel").get("id"), modelId));
         if (brandId != null)
             predicates.add(builder.equal(ticket.get("deviceBrand").get("id"), brandId));
         if (deviceLocation != null)
