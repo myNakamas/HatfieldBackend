@@ -9,6 +9,7 @@ import com.nakamas.hatfieldbackend.models.views.incoming.CreateShop;
 import com.nakamas.hatfieldbackend.models.views.outgoing.shop.ShopSettingsView;
 import com.nakamas.hatfieldbackend.models.views.outgoing.shop.ShopView;
 import com.nakamas.hatfieldbackend.models.views.outgoing.shop.WorkerShopView;
+import com.nakamas.hatfieldbackend.repositories.BrandRepository;
 import com.nakamas.hatfieldbackend.repositories.ShopRepository;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
@@ -23,6 +24,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ShopService {
     private final ShopRepository shopRepository;
+    private final BrandRepository brandRepository;
 
     private final LoggerService loggerService;
     private final PhotoService photoService;
