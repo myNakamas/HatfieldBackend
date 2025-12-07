@@ -2,14 +2,13 @@ package com.nakamas.hatfieldbackend.controllers;
 
 import com.nakamas.hatfieldbackend.config.exception.CustomException;
 import com.nakamas.hatfieldbackend.models.views.outgoing.ResponseMessage;
+import com.nakamas.hatfieldbackend.models.views.outgoing.shop.ShopView;
+import com.nakamas.hatfieldbackend.services.ShopService;
 import com.nakamas.hatfieldbackend.services.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -19,6 +18,7 @@ import java.util.Map;
 @RequestMapping("api/public")
 public class PublicController {
     private final UserService userService;
+    private final ShopService shopService;
     private final Map<String, Integer> requestMap = new HashMap<>();
 
     @PostMapping("forgot-password")
@@ -27,6 +27,11 @@ public class PublicController {
         ResponseMessage responseMessage = userService.forgotPassword(username);
         requestMap.put(request.getRemoteAddr(), requestCount + 1);
         return responseMessage;
+    }
+
+    @GetMapping("/shop")
+    public ShopView getShopPublicData(@RequestParam(name = "shopName") String name){
+        return shopService.getShopByName(name);
     }
 
     private int limitUserRequestsByIp(HttpServletRequest request) {

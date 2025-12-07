@@ -81,4 +81,8 @@ public class ShopService {
         loggerService.createLog(new Log(LogType.UPDATED_SHOP), shop.getShopName(), "The shop photo was changed.");
         shopRepository.save(shop);
     }
+
+    public ShopView getShopByName(String name) {
+        return new ShopView(shopRepository.findByName(name));
+    }
 }
