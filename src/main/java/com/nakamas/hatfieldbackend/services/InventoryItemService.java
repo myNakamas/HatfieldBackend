@@ -19,6 +19,7 @@ import com.nakamas.hatfieldbackend.models.views.outgoing.shop.CategoryView;
 import com.nakamas.hatfieldbackend.repositories.*;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
@@ -30,6 +31,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class InventoryItemService {
@@ -46,7 +48,7 @@ public class InventoryItemService {
     public InventoryItem createInventoryItem(CreateInventoryItem inventoryItem) {
         Brand brand = getOrCreateBrand(inventoryItem.brandId(), inventoryItem.brand());
         Model model = getOrCreateModel(inventoryItem.modelId(), inventoryItem.model(), brand);
-        if (brand !=null && !brand.getModels().contains(model)) brand.getModels().add(model);
+        if (brand != null && !brand.getModels().contains(model)) brand.getModels().add(model);
         Optional<Category> category = Optional.empty();
         if (inventoryItem.categoryId() != null) {
             category = categoryRepository.findById(inventoryItem.categoryId());
@@ -163,11 +165,14 @@ public class InventoryItemService {
     public Model getOrCreateModel(String modelValue, Brand brand) {
         if (modelValue == null || modelValue.isBlank() || brand == null) return null;
         Long brandId = brand.getId();
-        Model existingByName = modelRepository.findByName(modelValue, brandId);
-        if (existingByName != null) {
-            if (brand.getModels().stream().noneMatch((model)-> Objects.equals(model.getId(), existingByName.getId())))
-                brand.getModels().add(new Model(existingByName.getModel(), brandId));
-            return existingByName;
+        List<Model> existingByName = modelRepository.findByName(modelValue, brandId);
+        if (!existingByName.isEmpty()) {
+            if (existingByName.size() > 1)
+                log.warn("Duplicate models " + existingByName.stream().map(e -> "{%s,%s}".formatted(e.getId(), e.getModel())).collect(Collectors.joining(", ")));
+            Model existing = existingByName.get(0);
+            if (brand.getModels().stream().noneMatch((model) -> Objects.equals(model.getId(), existing.getId())))
+                brand.getModels().add(new Model(existing.getModel(), brandId));
+            return existing;
         }
         Model save = modelRepository.save(new Model(modelValue, brandId));
         brand.getModels().add(save);
@@ -182,8 +187,10 @@ public class InventoryItemService {
 
     public Brand getOrCreateBrand(String brandValue) {
         if (brandValue == null || brandValue.isBlank()) return null;
-        Brand existingByName = brandRepository.findByName(brandValue);
-        if (existingByName != null) return existingByName;
+        List<Brand> existingByName = brandRepository.findByName(brandValue);
+        if (existingByName.size() > 1)
+            log.warn("Duplicate models " + existingByName.stream().map(e -> "{%s,%s}".formatted(e.getId(), e.getBrand())).collect(Collectors.joining(", ")));
+        if (!existingByName.isEmpty()) return existingByName.get(0);
         return brandRepository.save(new Brand(brandValue));
     }
 
