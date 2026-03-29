@@ -17,5 +17,5 @@ public interface ModelRepository extends JpaRepository<Model, Long> {
     @Query("select m " +
             "from Model m " +
             "where LOWER(m.model) like LOWER(?1)  and m.brandId = ?2")
-    Model findByName(String name, Long brandId);
+    List<Model> findByName(String name, Long brandId);
 }

@@ -14,5 +14,5 @@ public interface BrandRepository extends JpaRepository<Brand, Long> {
     List<BrandView> findAllBrands();
 
     @Query("from Brand b where LOWER(b.brand) = LOWER(?1)")
-    Brand findByName(String brandValue);
+    List<Brand> findByName(String brandValue);
 }

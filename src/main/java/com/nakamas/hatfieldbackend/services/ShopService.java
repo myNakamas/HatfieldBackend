@@ -9,6 +9,7 @@ import com.nakamas.hatfieldbackend.models.views.incoming.CreateShop;
 import com.nakamas.hatfieldbackend.models.views.outgoing.shop.ShopSettingsView;
 import com.nakamas.hatfieldbackend.models.views.outgoing.shop.ShopView;
 import com.nakamas.hatfieldbackend.models.views.outgoing.shop.WorkerShopView;
+import com.nakamas.hatfieldbackend.repositories.BrandRepository;
 import com.nakamas.hatfieldbackend.repositories.ShopRepository;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
@@ -23,6 +24,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ShopService {
     private final ShopRepository shopRepository;
+    private final BrandRepository brandRepository;
 
     private final LoggerService loggerService;
     private final PhotoService photoService;
@@ -80,5 +82,9 @@ public class ShopService {
         shop.setImage(photo);
         loggerService.createLog(new Log(LogType.UPDATED_SHOP), shop.getShopName(), "The shop photo was changed.");
         shopRepository.save(shop);
+    }
+
+    public ShopView getShopByName(String name) {
+        return new ShopView(shopRepository.findByName(name));
     }
 }

@@ -15,9 +15,10 @@ import lombok.Setter;
 public class ShopPageTemplatesView {
     @Column(columnDefinition = "text")
     private String aboutPage;
+    private String templateName;
 
     public ShopPageTemplatesView(ShopPageTemplates templates) {
-        this(templates != null ? templates.getAboutPage() : "");
+        this(templates != null ? templates.getAboutPage() : "", ShopPageTemplates.WELWYNHATFIELD);
     }
 
     public void fillTemplates(Shop shop) {
@@ -31,4 +32,11 @@ public class ShopPageTemplatesView {
         return aboutPage;
     }
 
+    public String getTemplateName() {
+        return templateName;
+    }
+
+    public void setTemplateName(String templateName) {
+        this.templateName = templateName;
+    }
 }
