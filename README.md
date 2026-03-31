@@ -15,6 +15,7 @@ The system provides:
 - Chat system using Spring Websocket,
 - Exporting PDFs using the collected data,
 - User Logs and statistics.
+- Invoicing
 
 ## Tech stack
 
